@@ -57,9 +57,16 @@ func _t(key: String) -> String:
 	return str(_strings.get(key, "<%s>" % key))
 
 
-## 이 밤에 클립보드에 붙어 있는 수칙만 본다.
+## 이 밤에 클립보드에 붙어 있는 수칙 전부 (밤 전체 관점). 보고서용이다.
 func _visible() -> Array[Rule]:
 	return _engine.visible_rules(_night)
+
+
+## **솔버가 실제로 읽을 수 있는 것.** 근무 중에 붙는 줄은 그 전에는 안 보인다 (밤 5).
+## 여기서 밤 전체 목록을 쓰면 솔버가 아직 없는 줄을 따르게 되고, 감사 결과가
+## 실제 플레이보다 나쁘게 나온다 — 없는 함정에 걸린 것으로 세게 된다.
+func _readable(ctx: JudgeContext) -> Array[Rule]:
+	return _engine.visible_rules(_night, ctx.shift_minutes)
 
 
 ## 두 수칙이 같은 상황에서 서로 다른 판정을 요구하는가.
@@ -144,7 +151,7 @@ func _report_hand_correlation() -> void:
 
 ## 클립보드를 전부 참으로 믿고, 모순이 나면 위에 적힌 수칙을 따른다.
 func _naive_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _visible():
+	for rule in _readable(ctx):
 		if rule.matches(ctx):
 			return rule.verdict()
 	return Verdict.serve()
@@ -152,7 +159,7 @@ func _naive_verdict(ctx: JudgeContext) -> Verdict:
 
 ## 모순에 연루된 수칙은 믿을 수 없다고 보고 전부 버린다.
 func _skeptical_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _visible():
+	for rule in _readable(ctx):
 		if not rule.matches(ctx):
 			continue
 		if _conflicting_partners(rule).is_empty():
@@ -166,7 +173,7 @@ func _skeptical_verdict(ctx: JudgeContext) -> Verdict:
 ## 이 솔버가 그 착시를 걷어낸다.
 func _override_verdict(ctx: JudgeContext) -> Verdict:
 	var chosen: Verdict = Verdict.serve()
-	for rule in _visible():
+	for rule in _readable(ctx):
 		if rule.matches(ctx):
 			chosen = rule.verdict()
 	return chosen

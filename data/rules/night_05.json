@@ -1,0 +1,26 @@
+{
+  "_comment": "밤 5. **근무 중에 수칙이 하나 늘어난다.** 새벽 두 시, 클립보드에 없던 줄이 생겨 있다.",
+  "_comment_why": "밤 1~4의 단서는 전부 '밤이 시작될 때 클립보드에 뭐가 적혀 있나'를 읽는 것이었다. 밤 5는 그 전제를 깬다 — 다 읽었다고 생각한 순간 한 줄이 더 붙는다. 손님을 응대하는 도중에 종이 소리가 나는 것이 이 밤의 연출이다.",
+  "_comment_fairness": "새 줄은 붙기 **전에는 평가에도 들어가지 않는다** (Rule.arrives_at_minute, RuleEngine.applicable_rules). 없던 줄로 판정해서 죽이면 공정성 불변식 1이 정면으로 깨진다. tests/test_fairness.gd 의 불변식 1c 가 이걸 감시한다.",
+  "rules": [
+    {
+      "id": "rule_just_let_them_through",
+      "text_key": "rule.just_let_them_through",
+      "veracity": "false",
+      "tell_key": "tell.just_let_them_through",
+      "hand": "later",
+      "conditions": [],
+      "required_verdict": "serve",
+      "introduced_night": 5,
+      "arrives_at_minute": 240,
+      "conflicts_with": [
+        "rule_no_shadow",
+        "rule_two_shadows",
+        "rule_no_face",
+        "rule_no_sales_after_4am"
+      ]
+    }
+  ],
+  "_comment_conditions": "조건이 하나도 없다 = 모든 손님에게 발동한다. 다만 02:00에 붙으므로 실질 범위는 새벽 이후다. 조건으로 시간을 적지 않은 이유: 이 줄을 쓴 자는 규칙을 쓰는 게 아니라 **재촉하고 있다.**",
+  "_comment_reading": "「이제부터는」은 앞의 것을 전부 덮는다는 뜻으로 읽힌다. 밤 2의 여섯, 밤 4의 아홉과 같은 독법을 노리지만 이번엔 눈앞에서 붙는다 — 방금 붙은 줄이 가장 최신이라는 감각이 그 독법을 강화한다."
+}

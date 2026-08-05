@@ -1,0 +1,242 @@
+{
+  "_comment": "밤 5 손님 11명. 43분 간격. 여섯째 손님과 일곱째 손님 사이(02:00)에 열째 수칙이 붙는다.",
+  "_comment_design": "앞 여섯 명은 밤 4까지의 문법 그대로다 — 새 줄이 붙기 전에 플레이어가 '다 읽었다'고 믿게 만드는 구간이다. 붙은 뒤 다섯 명에서 전환된 둘·여섯·셋·여덟이 차례로 물고, 새로 붙은 열은 「이제부터는」이라는 말로 앞의 전부를 덮는 것처럼 읽힌다.",
+  "customers": [
+    {
+      "id": "cust_n5_first",
+      "name_key": "customer.n5_first",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n5_first_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n5_cap",
+      "name_key": "customer.n5_cap",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n5_cap_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_n5_window",
+      "name_key": "customer.n5_window",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n5_window_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n5_wet_bag",
+      "name_key": "customer.n5_wet_bag",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.n5_wet_bag_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n5_regular_beer",
+      "name_key": "customer.n5_regular_beer",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.n5_regular_beer_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n5_turned",
+      "name_key": "customer.n5_turned",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.n5_turned_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "_comment": "열째 수칙이 붙은 직후. 열은 응대하라 하고 하나는 거부하라 한다. 참인 것은 하나다.",
+      "id": "cust_n5_counter_starer",
+      "name_key": "customer.n5_counter_starer",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n5_counter_starer_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "no_shadow"
+    },
+    {
+      "_comment": "전환된 둘이 여전히 문다. 열도 응대하라 하는데, 이번엔 열이 맞는 답과 우연히 같다.",
+      "id": "cust_n5_dawn_drinker",
+      "name_key": "customer.n5_dawn_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.n5_dawn_drinker_1"
+      ],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "_comment": "여섯·아홉·열 셋 다 응대하라 한다. 참인 일곱만 거부하라 한다.",
+      "id": "cust_n5_hooded_regular",
+      "name_key": "customer.n5_hooded_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n5_hooded_regular_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "_comment": "네 시가 지났다. 여섯과 열은 응대하라 하고, 참인 여덟은 거부하라 한다.",
+      "id": "cust_n5_dawn_regular",
+      "name_key": "customer.n5_dawn_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n5_dawn_regular_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "셋과 열은 응대하라 한다. 여덟이 참이다.",
+      "id": "cust_n5_last_wet",
+      "name_key": "customer.n5_last_wet",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.n5_last_wet_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    }
+  ]
+}

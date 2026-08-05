@@ -31,6 +31,7 @@ signal rule_added
 ## 플레이어가 수칙 하나를 그었다/지웠다. **믿음일 뿐이고 판정에는 영향이 없다.**
 signal strike_toggled(rule_id: String)
 
+var _scroll: ScrollContainer = null
 var _list: VBoxContainer = null
 var _strings: Dictionary = {}
 var _shown_ids: PackedStringArray = []
@@ -56,16 +57,16 @@ func _build() -> void:
 
 	# 스크롤이 있어야 수칙이 늘어나도 화면이 안 무너진다 (F-05).
 	# 부수 효과가 더 중요하다 — 최소 높이가 작아져서 결과 패널이 들어갈 자리가 난다.
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size = Vector2(0, MIN_LIST_HEIGHT)
-	box.add_child(scroll)
+	_scroll = ScrollContainer.new()
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.custom_minimum_size = Vector2(0, MIN_LIST_HEIGHT)
+	box.add_child(_scroll)
 
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", RULE_SEPARATION)
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_list)
+	_scroll.add_child(_list)
 
 
 func set_strings(strings: Dictionary) -> void:
@@ -85,7 +86,11 @@ func _divider() -> ColorRect:
 
 
 ## 새 수칙만 골라 끼워 넣는다. 이미 붙어 있던 줄은 다시 애니메이션하지 않는다.
-func show_rules(rules: Array[Rule]) -> void:
+##
+## `reveal`이면 새로 붙은 줄까지 스크롤을 내린다 — **근무 중에 붙는 줄(밤 5)은
+## 목록 맨 아래에 생기므로 그냥 두면 화면 밖이다.** 종이 소리만 나고 화면은 그대로면
+## 그건 연출이 아니라 버그로 읽힌다. 밤 시작에는 내리지 않는다 (첫째 줄부터 읽어야 한다).
+func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
 	var added := 0
 	for rule in rules:
 		if _shown_ids.has(rule.id):
@@ -96,8 +101,25 @@ func show_rules(rules: Array[Rule]) -> void:
 		_rows[rule.id] = row
 		Juice.fade_in(row, RISE_DURATION, added * STAGGER)
 		added += 1
-	if added > 0:
-		rule_added.emit()
+	if added == 0:
+		return
+	rule_added.emit()
+	if reveal:
+		_scroll_to_new_rule()
+
+
+## 새 줄은 항상 목록 맨 아래에 붙으므로 **끝까지 내린다.**
+##
+## `ensure_control_visible`을 먼저 썼는데 움직이지 않았다. 줄바꿈이 있는 라벨은
+## 한 프레임으로는 최종 높이가 안 나오고, 그 상태로 계산하면 이미 보이는 것으로 친다.
+## 두 프레임 기다린 뒤 스크롤 최대치로 보내는 쪽이 단순하고 확실하다.
+func _scroll_to_new_rule() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if _scroll == null:
+		return
+	var bar := _scroll.get_v_scroll_bar()
+	_scroll.scroll_vertical = int(bar.max_value)
 
 
 func _make_row(rule: Rule, index: int) -> PanelContainer:

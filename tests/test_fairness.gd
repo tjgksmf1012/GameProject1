@@ -1,6 +1,8 @@
 extends RefCounted
 
-## 04-functional-spec.md F-01의 **공정성 불변식 4개**를 자동 검증한다.
+## 04-functional-spec.md F-01의 **공정성 불변식**을 자동 검증한다.
+##
+## 현지화 검사는 `test_strings.gd`로 뗐다 — 공정성이 아니고, 한 파일이 300줄에 닿았다.
 ##
 ## 이 게임의 생사는 "속았다"와 "알아챌 수 있었는데 놓쳤다"의 차이에 달려 있다.
 ## 그 차이를 지키는 게 이 파일이다. 05-prioritization.md §4에서 **절대 자르지 않는 항목**으로 지정돼 있다.
@@ -9,22 +11,9 @@ const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 
 const DETERMINISM_REPEATS := 20
 
-## prototype.gd 가 `_t()`로 찾는 키 전부. 없으면 화면에 `<key>`가 그대로 뜬다.
-const UI_KEYS := [
-	"ui.clipboard_header", "ui.customer_header", "ui.observation_header",
-	"ui.serve", "ui.refuse", "ui.next", "ui.restart",
-	"ui.night", "ui.time", "ui.progress", "ui.yes", "ui.no", "ui.log_saved",
-	"result.correct", "result.wrong", "result.trap", "result.trap_grace",
-	"result.expected", "result.missed_header",
-	"night.cleared", "night.failed", "night.summary",
-	"ui.cctv_header", "cctv.counter", "cctv.aisle", "cctv.storage", "cctv.entrance",
-	"ui.scan_header", "ui.receipt_header", "ui.receipt_empty", "ui.total", "ui.id_check",
-]
-
 var _rules: Array[Rule] = []
 var _customers: Array[Customer] = []
 var _engine: RuleEngine = null
-var _strings: Dictionary = {}
 
 
 func run(r: RefCounted) -> void:
@@ -32,17 +21,15 @@ func run(r: RefCounted) -> void:
 	_rules = GameData.load_rules()
 	_customers = GameData.load_customers()
 	_engine = RuleEngine.new(_rules)
-	_strings = GameData.load_strings()
 	_invariant_1_all_clues_observable(r)
 	_invariant_1b_every_trait_is_drawn_somewhere(r)
+	_invariant_1c_late_rules_do_not_judge_the_past(r)
 	_invariant_2_lies_leave_a_tell(r)
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
 	_invariant_2c_hand_must_not_solve_it(r)
 	_invariant_2d_manager_hand_must_not_be_free(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
-	_strings_are_externalized(r)
-	_locales_have_identical_keys(r)
 
 
 ## 불변식 1 — 판정에 필요한 모든 단서는 판정 시점에 화면에 존재한다. 숨겨진 스탯 금지.
@@ -79,6 +66,37 @@ func _invariant_1b_every_trait_is_drawn_somewhere(r: RefCounted) -> void:
 			r.check(drawn_on_counter or drawn_on_monitor,
 				"불변식1b: 손님 %s의 '%s'가 카운터에도 CCTV에도 그려지지 않는다"
 					% [customer.id, name])
+
+
+## 불변식 1c — **근무 중에 붙은 수칙은 붙기 전의 손님을 판정하지 않는다** (밤 5).
+##
+## 불변식 1의 시간축 버전이다. 02:00에 붙은 줄로 23:00의 손님을 판정하면,
+## 판정 시점에 화면에 없던 것으로 죽이는 셈이다. 그건 퍼즐이 아니라 사기다.
+##
+## 클립보드에 보이는 것과 평가에 들어가는 것이 **같아야** 한다는 검사이기도 하다.
+## 둘이 어긋나면 플레이어는 자기가 못 본 줄 때문에 죽는다.
+func _invariant_1c_late_rules_do_not_judge_the_past(r: RefCounted) -> void:
+	var plan := NightPlan.load()
+	var checked := 0
+	for night in plan.nights():
+		var customers := plan.customers_for(night)
+		for i in customers.size():
+			var minutes := NightSession.arrival_minutes(i, customers.size())
+			var ctx := JudgeContext.new(night, minutes, customers[i])
+			var on_clipboard := _engine.visible_rules(night, minutes)
+			for rule in _engine.applicable_rules(ctx):
+				r.check(on_clipboard.has(rule),
+					"불변식1c: %d일째 밤 %s를 판정하는 데 클립보드에 없는 수칙 %s가 쓰였다"
+						% [night, customers[i].id, rule.id])
+			for rule in _rules:
+				if not rule.arrives_mid_shift() or minutes >= rule.arrives_at_minute:
+					continue
+				checked += 1
+				r.check(not _engine.applicable_rules(ctx).has(rule),
+					"불변식1c: %s는 %s에 아직 붙지도 않았는데 %s 판정에 끼어들었다"
+						% [rule.id, ShiftClock.to_display(rule.arrives_at_minute), customers[i].id])
+	r.check(checked > 0,
+		"불변식1c: 근무 중에 붙는 수칙이 하나도 없다 — 이 검사가 아무것도 검사하지 않았다")
 
 
 ## 불변식 2 — 거짓 수칙은 반드시 사전에 반증 가능한 단서를 남긴다.
@@ -221,47 +239,3 @@ func _invariant_4_judgement_is_deterministic(r: RefCounted) -> void:
 				"불변식4: %s 판정이 반복 실행에서 흔들린다" % customer.id)
 			r.equals(again.expected_ids(), baseline.expected_ids(),
 				"불변식4: %s의 기대 판정이 반복 실행에서 흔들린다" % customer.id)
-
-
-## F-10 — 하드코딩된 표시 문자열 0개. 모든 키가 실제로 존재하는지 본다.
-func _strings_are_externalized(r: RefCounted) -> void:
-	r.check(_strings.has(RuleEngine.CLUE_NO_RULE_APPLIED),
-		"문자열 키 없음: %s" % RuleEngine.CLUE_NO_RULE_APPLIED)
-	for key in UI_KEYS:
-		r.check(_strings.has(key), "문자열 키 없음: %s" % key)
-	for rule in _rules:
-		r.check(_strings.has(rule.text_key), "문자열 키 없음: %s" % rule.text_key)
-		if rule.tell_key != "":
-			r.check(_strings.has(rule.tell_key), "문자열 키 없음: %s" % rule.tell_key)
-	for customer in _customers:
-		r.check(_strings.has(customer.name_key), "문자열 키 없음: %s" % customer.name_key)
-		for key in customer.item_keys:
-			r.check(_strings.has(key), "문자열 키 없음: %s" % key)
-		for key in customer.dialogue_keys:
-			r.check(_strings.has(key), "문자열 키 없음: %s" % key)
-		for name in customer.trait_names():
-			r.check(_strings.has("trait." + name), "문자열 키 없음: trait.%s" % name)
-
-
-## F-10 — 로케일마다 키가 하나라도 어긋나면 그 언어에서는 화면에 `<key>`가 그대로 뜬다.
-## 번역 누락을 출시 후에 발견하면 늦다.
-func _locales_have_identical_keys(r: RefCounted) -> void:
-	var reference := GameData.DEFAULT_LOCALE
-	var base := _content_keys(GameData.load_strings(reference))
-	for locale in GameData.locales():
-		if locale == reference:
-			continue
-		var other := _content_keys(GameData.load_strings(locale))
-		for key in base:
-			r.check(other.has(key), "F-10: '%s' 로케일에 키가 없다: %s" % [locale, key])
-		for key in other:
-			r.check(base.has(key), "F-10: '%s'에만 있는 키다: %s" % [locale, key])
-
-
-## `_`로 시작하는 키는 주석이므로 번역 대상이 아니다.
-static func _content_keys(strings: Dictionary) -> PackedStringArray:
-	var out := PackedStringArray()
-	for key in strings:
-		if not str(key).begins_with("_"):
-			out.append(str(key))
-	return out

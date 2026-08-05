@@ -28,19 +28,23 @@ func rules() -> Array[Rule]:
 
 
 ## 이 밤에 클립보드에 붙어 있는 수칙 전부 (조건 일치 여부와 무관).
-func visible_rules(night: int) -> Array[Rule]:
+## `shift_minutes`를 넘기면 **그 시점에 실제로 붙어 있는 것만** 돌려준다 —
+## 근무 중에 써넣은 줄은 그 전에 안 보인다.
+func visible_rules(night: int, shift_minutes: int = Rule.ANY_TIME) -> Array[Rule]:
 	var out: Array[Rule] = []
 	for r in _rules:
-		if r.is_active_at(night):
+		if r.is_active_at(night, shift_minutes):
 			out.append(r)
 	return out
 
 
 ## 지금 이 손님에게 실제로 발동하는 수칙 전부. 참·거짓을 가리지 않는다.
+## **판정 시점의 분을 반드시 넘긴다.** 아직 써지지도 않은 줄로 판정하면
+## 공정성 불변식 1이 깨진다 — 화면에 없던 것으로 죽이는 셈이다.
 func applicable_rules(ctx: JudgeContext) -> Array[Rule]:
 	var out: Array[Rule] = []
 	for r in _rules:
-		if r.is_active_at(ctx.night) and r.matches(ctx):
+		if r.is_active_at(ctx.night, ctx.shift_minutes) and r.matches(ctx):
 			out.append(r)
 	return out
 

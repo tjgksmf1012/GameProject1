@@ -14,6 +14,8 @@ const VERACITY_FALSE := "false"
 const VERACITY_DECAYING := "decaying"
 
 const NO_DECAY := -1
+## `is_active_at`에 시각을 안 넘겼다는 표시. "밤 전체" 관점을 뜻한다.
+const ANY_TIME := -1
 
 ## 누가 썼는가. `veracity`와 **별개의 개념**이다.
 ## 지금은 거짓 수칙이 전부 `later`지만, 나중 밤에는 참 수칙을 남의 필체로 써서
@@ -27,6 +29,10 @@ var veracity: String = VERACITY_TRUE
 var conditions: Array[Condition] = []
 var required_verdict: String = Verdict.SERVE
 var introduced_night: int = 1
+## 근무 시작(22:00) 기준 몇 분 뒤에 클립보드에 붙는가. 0이면 밤 시작부터 있다.
+## **0이 아니면 근무 중에 누군가 써넣은 줄이다.** 그 전에 판정한 손님에게는
+## 존재하지 않았으므로 평가에도 들어가면 안 된다 (공정성 불변식 1).
+var arrives_at_minute: int = 0
 var decays_at_night: int = NO_DECAY
 var conflicts_with: PackedStringArray = []
 var tell_key: String = ""
@@ -40,6 +46,7 @@ static func from_dict(d: Dictionary) -> Rule:
 	r.veracity = str(d.get("veracity", VERACITY_TRUE))
 	r.required_verdict = str(d.get("required_verdict", Verdict.SERVE))
 	r.introduced_night = int(d.get("introduced_night", 1))
+	r.arrives_at_minute = int(d.get("arrives_at_minute", 0))
 	r.decays_at_night = int(d.get("decays_at_night", NO_DECAY))
 	r.tell_key = str(d.get("tell_key", ""))
 	r.hand = str(d.get("hand", HAND_MANAGER))
@@ -50,8 +57,19 @@ static func from_dict(d: Dictionary) -> Rule:
 
 
 ## 이 밤에 클립보드에 붙어 있는가.
-func is_active_at(night: int) -> bool:
-	return night >= introduced_night
+##
+## `shift_minutes`가 음수면 **밤 전체를 통틀어** 붙어 있는지 묻는 것이다 (공정성 감사용).
+## 판정할 때는 반드시 그 시점의 분을 넘겨야 한다 — 안 넘기면 아직 존재하지도 않는 줄로
+## 손님을 판정하게 된다.
+func is_active_at(night: int, shift_minutes: int = ANY_TIME) -> bool:
+	if night < introduced_night:
+		return false
+	return shift_minutes < 0 or shift_minutes >= arrives_at_minute
+
+
+## 근무 중에 써넣은 줄인가.
+func arrives_mid_shift() -> bool:
+	return arrives_at_minute > 0
 
 
 ## 이 밤 기준으로 이 수칙이 거짓인가.

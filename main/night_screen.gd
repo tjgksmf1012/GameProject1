@@ -94,10 +94,6 @@ func _start_night(night: int) -> void:
 	_night_started_msec = Time.get_ticks_msec()
 	_judging = false
 	_view.swap_to_pos()
-	var visible := _session.engine.visible_rules(_session.night)
-	_view.clipboard.show_rules(visible)
-	_view.clipboard.apply_night(visible, _session.night)
-	_view.clipboard.set_struck(_save.struck_rule_ids)
 	_present_customer()
 
 
@@ -116,12 +112,25 @@ func _present_customer() -> void:
 	if customer == null:
 		return
 	_audio.play("bell")
+	_refresh_clipboard()
 	_view.customer_view.show_customer(customer)
 	_view.cctv.show_customer(customer)
 	_view.pos.present(customer)
 	_patience.start(customer)
 	_shown_at_msec = Time.get_ticks_msec()
 	_refresh_header()
+
+
+## **근무 중에 수칙이 늘어날 수 있다** (밤 5부터). 그래서 손님마다 다시 확인한다.
+## `show_rules`는 새 줄만 끼워 넣고 종이 소리를 낸다 — 응대 중에 종이 소리가 나고
+## 클립보드에 없던 줄이 생겨 있는 것이 이 밤의 연출이다.
+func _refresh_clipboard() -> void:
+	var visible := _session.engine.visible_rules(
+		_session.night, _session.current_context().shift_minutes)
+	# 밤 첫 손님에서는 스크롤을 내리지 않는다 — 수칙은 첫째 줄부터 읽어야 한다.
+	_view.clipboard.show_rules(visible, _session.index > 0)
+	_view.clipboard.apply_night(visible, _session.night)
+	_view.clipboard.set_struck(_save.struck_rule_ids)
 
 
 ## 손님이 기다린다. **판정에는 손대지 않는다** — 긴장도만 올리고 재촉하게 둔다
