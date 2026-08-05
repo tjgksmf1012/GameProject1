@@ -60,5 +60,6 @@
 
   "night.cleared": "밤이 끝났다. 아침이 왔다.",
   "night.failed": "오판이 %d회. 밤이 끝나지 않았다.",
-  "night.summary": "정상 응대 %d   ·   오판 %d   ·   수칙에 속은 횟수 %d"
+  "night.summary": "정상 응대 %d   ·   오판 %d   ·   수칙에 속은 횟수 %d",
+  "ui.log_saved": "기록 저장됨: %s"
 }

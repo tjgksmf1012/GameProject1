@@ -1,0 +1,79 @@
+class_name SessionLog
+extends RefCounted
+
+## M0 플레이테스트용 기록기. **출시 빌드의 텔레메트리(F-11)와는 다른 물건이다.**
+## 이건 로컬 개발 도구다. 서버로 아무것도 보내지 않고 `user://`에만 쓴다.
+##
+## 관찰 4항목(01-user-research C-2)은 사람이 봐야 하지만, 아래는 자동으로 잡힌다:
+##   · 손님별 판정 소요 시간 → 함정 손님에서 망설임이 늘어나는가 (H1의 방증)
+##   · 재시작 횟수 → "첫 실패 후 다시 하고 싶어했는가"의 대리 지표
+##   · 총 세션 시간 → H4(8~12분이 적절한가)
+
+const LOG_DIR := "user://playtest"
+
+var tester_id: String = ""
+var grace_enabled: bool = true
+var attempt: int = 1
+
+var _entries: Array[Dictionary] = []
+
+
+func _init(p_tester_id: String, p_grace_enabled: bool) -> void:
+	tester_id = p_tester_id
+	grace_enabled = p_grace_enabled
+
+
+func record_judgment(ctx: JudgeContext, result: JudgeResult, decision_seconds: float) -> void:
+	_entries.append({
+		"type": "judgment",
+		"attempt": attempt,
+		"customer": ctx.customer.id if ctx.customer != null else "",
+		"time": ctx.time_display(),
+		"verdict": result.player_verdict.id(),
+		"correct": result.correct,
+		"trap": result.is_trap_death(),
+		"graced": result.graced,
+		"decision_seconds": snappedf(decision_seconds, 0.1),
+	})
+
+
+func record_night_end(session: NightSession, elapsed_seconds: float) -> void:
+	_entries.append({
+		"type": "night_end",
+		"attempt": attempt,
+		"correct": session.correct_count,
+		"misjudge": session.misjudge_count,
+		"traps": session.trap_count,
+		"failed": session.is_failed(),
+		"elapsed_seconds": snappedf(elapsed_seconds, 0.1),
+	})
+
+
+func begin_next_attempt() -> void:
+	attempt += 1
+
+
+func entry_count() -> int:
+	return _entries.size()
+
+
+func to_dictionary() -> Dictionary:
+	return {
+		"tester_id": tester_id,
+		"grace_on_first_trap": grace_enabled,
+		"recorded_at": Time.get_datetime_string_from_system(),
+		"entries": _entries,
+	}
+
+
+## 저장하고 사람이 열어볼 수 있는 절대 경로를 돌려준다.
+func save() -> String:
+	DirAccess.make_dir_recursive_absolute(LOG_DIR)
+	var path := "%s/%s.json" % [LOG_DIR, tester_id]
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("플레이테스트 로그를 쓸 수 없다: %s" % path)
+		return ""
+	file.store_string(JSON.stringify(to_dictionary(), "  "))
+	file.close()
+	return ProjectSettings.globalize_path(path)

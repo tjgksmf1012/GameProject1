@@ -9,13 +9,14 @@ const TestSupport := preload("res://tests/test_support.gd")
 const TestRuleEngine := preload("res://tests/test_rule_engine.gd")
 const TestFairness := preload("res://tests/test_fairness.gd")
 const TestNightSession := preload("res://tests/test_night_session.gd")
+const TestSessionLog := preload("res://tests/test_session_log.gd")
 
 
 func _initialize() -> void:
 	var reporter := TestSupport.new()
 	print("NIGHTSHIFT 테스트")
 	print("─────────────────────────────")
-	for suite in [TestRuleEngine.new(), TestFairness.new(), TestNightSession.new()]:
+	for suite in [TestRuleEngine.new(), TestFairness.new(), TestNightSession.new(), TestSessionLog.new()]:
 		suite.run(reporter)
 	var code := reporter.print_report()
 	quit(code)

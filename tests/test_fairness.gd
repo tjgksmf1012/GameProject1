@@ -7,6 +7,16 @@ extends RefCounted
 
 const DETERMINISM_REPEATS := 20
 
+## prototype.gd 가 `_t()`로 찾는 키 전부. 없으면 화면에 `<key>`가 그대로 뜬다.
+const UI_KEYS := [
+	"ui.clipboard_header", "ui.customer_header", "ui.observation_header",
+	"ui.serve", "ui.refuse", "ui.next", "ui.restart",
+	"ui.night", "ui.time", "ui.progress", "ui.yes", "ui.no", "ui.log_saved",
+	"result.correct", "result.wrong", "result.trap", "result.trap_grace",
+	"result.expected", "result.missed_header",
+	"night.cleared", "night.failed", "night.summary",
+]
+
 var _rules: Array[Rule] = []
 var _customers: Array[Customer] = []
 var _engine: RuleEngine = null
@@ -83,6 +93,8 @@ func _invariant_4_judgement_is_deterministic(r: RefCounted) -> void:
 func _strings_are_externalized(r: RefCounted) -> void:
 	r.check(_strings.has(RuleEngine.CLUE_NO_RULE_APPLIED),
 		"문자열 키 없음: %s" % RuleEngine.CLUE_NO_RULE_APPLIED)
+	for key in UI_KEYS:
+		r.check(_strings.has(key), "문자열 키 없음: %s" % key)
 	for rule in _rules:
 		r.check(_strings.has(rule.text_key), "문자열 키 없음: %s" % rule.text_key)
 		if rule.tell_key != "":

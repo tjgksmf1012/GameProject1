@@ -17,9 +17,15 @@ const FONT_SIZE_HEADER := 20
 ## M2에서 아트 디렉션을 확정할 때 번들 폰트로 교체한다.
 const FONT_CANDIDATES := ["Malgun Gothic", "Noto Sans CJK KR", "NanumGothic", "AppleGothic", "sans-serif"]
 
+## 플레이테스트 식별자. `godot -- --tester=A1` 로 넘긴다. 없으면 타임스탬프를 쓴다.
+const TESTER_ARG := "--tester="
+
 var _strings: Dictionary = {}
 var _session: NightSession = null
 var _awaiting_next: bool = false
+var _log: SessionLog = null
+var _shown_at_msec: int = 0
+var _night_started_msec: int = 0
 
 var _header: Label = null
 var _clipboard: Label = null
@@ -33,12 +39,20 @@ var _next_button: Button = null
 
 func _ready() -> void:
 	_strings = GameData.load_strings()
+	_log = SessionLog.new(_tester_id(), bool(GameData.load_balance().get("grace_on_first_trap", true)))
 	_build_ui()
 	_start_night()
 
 
 func _t(key: String) -> String:
 	return str(_strings.get(key, "<%s>" % key))
+
+
+static func _tester_id() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with(TESTER_ARG):
+			return arg.substr(TESTER_ARG.length())
+	return "tester_%d" % int(Time.get_unix_time_from_system())
 
 
 func _build_ui() -> void:
@@ -126,6 +140,7 @@ func _start_night() -> void:
 	var engine := RuleEngine.new(GameData.load_rules())
 	_session = NightSession.new(engine, GameData.load_customers(), GameData.load_balance())
 	_awaiting_next = false
+	_night_started_msec = Time.get_ticks_msec()
 	_result.text = ""
 	_refresh()
 
@@ -147,6 +162,7 @@ func _refresh() -> void:
 	_clipboard.text = _clipboard_text()
 	_customer_info.text = _customer_text(customer)
 	_observation.text = _observation_text(customer)
+	_shown_at_msec = Time.get_ticks_msec()
 	_set_buttons(true)
 
 
@@ -181,10 +197,16 @@ func _observation_text(customer: Customer) -> String:
 func _on_verdict(kind: String) -> void:
 	if _awaiting_next or _session.is_finished():
 		return
+	var ctx := _session.current_context()
 	var result := _session.judge(Verdict.from_id(kind))
+	_log.record_judgment(ctx, result, _seconds_since(_shown_at_msec))
 	_result.text = _result_text(result)
 	_awaiting_next = true
 	_set_buttons(false)
+
+
+static func _seconds_since(msec: int) -> float:
+	return (Time.get_ticks_msec() - msec) / 1000.0
 
 
 func _result_text(result: JudgeResult) -> String:
@@ -216,11 +238,15 @@ func _on_next() -> void:
 
 
 func _finish_night() -> void:
+	_log.record_night_end(_session, _seconds_since(_night_started_msec))
 	var lines := PackedStringArray()
 	lines.append(_t("night.failed") % _session.misjudge_count if _session.is_failed() else _t("night.cleared"))
 	lines.append(_t("night.summary") % [
 		_session.correct_count, _session.misjudge_count, _session.trap_count,
 	])
+	var saved := _log.save()
+	if saved != "":
+		lines.append(_t("ui.log_saved") % saved)
 	_result.text = "\n".join(lines)
 	_set_buttons(false)
 	_next_button.text = _t("ui.restart")
@@ -234,6 +260,8 @@ func _restart() -> void:
 	_next_button.pressed.disconnect(_restart)
 	_next_button.pressed.connect(_on_next)
 	_next_button.text = _t("ui.next")
+	# 재시작 횟수가 곧 "첫 실패 후 다시 하고 싶어했는가"(C-2)의 대리 지표다.
+	_log.begin_next_attempt()
 	_start_night()
 
 
