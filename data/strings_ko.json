@@ -1,42 +1,34 @@
 {
   "_comment": "표시 문자열은 전부 여기 있다. 코드에 하드코딩된 표시 문자열은 0개여야 한다 (CLAUDE.md 4절, F-10).",
-
   "rule.no_shadow": "하나. 그림자가 없는 손님에게는 아무것도 팔지 마시오.",
   "rule.no_alcohol_after_2am": "둘. 새벽 두 시가 지나면 술을 팔지 마시오.",
   "rule.always_serve_wet": "셋. 비에 젖은 손님은 먼 길을 왔으니 반드시 응대하시오.",
   "rule.refuse_bag": "넷. 가방을 든 손님은 무엇을 숨기고 있을지 모르니 거부하시오.",
-
   "tell.always_serve_wet": "점장은 이유를 대지 않는 사람이다. 하나와 둘은 그냥 시킨다. 그런데 이 줄은 「먼 길을 왔으니」라고 변명한다. 게다가 첫째 수칙과 정면으로 어긋난다 — 젖었으면서 그림자가 없는 손님은 어느 쪽을 따라도 하나는 어긴다.",
   "tell.refuse_bag": "이 줄도 「숨기고 있을지 모르니」라고 이유를 댄다. 점장의 수칙은 이유를 대지 않는다.",
-
   "clue.no_rule_applied": "이 손님에게 발동한 참 수칙은 하나도 없었다. 아무 수칙도 막지 않는 손님은 그냥 응대하면 된다.",
-
   "customer.office_worker": "넥타이를 푼 남자",
   "customer.student_bag": "가방을 멘 학생",
   "customer.wet_normal": "비에 젖은 여자",
   "customer.no_shadow": "웃고 있는 사람",
   "customer.wet_no_shadow": "젖은 채 서 있는 것",
   "customer.late_drinker": "얼굴이 붉은 남자",
-
   "dialogue.office_worker_1": "…봉투 하나 주세요.",
   "dialogue.student_bag_1": "이거 하나요. 아, 카드로요.",
   "dialogue.wet_normal_1": "밖에 비 엄청 와요. 우산 파나요?",
   "dialogue.no_shadow_1": "괜찮아요. 천천히 하세요.",
   "dialogue.wet_no_shadow_1": "…….",
   "dialogue.late_drinker_1": "한 병만. 딱 한 병만 줘요.",
-
   "item.cup_ramen": "컵라면",
   "item.energy_drink": "에너지드링크",
   "item.hot_coffee": "따뜻한 커피",
   "item.cigarettes": "담배",
   "item.umbrella": "우산",
   "item.soju": "소주",
-
   "trait.has_shadow": "그림자",
   "trait.is_wet": "젖어 있음",
   "trait.has_bag": "가방",
   "trait.wants_alcohol": "주류 구매",
-
   "ui.title": "NIGHTSHIFT — M0 프로토타입",
   "ui.clipboard_header": "점장 수칙",
   "ui.customer_header": "손님",
@@ -50,16 +42,19 @@
   "ui.yes": "예",
   "ui.no": "아니오",
   "ui.progress": "손님 %d / %d   ·   오판 %d / %d",
-
   "result.correct": "정상 응대했다.",
   "result.wrong": "잘못 판정했다.",
   "result.trap": "수칙을 따랐는데 잘못됐다.",
   "result.trap_grace": "수칙을 따랐는데 잘못됐다. 이번은 넘어간다 — 다음부터는 아니다.",
   "result.missed_header": "놓친 것",
   "result.expected": "옳은 판정은 「%s」였다.",
-
   "night.cleared": "밤이 끝났다. 아침이 왔다.",
   "night.failed": "오판이 %d회. 밤이 끝나지 않았다.",
   "night.summary": "정상 응대 %d   ·   오판 %d   ·   수칙에 속은 횟수 %d",
-  "ui.log_saved": "기록 저장됨: %s"
+  "ui.log_saved": "기록 저장됨: %s",
+  "ui.scan_header": "품목 스캔",
+  "ui.receipt_header": "영수증",
+  "ui.receipt_empty": "—",
+  "ui.total": "합계  %s",
+  "ui.id_check": "신분 확인"
 }

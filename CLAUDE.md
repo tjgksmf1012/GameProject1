@@ -80,8 +80,16 @@ res://
    ```bash
    godot --headless --script res://tests/run_tests.gd
    ```
-2. **시각적 변경은 스크린샷으로 검증한다.** `tools/screenshot.gd`가 특정 상태를 렌더해 PNG로 저장한다. 내가 그걸 붙여넣어 준다.
-3. 확신이 없으면 **추측해서 진행하지 말고 나에게 화면을 물어봐라.**
+2. **시각적 변경은 스크린샷으로 직접 검증한다.** 가상 디스플레이(xvfb)로 실제 렌더를 찍을 수 있다.
+   ```bash
+   xvfb-run -a godot --script res://tools/screenshot.gd -- --out=/tmp/s.png   # 시작 화면
+   xvfb-run -a godot --script res://tools/shoot_states.gd -- --out=/tmp/r.png --verdict=refuse  # 판정 이후
+   ```
+   `shoot_states.gd`는 시그널을 직접 쏘아 통합 경로(POS → NightScreen → ResultPanel)를 그대로 태운다.
+   연결이 끊기면 여기서 드러난다.
+3. **시각 변경은 반드시 찍어서 확인한 뒤에 완료라고 말한다.** 추측 금지.
+   레이아웃은 특히 위험하다 — M1에서 컨테이너 자식에 position 트윈을 걸어 수칙 4줄이
+   한 자리에 겹쳐 그려진 적이 있다. 테스트로는 절대 안 잡힌다.
 
 ---
 

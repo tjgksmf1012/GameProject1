@@ -1,0 +1,12 @@
+{
+  "_comment": "품목 가격. 매직 넘버는 코드 밖에 있다 (CLAUDE.md 4절).",
+  "_comment_design": "금액 계산은 자동이다. 이 게임은 계산 문제를 내지 않는다 (03-PRD.md 3.1).",
+  "prices": {
+    "item.cup_ramen": 1500,
+    "item.energy_drink": 2000,
+    "item.hot_coffee": 1800,
+    "item.cigarettes": 4500,
+    "item.umbrella": 5000,
+    "item.soju": 1900
+  }
+}
