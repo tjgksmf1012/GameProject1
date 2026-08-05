@@ -30,6 +30,7 @@ func run(r: RefCounted) -> void:
 	_test_shows_everything_on_screen(r)
 	_test_hides_rules_not_yet_posted(r)
 	_test_shows_torn_gap(r)
+	_test_result_shows_the_tell_but_only_after(r)
 
 
 func _strings() -> Dictionary:
@@ -139,3 +140,35 @@ func _test_shows_torn_gap(r: RefCounted) -> void:
 
 func _t(key: String) -> String:
 	return str(_strings().get(key, ""))
+
+
+## 반증 단서는 **판정 뒤에만** 나온다.
+##
+## 전에 주면 퍼즐이 없어지고, 후에 빼면 "속았다"가 된다 (불변식 3).
+## 스냅샷 두 개가 그 경계를 정확히 지켜야 사람과 같은 조건이 된다.
+func _test_result_shows_the_tell_but_only_after(r: RefCounted) -> void:
+	var engine := RuleEngine.new(GameData.load_rules())
+	var strings := _strings()
+	var plan := NightPlan.load()
+	var explained := 0
+	for night in plan.nights():
+		var customers := plan.customers_for(night)
+		for i in customers.size():
+			var ctx := JudgeContext.new(
+				night, NightSession.arrival_minutes(i, customers.size()), customers[i])
+			for kind in [Verdict.SERVE, Verdict.REFUSE]:
+				var result := engine.evaluate(ctx, Verdict.from_id(kind))
+				var shown := ScreenSnapshot.of_result(result, strings)
+				if result.correct:
+					r.check(not shown.has("what_you_missed"),
+						"정답인데 놓친 단서가 뜬다 — 답을 알려주는 셈이다")
+					continue
+				r.check(shown.has("right_call"), "실패하면 옳은 판정을 알려준다")
+				var clues := shown["what_you_missed"] as PackedStringArray
+				r.check(clues.size() > 0,
+					"%s 실패에 설명이 없다 — 불변식 3 위반" % customers[i].id)
+				for clue in clues:
+					r.check(not str(clue).begins_with("<"),
+						"단서 문자열 키를 못 찾았다: %s" % clue)
+				explained += 1
+	r.check(explained > 0, "실패 경우를 하나도 안 봤다 — 이 검사가 아무것도 안 했다")

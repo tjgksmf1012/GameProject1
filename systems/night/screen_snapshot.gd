@@ -18,6 +18,38 @@ extends RefCounted
 
 const OBSERVATION_PATH := "res://data/observation.json"
 
+## 판정 **뒤에** 화면에 뜨는 것. 결과 패널이 보여주는 것과 같아야 한다.
+##
+## 여기엔 반증 단서(tell)가 들어간다 — **그게 이 게임의 공정성 계약이다** (불변식 3).
+## 실패한 뒤에 "알아챌 수 있었다"를 보여주지 않으면 그건 속인 것이다.
+## 판정 **전에** 주면 안 되지만 **후에** 빼도 안 된다. 사람이 보는 것과 같아야 한다.
+static func of_result(result: JudgeResult, strings: Dictionary) -> Dictionary:
+	var out := {
+		"correct": result.correct,
+		"headline": _headline(result, strings),
+	}
+	if result.had_true_conflict and result.correct:
+		out["note"] = _t(strings, "result.either_detail")
+	if result.correct:
+		return out
+	out["right_call"] = _t(strings, "ui." + result.expected[0].id())
+	var clues := PackedStringArray()
+	for key in result.missed_clue_keys:
+		clues.append(_t(strings, key))
+	out["what_you_missed"] = clues
+	return out
+
+
+static func _headline(result: JudgeResult, strings: Dictionary) -> String:
+	if result.correct and result.had_true_conflict:
+		return _t(strings, "result.either")
+	if result.correct:
+		return _t(strings, "result.correct")
+	if result.is_trap_death():
+		return _t(strings, "result.trap_grace" if result.graced else "result.trap")
+	return _t(strings, "result.wrong")
+
+
 ## 클립보드 한 줄이 화면에서 어떻게 보이는가. **진위는 여기 없다.**
 ## 종이·잉크·표식은 사람 눈에 보이는 것이므로 그대로 넘긴다 (F-05).
 const LOOK_MANAGER := "점장 필체 · 원래 종이"
