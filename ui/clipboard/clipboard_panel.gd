@@ -26,6 +26,8 @@ const BLEED_LATER := 0.75
 # 오늘 고쳐 쓴 줄은 **훑어도 보여야 한다.** 나머지와 반대로 밝다 — 덧댄 새 종이다.
 const TONE_REWRITTEN := 1.055
 const DIM_ALPHA := 0.32
+## 찢긴 자국은 종이에 남지만 읽을 것은 아니다. 눈에는 띄되 수칙으로는 안 읽혀야 한다.
+const TORN_ALPHA := 0.72
 
 signal rule_added
 ## 플레이어가 수칙 하나를 그었다/지웠다. **믿음일 뿐이고 판정에는 영향이 없다.**
@@ -38,6 +40,7 @@ var _shown_ids: PackedStringArray = []
 var _rows: Dictionary = {}
 var _labels: Dictionary = {}
 var _strikes: Dictionary = {}
+var _torn: Dictionary = {}
 
 
 func _init() -> void:
@@ -109,12 +112,57 @@ func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
 		_scroll_to_new_rule()
 
 
+## 찢겨 나간 줄 자리에 **자국을 남긴다** (밤 7).
+##
+## 그냥 사라지게 두면 플레이어는 아무것도 못 본다. 처음 배운 수칙이 조용히 없어지고
+## 그걸 모른 채 판정하면 그건 퍼즐이 아니라 함정이다. 찢긴 자리가 보여야 공정하다.
+##
+## 자국은 `_shown_ids`에 넣지 않는다 — 그건 **지금 유효한 수칙** 목록이고,
+## 화면과 엔진이 같은 것을 본다는 검사(tests/test_clipboard.gd)의 기준이기 때문이다.
+## 자국은 수칙이 아니라 수칙이 있었다는 흔적이다.
+func show_torn(rules: Array[Rule]) -> void:
+	for rule in rules:
+		if _torn.has(rule.id):
+			continue
+		var row := PanelContainer.new()
+		row.add_theme_stylebox_override("panel", _row_style())
+		row.material = _paper_material(true, false, _torn.size() + 90)
+		row.modulate.a = TORN_ALPHA
+		var label := Palette.make_label(
+			"✂ " + _t("clipboard.torn"), Palette.SIZE_BODY, Palette.INK_LATER)
+		row.add_child(label)
+		_list.add_child(row)
+		_torn[rule.id] = row
+		Juice.fade_in(row, RISE_DURATION)
+
+
+## 줄 순서를 원래 수칙 순서로 되돌린다.
+##
+## 찢긴 자국은 나중에 붙이므로 그냥 두면 목록 맨 아래에 생긴다. 그러면 화면상
+## **첫째 줄이 그냥 사라진 것으로 보이고** 정체불명의 자국만 바닥에 남는다.
+## 자국은 그 줄이 있던 자리에 있어야 "여기 있던 게 찢겼다"로 읽힌다.
+func reorder(canonical_ids: PackedStringArray) -> void:
+	var at := 0
+	for id in canonical_ids:
+		var row: Node = _rows.get(id, _torn.get(id))
+		if row == null:
+			continue
+		_list.move_child(row, at)
+		at += 1
+
+
 ## **더는 붙어 있지 않은 줄은 걷어낸다.**
 ##
 ## 이게 없으면 클립보드가 한 번 붙은 줄을 영영 들고 있는다. 밤 5의 열째 수칙은
 ## 02:00에 붙는데, 그 밤을 실패하고 다시 시작하면 22:00 화면에 이미 붙어 있다 —
 ## **아직 쓰이지도 않은 줄을 보고 판정하게 된다.** 엔진은 그 줄을 적용하지 않으므로
 ## 화면과 판정이 어긋난다. 밤 6으로 넘어갈 때도 같은 일이 난다.
+func clear_torn() -> void:
+	for id in _torn:
+		(_torn[id] as Node).queue_free()
+	_torn.clear()
+
+
 func _remove_absent(rules: Array[Rule]) -> void:
 	var keep := PackedStringArray()
 	for rule in rules:

@@ -1,0 +1,263 @@
+{
+  "_comment": "밤 7 손님 12명. 40분 간격. 03:00에 첫째 수칙이 찢겨 나간다.",
+  "_comment_design": "찢기 **전에** 그림자 없는 손님을 두 번 보낸다 — 첫째 수칙이 아직 참이고, 플레이어는 일곱 밤째 그렇게 해왔다. 찢긴 **뒤에** 또 보낸다. 이번엔 막는 참 수칙이 없으므로 응대가 정답이다. 일곱 밤 동안 몸에 익은 반사가 여기서 처음으로 틀린다. 클립보드에 찢긴 자국이 남아 있으므로 다시 읽으면 알 수 있다.",
+  "customers": [
+    {
+      "id": "cust_n7_first",
+      "name_key": "customer.n7_first",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n7_first_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "찢기 전. 첫째 수칙이 아직 참이다 — 거부가 정답.",
+      "id": "cust_n7_shadowless_early",
+      "name_key": "customer.n7_shadowless_early",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n7_shadowless_early_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n7_bagged",
+      "name_key": "customer.n7_bagged",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n7_bagged_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n7_veiled",
+      "name_key": "customer.n7_veiled",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.n7_veiled_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "_comment": "찢기 전. 여기까지가 일곱 밤 동안 몸에 익은 것이다.",
+      "id": "cust_n7_shadowless_mid",
+      "name_key": "customer.n7_shadowless_mid",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.n7_shadowless_mid_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n7_twin_regular",
+      "name_key": "customer.n7_twin_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n7_twin_regular_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "id": "cust_n7_two_oclock_drinker",
+      "name_key": "customer.n7_two_oclock_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.n7_two_oclock_drinker_1"
+      ],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "_comment": "**이 손님이 서 있는 동안 첫째 수칙이 찢겨 나간다** (03:00).",
+      "id": "cust_n7_torn_witness",
+      "name_key": "customer.n7_torn_witness",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n7_torn_witness_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "**찢긴 뒤.** 그림자가 없지만 막는 참 수칙이 하나도 없다 — 응대가 정답이다. 일곱 밤 동안의 반사가 여기서 처음 틀린다.",
+      "id": "cust_n7_shadowless_after",
+      "name_key": "customer.n7_shadowless_after",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n7_shadowless_after_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n7_veiled_regular",
+      "name_key": "customer.n7_veiled_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n7_veiled_regular_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_n7_dawn_regular",
+      "name_key": "customer.n7_dawn_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.n7_dawn_regular_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "다섯 시가 지났다. 여덟과 열하나가 또 부딪힌다 — 마지막 판정은 어느 쪽이든 상관없다.",
+      "id": "cust_n7_relief",
+      "name_key": "customer.n7_relief",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n7_relief_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": ""
+    }
+  ]
+}

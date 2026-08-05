@@ -20,7 +20,9 @@ const UI_KEYS := [
 	"ui.scan_header", "ui.receipt_header", "ui.receipt_empty", "ui.total", "ui.id_check",
 	"ui.night_cleared_next", "night.all_cleared", "death.last_line",
 	"pressure.urging", "pressure.demanding",
-	"result.either", "result.either_detail",
+	"result.either", "result.either_detail", "clipboard.torn",
+	"ending.headline", "ending.handover", "ending.marks", "ending.no_marks",
+	"ui.ending_close",
 	"title.store", "title.hours", "title.premise", "title.twist",
 	"title.start", "title.continue_night",
 ]

@@ -14,6 +14,7 @@ func run(r: RefCounted) -> void:
 	_test_failed_night_does_not_advance(r)
 	_test_strikes_are_belief_not_truth(r)
 	_test_true_conflict_actually_happens(r)
+	_test_torn_rule_changes_an_answer(r)
 
 
 func _test_plan_is_complete(r: RefCounted) -> void:
@@ -115,3 +116,34 @@ func _test_true_conflict_actually_happens(r: RefCounted) -> void:
 					"%s: 참끼리 충돌하면 '%s'도 정답이어야 한다" % [customers[i].id, kind])
 	r.check(found.size() > 0,
 		"참 수칙끼리 충돌하는 손님이 하나도 없다 — 밤 6의 사건이 발동하지 않는다")
+
+
+## 밤 7의 중심 사건 — **찢겨 나간 수칙이 실제로 정답을 바꾸는가.**
+##
+## 찢기는 것 자체는 연출이고, 의미는 "그 뒤로 답이 달라진다"에 있다.
+## 찢긴 뒤에도 아무 손님의 답이 안 바뀌면 이 밤의 사건은 일어나지 않은 것과 같다.
+func _test_torn_rule_changes_an_answer(r: RefCounted) -> void:
+	var engine := RuleEngine.new(GameData.load_rules())
+	var torn: Rule = null
+	for rule in GameData.load_rules():
+		if rule.removed_night != Rule.NO_REMOVAL:
+			torn = rule
+			break
+	r.check(torn != null, "찢겨 나가는 수칙이 있어야 이 검사가 의미를 가진다")
+	if torn == null:
+		return
+
+	var plan := NightPlan.load()
+	var customers := plan.customers_for(torn.removed_night)
+	var flipped := 0
+	for i in customers.size():
+		var minutes := NightSession.arrival_minutes(i, customers.size())
+		var ctx := JudgeContext.new(torn.removed_night, minutes, customers[i])
+		if not torn.matches(ctx):
+			continue
+		# 찢기 전이라면 그 수칙이 답을 정했을 손님이다.
+		var still_bound := engine.required_verdicts(ctx).has(torn.verdict())
+		if minutes >= torn.removed_at_minute and not still_bound:
+			flipped += 1
+	r.check(flipped > 0,
+		"%s가 찢긴 뒤 답이 바뀌는 손님이 하나도 없다 — 찢는 연출만 있고 사건이 없다" % torn.id)

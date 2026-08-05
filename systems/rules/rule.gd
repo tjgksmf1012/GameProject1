@@ -14,6 +14,7 @@ const VERACITY_FALSE := "false"
 const VERACITY_DECAYING := "decaying"
 
 const NO_DECAY := -1
+const NO_REMOVAL := -1
 ## `is_active_at`에 시각을 안 넘겼다는 표시. "밤 전체" 관점을 뜻한다.
 const ANY_TIME := -1
 
@@ -33,6 +34,10 @@ var introduced_night: int = 1
 ## **0이 아니면 근무 중에 누군가 써넣은 줄이다.** 그 전에 판정한 손님에게는
 ## 존재하지 않았으므로 평가에도 들어가면 안 된다 (공정성 불변식 1).
 var arrives_at_minute: int = 0
+## 어느 밤 몇 분에 **찢겨 나가는가.** `NO_REMOVAL`이면 끝까지 남는다.
+## 찢긴 뒤에는 그 줄로 판정하지 않는다 — 클립보드에 없는 줄로 죽이면 불변식 1이 깨진다.
+var removed_night: int = NO_REMOVAL
+var removed_at_minute: int = 0
 var decays_at_night: int = NO_DECAY
 var conflicts_with: PackedStringArray = []
 var tell_key: String = ""
@@ -47,6 +52,8 @@ static func from_dict(d: Dictionary) -> Rule:
 	r.required_verdict = str(d.get("required_verdict", Verdict.SERVE))
 	r.introduced_night = int(d.get("introduced_night", 1))
 	r.arrives_at_minute = int(d.get("arrives_at_minute", 0))
+	r.removed_night = int(d.get("removed_night", NO_REMOVAL))
+	r.removed_at_minute = int(d.get("removed_at_minute", 0))
 	r.decays_at_night = int(d.get("decays_at_night", NO_DECAY))
 	r.tell_key = str(d.get("tell_key", ""))
 	r.hand = str(d.get("hand", HAND_MANAGER))
@@ -64,7 +71,23 @@ static func from_dict(d: Dictionary) -> Rule:
 func is_active_at(night: int, shift_minutes: int = ANY_TIME) -> bool:
 	if night < introduced_night:
 		return false
+	if was_removed_by(night, shift_minutes):
+		return false
 	return shift_minutes < 0 or shift_minutes >= arrives_at_minute
+
+
+## 이 시점에 이미 찢겨 나갔는가.
+##
+## `shift_minutes`가 음수(밤 전체 관점)면 **찢긴 밤에도 아직 있는 것으로 본다** —
+## 그 밤의 앞부분에는 실제로 붙어 있었고, 공정성 감사는 밤 단위로 세기 때문이다.
+func was_removed_by(night: int, shift_minutes: int = ANY_TIME) -> bool:
+	if removed_night == NO_REMOVAL:
+		return false
+	if night > removed_night:
+		return true
+	if night < removed_night or shift_minutes < 0:
+		return false
+	return shift_minutes >= removed_at_minute
 
 
 ## 근무 중에 써넣은 줄인가.

@@ -13,6 +13,7 @@ const DeathSequence := preload("res://ui/death_sequence.gd")
 const ITEMS_PATH := "res://data/items.json"
 const OBSERVATION_PATH := "res://data/observation.json"
 const TESTER_ARG := "--tester="
+const TITLE_SCENE := "res://main/title_screen.tscn"
 
 var _strings: Dictionary = {}
 var _balance: Dictionary = {}
@@ -94,6 +95,7 @@ func _start_night(night: int) -> void:
 	_night_started_msec = Time.get_ticks_msec()
 	_judging = false
 	_view.swap_to_pos()
+	_view.clipboard.clear_torn()
 	_present_customer()
 
 
@@ -112,25 +114,16 @@ func _present_customer() -> void:
 	if customer == null:
 		return
 	_audio.play("bell")
-	_refresh_clipboard()
+	_view.refresh_clipboard(
+		_session.engine, _session.night,
+		_session.current_context().shift_minutes,
+		_session.index > 0, _save.struck_rule_ids)
 	_view.customer_view.show_customer(customer)
 	_view.cctv.show_customer(customer)
 	_view.pos.present(customer)
 	_patience.start(customer)
 	_shown_at_msec = Time.get_ticks_msec()
 	_refresh_header()
-
-
-## **근무 중에 수칙이 늘어날 수 있다** (밤 5부터). 그래서 손님마다 다시 확인한다.
-## `show_rules`는 새 줄만 끼워 넣고 종이 소리를 낸다 — 응대 중에 종이 소리가 나고
-## 클립보드에 없던 줄이 생겨 있는 것이 이 밤의 연출이다.
-func _refresh_clipboard() -> void:
-	var visible := _session.engine.visible_rules(
-		_session.night, _session.current_context().shift_minutes)
-	# 밤 첫 손님에서는 스크롤을 내리지 않는다 — 수칙은 첫째 줄부터 읽어야 한다.
-	_view.clipboard.show_rules(visible, _session.index > 0)
-	_view.clipboard.apply_night(visible, _session.night)
-	_view.clipboard.set_struck(_save.struck_rule_ids)
 
 
 ## 손님이 기다린다. **판정에는 손대지 않는다** — 긴장도만 올리고 재촉하게 둔다
@@ -220,6 +213,7 @@ func _on_continue() -> void:
 		_finish_night()
 		return
 	_view.swap_to_pos()
+	_view.clipboard.clear_torn()
 	_present_customer()
 
 
@@ -251,36 +245,35 @@ func _death_kind() -> String:
 func _show_summary() -> void:
 	_log.record_night_end(_session, (Time.get_ticks_msec() - _night_started_msec) / 1000.0)
 	var next_night := _session.night + 1
+	var has_next := _plan.has_night(next_night)
 	var cleared := not _session.is_failed()
 	# **실패한 밤은 진행이 오르지 않는다.** 같은 밤을 다시 한다 (F-06).
 	if cleared:
-		_save.advance_to(next_night if _plan.has_night(next_night) else _session.night)
+		_save.advance_to(next_night if has_next else _session.night)
 		_save.store()
+
+	var report := NightReport.new(_strings)
+	var detail := report.ending_detail(_save.struck_rule_ids.size()) \
+		if NightReport.is_ending(cleared, has_next) \
+		else report.night_detail(
+			_session.correct_count, _session.misjudge_count,
+			_session.trap_count, _log.save())
 	_view.swap_to_result()
 	_view.result.show_summary(
-		_summary_headline(cleared, next_night),
-		_summary_detail(),
-		_t("ui.night_cleared_next") if cleared and _plan.has_night(next_night) else _t("ui.restart"))
+		report.headline(cleared, has_next, _session.misjudge_count),
+		detail,
+		report.continue_label(cleared, has_next))
 	_view.result.continued.disconnect(_on_continue)
-	_view.result.continued.connect(_on_restart)
+	_view.result.continued.connect(
+		_on_leave_store if NightReport.is_ending(cleared, has_next) else _on_restart)
 
 
-func _summary_headline(cleared: bool, next_night: int) -> String:
-	if not cleared:
-		return _t("night.failed") % _session.misjudge_count
-	if not _plan.has_night(next_night):
-		return _t("night.all_cleared")
-	return _t("night.cleared")
-
-
-func _summary_detail() -> String:
-	var lines := PackedStringArray([_t("night.summary") % [
-		_session.correct_count, _session.misjudge_count, _session.trap_count,
-	]])
-	var saved := _log.save()
-	if saved != "":
-		lines.append(_t("ui.log_saved") % saved)
-	return "\n".join(lines)
+## 엔딩에서 「가게를 나선다」. **같은 밤을 다시 시작하면 끝난 게 아니게 된다.**
+## 제목 화면으로 돌아간다 — 세이브는 마지막 밤을 가리키고 있으므로 다시 들어올 수 있다.
+func _on_leave_store() -> void:
+	_audio.play("click")
+	_audio.silence_ambience()
+	get_tree().change_scene_to_file(TITLE_SCENE)
 
 
 func _on_restart() -> void:

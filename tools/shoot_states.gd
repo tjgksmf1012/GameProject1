@@ -34,6 +34,7 @@ var _night: int = 1
 var _final_continue: int = -1
 var _final_done: bool = false
 var _pressure_stage: int = -1
+var _step_frames: int = STEP_FRAMES
 var _strike_ids: PackedStringArray = []
 
 
@@ -51,6 +52,8 @@ func _initialize() -> void:
 	# 인내는 실제로 35~60초가 걸린다. xvfb에서 그만큼 프레임을 돌리면 20분이 넘는다.
 	# 시계 자체는 tests/test_patience.gd 가 헤드리스로 검증한다 — 여기서 볼 것은 **레이아웃**이다.
 	_pressure_stage = int(_arg("--pressure=", "-1"))
+	# 정답만 내면 리플레이가 안 도므로 손님당 프레임을 줄일 수 있다. 끝까지 가는 촬영용.
+	_step_frames = int(_arg("--step=", str(STEP_FRAMES)))
 	# 그은 수칙을 화면에서 보려면 실제로 시그널을 쏘아야 한다. 세이브에 직접 쓰면
 	# 클립보드가 그리는 경로(strike_toggled → set_struck)를 건너뛰어 검증이 안 된다.
 	_strike_ids = _arg("--strike=", "").split(",", false)
@@ -96,7 +99,7 @@ func _fire() -> void:
 		else:
 			pos.verdict_chosen.emit(_step_verdict())
 			_awaiting_continue = true
-		_next_step_frame = _frames + STEP_FRAMES
+		_next_step_frame = _frames + _step_frames
 		return
 	if _strike_ids.size() > 0:
 		var clipboard := _find_by_script(root, CLIPBOARD_SCRIPT)

@@ -86,11 +86,29 @@
         "cust_n6_dawn_regular",
         "cust_n6_last_hour"
       ]
+    },
+    {
+      "night": 7,
+      "customers": [
+        "cust_n7_first",
+        "cust_n7_shadowless_early",
+        "cust_n7_bagged",
+        "cust_n7_veiled",
+        "cust_n7_shadowless_mid",
+        "cust_n7_twin_regular",
+        "cust_n7_two_oclock_drinker",
+        "cust_n7_torn_witness",
+        "cust_n7_shadowless_after",
+        "cust_n7_veiled_regular",
+        "cust_n7_dawn_regular",
+        "cust_n7_relief"
+      ]
     }
   ],
   "_comment_night3": "밤 3은 전환이 주인공이다. 앞에서 새 일곱째 수칙을 배우고, 뒤에서 전환된 둘째 수칙(새벽 주류)이 처음으로 물린다.",
   "_comment_night3_bite": "**거짓 수칙 세 개가 전부 실제로 물어야 한다.** 처음 짰을 때는 셋·넷·여섯이 걸려도 우연히 정답이 나와서, 클립보드를 전부 믿는 플레이어가 오판 1회로 이 밤을 통과했다 — 밤 2보다 쉬웠다. tools/solver_audit.gd 가 잡아냈다. 지금은 여섯(단골 예외)이 hooded_regular에서, 셋(젖은 손님)이 wet_hooded에서, 전환된 둘이 night_drinker에서 각각 물어 오판 3회 = 한계치가 된다.",
   "_comment_night4": "밤 4는 **종이가 배신하는 밤**이다. 점장 필체 거짓(아홉)이 처음 나오므로 「점장이 쓴 줄은 믿는다」가 안 통한다. 대신 문체 규약(점장은 이유를 대지 않는다)과 수칙 간 모순은 그대로 살아 있다 — 단서가 사라진 게 아니라 옮겨간 것이다.",
   "_comment_night5": "밤 5는 **다 읽었다는 감각을 깨는 밤**이다. 02:00에 열째 수칙이 붙는다. 앞 여섯 명은 일부러 평범하게 뒀다 — 클립보드를 다 파악했다고 믿게 만든 다음에 한 줄이 더 붙어야 한다.",
-  "_comment_night6": "밤 6은 **참끼리 부딪히는 밤**이다. 마지막 손님에서 여덟과 열하나가 둘 다 참인 채로 반대를 요구한다. 어느 쪽을 골라도 오판이 아니고, 결과 화면이 그렇게 말한다."
+  "_comment_night6": "밤 6은 **참끼리 부딪히는 밤**이다. 마지막 손님에서 여덟과 열하나가 둘 다 참인 채로 반대를 요구한다. 어느 쪽을 골라도 오판이 아니고, 결과 화면이 그렇게 말한다.",
+  "_comment_night7": "밤 7은 **있던 수칙이 없어지는 밤**이다. 03:00에 첫째 수칙이 찢겨 나간다 — 가장 먼저 배웠고 일곱 밤 내내 참이었던 줄이다. 그 뒤로 그림자 없는 손님은 응대가 정답이다. 찢긴 자리에 자국이 남으므로 다시 읽으면 알 수 있다."
 }

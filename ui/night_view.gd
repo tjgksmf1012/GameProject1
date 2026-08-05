@@ -106,6 +106,40 @@ func set_header(clock_text: String, status_text: String) -> void:
 	_status.text = status_text
 
 
+## 클립보드를 지금 시점 상태로 맞춘다.
+##
+## 손님마다 다시 부른다 — **근무 중에 수칙이 늘어나기도 하고(밤 5) 찢겨 나가기도 한다(밤 7).**
+## `show_rules`는 새 줄만 끼워 넣고 종이 소리를 낸다. 응대 중에 종이 소리가 나고
+## 클립보드가 달라져 있는 것이 그 밤들의 연출이다.
+func refresh_clipboard(
+	engine: RuleEngine, night: int, minutes: int,
+	reveal_new: bool, struck: PackedStringArray
+) -> void:
+	var visible := engine.visible_rules(night, minutes)
+	clipboard.show_rules(visible, reveal_new)
+	clipboard.show_torn(_torn_rules(engine, night, minutes))
+	clipboard.apply_night(visible, night)
+	clipboard.set_struck(struck)
+	clipboard.reorder(_canonical_order(engine))
+
+
+## 수칙이 정의된 순서. 클립보드는 늘 이 순서로 읽혀야 한다 — 찢긴 자국까지 포함해서.
+static func _canonical_order(engine: RuleEngine) -> PackedStringArray:
+	var out := PackedStringArray()
+	for rule in engine.rules():
+		out.append(rule.id)
+	return out
+
+
+## 이 시점에 이미 찢겨 나간 수칙들. 클립보드가 그 자리에 자국을 남긴다 (밤 7).
+static func _torn_rules(engine: RuleEngine, night: int, minutes: int) -> Array[Rule]:
+	var out: Array[Rule] = []
+	for rule in engine.rules():
+		if rule.introduced_night <= night and rule.was_removed_by(night, minutes):
+			out.append(rule)
+	return out
+
+
 ## 결과는 POS 자리를 대신 쓴다. 클립보드와 손님은 계속 보여야 한다 —
 ## 놓친 단서를 읽으면서 수칙을 다시 대조할 수 있어야 하기 때문이다.
 ## **높이는 결과 패널이 스스로 정한다** — 설명이 있으면 더 가져가야 하는데,
