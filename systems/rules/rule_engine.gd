@@ -86,6 +86,7 @@ func evaluate(ctx: JudgeContext, player_verdict: Verdict) -> JudgeResult:
 	if not result.correct:
 		result.trap_triggered = _followed_a_lie(result.lies_in_play, player_verdict)
 		result.missed_clue_keys = _clues_for_failure(result)
+		_mark_replay_targets(result)
 	return result
 
 
@@ -95,6 +96,25 @@ static func _followed_a_lie(lies: Array[Rule], player_verdict: Verdict) -> bool:
 		if lie.verdict().equals(player_verdict):
 			return true
 	return false
+
+
+## 3초 리플레이가 밝힐 줄과 특성을 고른다 (F-07).
+## 함정에 걸렸으면 나를 속인 거짓 수칙을, 아니면 내가 어긴 참 수칙을 짚는다.
+static func _mark_replay_targets(result: JudgeResult) -> void:
+	var rules: Array[Rule] = []
+	if result.trap_triggered:
+		for lie in result.lies_in_play:
+			if lie.verdict().equals(result.player_verdict):
+				rules.append(lie)
+	for r in result.applied_true_rules:
+		if not r.verdict().equals(result.player_verdict):
+			rules.append(r)
+	for rule in rules:
+		if not result.missed_rule_ids.has(rule.id):
+			result.missed_rule_ids.append(rule.id)
+		for field in rule.referenced_fields():
+			if not result.decisive_fields.has(field):
+				result.decisive_fields.append(field)
 
 
 ## 공정성 불변식 3: 실패했다면 무엇을 놓쳤는지 항상 말해줄 수 있어야 한다.

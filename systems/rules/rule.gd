@@ -15,6 +15,12 @@ const VERACITY_DECAYING := "decaying"
 
 const NO_DECAY := -1
 
+## 누가 썼는가. `veracity`와 **별개의 개념**이다.
+## 지금은 거짓 수칙이 전부 `later`지만, 나중 밤에는 참 수칙을 남의 필체로 써서
+## 플레이어의 학습을 배신할 수 있어야 한다. 그래서 진위와 분리해 둔다.
+const HAND_MANAGER := "manager"
+const HAND_LATER := "later"
+
 var id: String = ""
 var text_key: String = ""
 var veracity: String = VERACITY_TRUE
@@ -24,6 +30,7 @@ var introduced_night: int = 1
 var decays_at_night: int = NO_DECAY
 var conflicts_with: PackedStringArray = []
 var tell_key: String = ""
+var hand: String = HAND_MANAGER
 
 
 static func from_dict(d: Dictionary) -> Rule:
@@ -35,6 +42,7 @@ static func from_dict(d: Dictionary) -> Rule:
 	r.introduced_night = int(d.get("introduced_night", 1))
 	r.decays_at_night = int(d.get("decays_at_night", NO_DECAY))
 	r.tell_key = str(d.get("tell_key", ""))
+	r.hand = str(d.get("hand", HAND_MANAGER))
 	r.conflicts_with = Customer._to_string_array(d.get("conflicts_with", []))
 	for raw in (d.get("conditions", []) as Array):
 		r.conditions.append(Condition.from_dict(raw as Dictionary))
@@ -62,6 +70,11 @@ func matches(ctx: JudgeContext) -> bool:
 		if not c.evaluate(ctx):
 			return false
 	return true
+
+
+## 점장이 아닌 누군가가 덧쓴 줄인가. 종이와 잉크가 다르다 (F-05).
+func is_foreign_hand() -> bool:
+	return hand != HAND_MANAGER
 
 
 func verdict() -> Verdict:

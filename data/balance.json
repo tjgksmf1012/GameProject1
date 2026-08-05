@@ -13,6 +13,9 @@
     "shake_wrong": 9.0,
     "shake_duration": 0.32,
     "tension_from_misjudge": 0.6,
-    "tension_from_progress": 0.4
+    "tension_from_progress": 0.4,
+    "replay_seconds": 3.0,
+    "replay_dim": 0.3,
+    "_comment_replay": "F-07 3초 리플레이. 놓친 줄과 특성만 남기고 나머지를 흐린다. 05-prioritization.md 4절이 절대 자르지 말라고 못박은 항목이다."
   }
 }

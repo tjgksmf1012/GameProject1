@@ -8,18 +8,31 @@
       "text_key": "rule.no_shadow",
       "veracity": "true",
       "conditions": [
-        { "field": "customer.has_shadow", "op": "eq", "value": false }
+        {
+          "field": "customer.has_shadow",
+          "op": "eq",
+          "value": false
+        }
       ],
       "required_verdict": "refuse",
-      "introduced_night": 1
+      "introduced_night": 1,
+      "hand": "later"
     },
     {
       "id": "rule_no_alcohol_after_2am",
       "text_key": "rule.no_alcohol_after_2am",
       "veracity": "true",
       "conditions": [
-        { "field": "time", "op": "after", "value": "02:00" },
-        { "field": "customer.wants_alcohol", "op": "eq", "value": true }
+        {
+          "field": "time",
+          "op": "after",
+          "value": "02:00"
+        },
+        {
+          "field": "customer.wants_alcohol",
+          "op": "eq",
+          "value": true
+        }
       ],
       "required_verdict": "refuse",
       "introduced_night": 1
@@ -30,11 +43,18 @@
       "veracity": "false",
       "tell_key": "tell.always_serve_wet",
       "conditions": [
-        { "field": "customer.is_wet", "op": "eq", "value": true }
+        {
+          "field": "customer.is_wet",
+          "op": "eq",
+          "value": true
+        }
       ],
       "required_verdict": "serve",
       "introduced_night": 1,
-      "conflicts_with": ["rule_no_shadow"]
+      "conflicts_with": [
+        "rule_no_shadow"
+      ],
+      "hand": "later"
     },
     {
       "id": "rule_refuse_bag",
@@ -42,10 +62,16 @@
       "veracity": "false",
       "tell_key": "tell.refuse_bag",
       "conditions": [
-        { "field": "customer.has_bag", "op": "eq", "value": true }
+        {
+          "field": "customer.has_bag",
+          "op": "eq",
+          "value": true
+        }
       ],
       "required_verdict": "refuse",
-      "introduced_night": 1
+      "introduced_night": 1,
+      "hand": "later"
     }
-  ]
+  ],
+  "_comment_hand": "필체는 진위와 별개다. **일부러 상관을 끊어 놨다.** later 필체 3줄 중 하나(rule_no_shadow)는 참이다. 필체가 진위를 1:1로 결정하면 코어 훅이 색깔 맞추기로 전락한다 — F-05가 경고한 그것이다. 역할 분담: 필체는 '언제 쓰였나'(용의자 좁히기), 문체는 '변명하는가'(진위 판정). tests/test_fairness.gd 의 불변식 2c 가 이 상관을 감시한다."
 }

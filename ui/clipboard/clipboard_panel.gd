@@ -2,22 +2,34 @@ extends PanelContainer
 
 ## 점장이 남긴 수칙. 화면에서 유일하게 따뜻한 것 — 차가운 형광등 아래 종이 한 장.
 ##
-## 거짓 수칙의 시각 차이(필체·잉크·종이 색조)는 F-05의 M2 항목이다.
-## M1은 텍스트 규약으로 버틴다: 참 수칙은 명령만 하고, 거짓 수칙은 이유를 댄다.
+## **수칙마다 종이가 다르다.** 점장이 처음에 쓴 줄과 나중에 누군가 덧쓴 줄은
+## 종이 색조와 잉크가 미세하게 다르다 (F-05, `shaders/paper.gdshader`).
+##
+## `tools/solver_audit.gd`가 확인한 대로 논리적 모순은 "둘 중 하나가 거짓"까지만 알려준다.
+## **어느 쪽인지는 이 시각 단서가 말해준다.** 없으면 코어 훅은 도박이 된다.
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
+const PAPER_SHADER := preload("res://shaders/paper.gdshader")
 
-const RULE_SEPARATION := 14
+const RULE_SEPARATION := 10
 const RISE_DURATION := 0.34
 const STAGGER := 0.05
 const MIN_LIST_HEIGHT := 120
+
+# 점장의 종이 vs 나중에 덧쓴 종이. 훑으면 모르고 들여다보면 보이는 정도를 노린다.
+const TONE_MANAGER := 1.0
+const TONE_LATER := 0.962
+const BLEED_MANAGER := 0.0
+const BLEED_LATER := 0.75
+const DIM_ALPHA := 0.32
 
 signal rule_added
 
 var _list: VBoxContainer = null
 var _strings: Dictionary = {}
 var _shown_ids: PackedStringArray = []
+var _rows: Dictionary = {}
 
 
 func _init() -> void:
@@ -72,9 +84,54 @@ func show_rules(rules: Array[Rule]) -> void:
 		if _shown_ids.has(rule.id):
 			continue
 		_shown_ids.append(rule.id)
-		var label := Palette.make_label("· " + _t(rule.text_key), Palette.SIZE_BODY, Palette.PAPER_TEXT)
-		_list.add_child(label)
-		Juice.fade_in(label, RISE_DURATION, added * STAGGER)
+		var row := _make_row(rule, _shown_ids.size() - 1)
+		_list.add_child(row)
+		_rows[rule.id] = row
+		Juice.fade_in(row, RISE_DURATION, added * STAGGER)
 		added += 1
 	if added > 0:
 		rule_added.emit()
+
+
+func _make_row(rule: Rule, index: int) -> PanelContainer:
+	var foreign := rule.is_foreign_hand()
+	var row := PanelContainer.new()
+	row.add_theme_stylebox_override("panel", _row_style())
+	row.material = _paper_material(foreign, index)
+	row.add_child(Palette.make_label(
+		"· " + _t(rule.text_key),
+		Palette.SIZE_BODY,
+		Palette.INK_LATER if foreign else Palette.INK_MANAGER))
+	return row
+
+
+static func _row_style() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Palette.PAPER
+	box.content_margin_left = 6
+	box.content_margin_right = 6
+	box.content_margin_top = 5
+	box.content_margin_bottom = 5
+	return box
+
+
+func _paper_material(foreign: bool, index: int) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = PAPER_SHADER
+	material.set_shader_parameter("paper_tone", TONE_LATER if foreign else TONE_MANAGER)
+	material.set_shader_parameter("ink_bleed", BLEED_LATER if foreign else BLEED_MANAGER)
+	# 줄마다 섬유가 달라야 종이 두 장이 똑같아 보이지 않는다.
+	material.set_shader_parameter("fiber_seed", float(index) * 37.0 + 11.0)
+	return material
+
+
+## 특정 수칙만 남기고 나머지를 흐린다. 3초 리플레이(F-07)에서 놓친 줄을 짚어줄 때 쓴다.
+func highlight(rule_ids: PackedStringArray) -> void:
+	for id in _rows:
+		var row: PanelContainer = _rows[id]
+		row.modulate = Color.WHITE if rule_ids.has(id) else Color(1.0, 1.0, 1.0, DIM_ALPHA)
+
+
+func clear_highlight() -> void:
+	for id in _rows:
+		(_rows[id] as PanelContainer).modulate = Color.WHITE

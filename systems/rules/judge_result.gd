@@ -20,6 +20,11 @@ var missed_clue_keys: PackedStringArray = []
 ## 결과 쪽에 따로 기록해야 두 번째 함정에 유예 문구가 잘못 뜨지 않는다.
 var graced: bool = false
 
+## 3초 리플레이(F-07)가 화면에서 짚어줄 대상.
+## 문자열 키만으로는 "어느 줄을 밝힐지"를 알 수 없다.
+var missed_rule_ids: PackedStringArray = []
+var decisive_fields: PackedStringArray = []
+
 
 func expected_ids() -> PackedStringArray:
 	var out := PackedStringArray()

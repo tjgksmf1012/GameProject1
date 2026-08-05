@@ -194,7 +194,25 @@ func _on_verdict(kind: String) -> void:
 	await Juice.hitstop(get_tree(),
 		_j("hitstop_correct", 0.05) if result.correct else _j("hitstop_wrong", 0.12))
 	_refresh_header()
+	# 짚을 줄이 없으면(발동한 수칙이 하나도 없는 오판) 리플레이는 아무것도 밝히지 못한다.
+	# 그 경우 결과 문구가 이미 "아무 수칙도 막지 않았다"고 말해준다.
+	if not result.correct and result.missed_rule_ids.size() > 0:
+		await _replay_missed_clues(result)
 	_show_result_instead_of_pos(result)
+
+
+## 3초 리플레이 (F-07, 공정성 불변식 3).
+##
+## "속았다"를 "알아챌 수 있었는데 놓쳤다"로 바꾸는 장치다. 놓친 줄과 특성만 남기고
+## 나머지를 흐려서, 플레이어가 **자기가 무엇을 안 봤는지**를 직접 보게 한다.
+## 05-prioritization.md 4절이 절대 자르지 말라고 못박은 항목이다.
+func _replay_missed_clues(result: JudgeResult) -> void:
+	var dim := _j("replay_dim", 0.3)
+	_clipboard.highlight(result.missed_rule_ids)
+	_customer_view.highlight_fields(result.decisive_fields, dim)
+	await get_tree().create_timer(_j("replay_seconds", 3.0)).timeout
+	_clipboard.clear_highlight()
+	_customer_view.clear_highlight()
 
 
 ## 결과는 POS 자리에 뜬다. 클립보드와 손님은 계속 보여야 한다 —

@@ -32,6 +32,7 @@ func run(r: RefCounted) -> void:
 	_invariant_1_all_clues_observable(r)
 	_invariant_2_lies_leave_a_tell(r)
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
+	_invariant_2c_hand_must_not_solve_it(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 	_strings_are_externalized(r)
@@ -58,20 +59,50 @@ func _invariant_2_lies_leave_a_tell(r: RefCounted) -> void:
 			"불변식2: 거짓 수칙 %s에 반증 단서(tell_key)가 없다" % rule.id)
 
 
-## 불변식 2를 강화한 것 — 거짓 수칙 중 **최소 하나는 클립보드만 보고 모순을 감지할 수 있어야** 한다.
+## 불변식 2를 강화한 것 — **모든 거짓 수칙은 실패하기 전에 알아낼 수 있어야 한다.**
 ##
-## `tell_key` 문자열이 존재한다는 것과, 실패하기 전에 알아낼 수 있다는 것은 다른 이야기다.
-## F-05의 시각 단서(필체·종이)는 M2에 들어오므로, 그 전까지 모순이 유일한 사전 탐지 경로다.
-## 모순이 하나도 없으면 M0·M1의 코어 훅은 순수한 도박이 된다.
+## `tell_key` 문자열이 존재한다는 것과 실패 전에 알아낼 수 있다는 것은 다른 이야기다.
+## 사전 탐지 경로는 두 개뿐이다:
+##   (a) 다른 수칙과의 논리적 모순 — 클립보드만 보고 감지된다
+##   (b) 남의 필체 — 종이 색조와 잉크가 다르다 (F-05, paper.gdshader)
+## 둘 다 없는 거짓 수칙은 "속았다"가 되고, 그 순간 이 게임은 불공정해진다.
 func _invariant_2b_a_lie_is_detectable_before_failing(r: RefCounted) -> void:
-	var detectable := 0
+	var by_contradiction := 0
 	for lie in _rules:
 		if not lie.is_lie_at(1):
 			continue
-		if _conflicting_rule_ids(lie).size() > 0:
-			detectable += 1
-	r.check(detectable > 0,
-		"불변식2b: 모순으로 사전 탐지 가능한 거짓 수칙이 하나도 없다 — 코어 훅이 도박이 된다")
+		var conflicts := _conflicting_rule_ids(lie)
+		if conflicts.size() > 0:
+			by_contradiction += 1
+		r.check(conflicts.size() > 0 or lie.is_foreign_hand(),
+			"불변식2b: 거짓 수칙 %s는 실패하기 전에 알아낼 방법이 없다 (모순도 필체 차이도 없음)"
+				% lie.id)
+	# 모순이 하나도 없으면 시각 단서에만 의존하게 된다. 그건 너무 얇다.
+	r.check(by_contradiction > 0,
+		"불변식2b: 모순으로 감지되는 거짓 수칙이 하나는 있어야 한다 — 시각 단서 하나에만 걸면 위험하다")
+
+
+## 불변식 2c — **필체가 진위를 1:1로 결정하면 안 된다.**
+##
+## 남의 필체가 곧 거짓이면, 플레이어는 한 번 학습한 뒤 종이 색만 보고 전부 푼다.
+## 코어 훅이 추론에서 색깔 맞추기로 전락한다 (F-05가 경고한 "너무 명확하면 퍼즐이 죽는다").
+##
+## 역할 분담을 강제한다: 필체는 **용의자를 좁히고**, 진위는 다른 단서가 정한다.
+func _invariant_2c_hand_must_not_solve_it(r: RefCounted) -> void:
+	var foreign_truths := 0
+	var foreign_lies := 0
+	for rule in _rules:
+		if not rule.is_foreign_hand():
+			continue
+		if rule.is_lie_at(1):
+			foreign_lies += 1
+		else:
+			foreign_truths += 1
+	if foreign_lies == 0:
+		return  # 남의 필체로 쓴 거짓이 없으면 이 위험 자체가 없다
+	r.check(foreign_truths > 0,
+		"불변식2c: 남의 필체가 전부 거짓이다 — 종이 색만 보면 다 풀린다. "
+			+ "참인데 나중에 덧쓴 수칙이 최소 하나는 있어야 한다")
 
 
 ## 같은 상황에서 서로 다른 판정을 요구하는 수칙들.

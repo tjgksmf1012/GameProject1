@@ -25,6 +25,7 @@ func run(r: RefCounted) -> void:
 	_test_trap_detection(r)
 	_test_lie_can_be_accidentally_right(r)
 	_test_decaying(r)
+	_test_replay_targets(r)
 
 
 func _ctx(customer_id: String, hhmm: String, night: int = 1) -> JudgeContext:
@@ -109,3 +110,22 @@ func _test_decaying(r: RefCounted) -> void:
 	r.check(not decaying.is_lie_at(4), "전환 전에는 참이다")
 	r.check(decaying.is_lie_at(5), "지정된 밤부터 거짓으로 바뀐다")
 	r.check(decaying.is_lie_at(6), "전환 이후로는 계속 거짓이다")
+
+
+## 3초 리플레이(F-07)가 짚을 대상. 비어 있으면 화면이 아무것도 밝히지 못한다.
+func _test_replay_targets(r: RefCounted) -> void:
+	# 함정: 거짓 수칙을 따라 판매 → 그 거짓 수칙과 그것이 참조한 특성을 짚어야 한다
+	var trapped := _engine.evaluate(_ctx(CUST_WET_NO_SHADOW, "23:00"), Verdict.serve())
+	r.check(trapped.missed_rule_ids.has("rule_always_serve_wet"),
+		"나를 속인 거짓 수칙을 짚는다")
+	r.check(trapped.decisive_fields.has("customer.is_wet"),
+		"그 수칙이 참조한 특성을 짚는다")
+
+	# 함정이 아닌 오판: 내가 어긴 참 수칙을 짚어야 한다
+	var missed := _engine.evaluate(_ctx(CUST_NO_SHADOW, "23:00"), Verdict.serve())
+	r.check(missed.missed_rule_ids.has("rule_no_shadow"), "내가 어긴 참 수칙을 짚는다")
+	r.check(missed.decisive_fields.has("customer.has_shadow"), "그 수칙의 특성을 짚는다")
+
+	# 정답일 때는 짚을 게 없다
+	var ok := _engine.evaluate(_ctx(CUST_NO_SHADOW, "23:00"), Verdict.refuse())
+	r.equals(ok.missed_rule_ids.size(), 0, "정답이면 짚을 줄이 없다")

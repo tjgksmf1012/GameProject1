@@ -17,6 +17,7 @@ var _name: Label = null
 var _dialogue: Label = null
 var _traits: VBoxContainer = null
 var _body: VBoxContainer = null
+var _trait_rows: Dictionary = {}
 
 
 func _init() -> void:
@@ -85,9 +86,25 @@ func _dialogue_text(customer: Customer) -> String:
 func _fill_traits(customer: Customer) -> void:
 	for child in _traits.get_children():
 		child.queue_free()
+	_trait_rows.clear()
 	for name in customer.trait_names():
-		var present := bool(customer.get_trait(name))
-		var mark := "●" if present else "○"
-		var color := Palette.TEXT if present else Palette.TEXT_DIM
-		_traits.add_child(Palette.make_label(
-			"%s  %s" % [mark, _t("trait." + name)], Palette.SIZE_BODY, color))
+		# 있고 없음은 표식(●/○)만으로 나타낸다. **색으로 나타내면 안 된다.**
+		# 없는 특성을 흐리게 그리면 "그림자 없음" 같은 가장 중요한 단서가 가장 안 보이게 되고,
+		# 3초 리플레이의 흐림과도 충돌해 무엇이 강조된 건지 구분이 안 된다.
+		var mark := "●" if bool(customer.get_trait(name)) else "○"
+		var row := Palette.make_label(
+			"%s  %s" % [mark, _t("trait." + name)], Palette.SIZE_BODY, Palette.TEXT)
+		_traits.add_child(row)
+		_trait_rows[JudgeContext.CUSTOMER_PREFIX + name] = row
+
+
+## 3초 리플레이(F-07)에서 결정적이었던 특성만 남기고 나머지를 흐린다.
+func highlight_fields(fields: PackedStringArray, dim: float) -> void:
+	for path in _trait_rows:
+		var row: Label = _trait_rows[path]
+		row.modulate = Color.WHITE if fields.has(path) else Color(1.0, 1.0, 1.0, dim)
+
+
+func clear_highlight() -> void:
+	for path in _trait_rows:
+		(_trait_rows[path] as Label).modulate = Color.WHITE

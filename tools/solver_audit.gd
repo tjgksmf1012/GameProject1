@@ -26,6 +26,7 @@ func _initialize() -> void:
 	_build_contexts()
 	_report_conflicts()
 	_report_lie_detectability()
+	_report_hand_correlation()
 	_report_solver("클립보드를 전부 믿는 플레이어", _naive_verdict)
 	_report_solver("모순된 수칙을 전부 버리는 플레이어", _skeptical_verdict)
 	_report_exhaustive()
@@ -78,14 +79,42 @@ func _report_lie_detectability() -> void:
 			continue
 		var partners := _conflicting_partners(rule)
 		if partners.is_empty():
-			print("  ⚠ %s — 모순 없음. **시각 단서(F-05)로만 탐지 가능**" % rule.id)
-			print("      M0는 텍스트뿐이라 시각 단서가 없다 → 이 수칙은 M0에서 사전 탐지 불가")
+			if rule.is_foreign_hand():
+				print("  ✓ %s — 모순은 없지만 필체가 다르다 (%s) → 종이와 잉크로 탐지 가능"
+					% [rule.id, rule.hand])
+			else:
+				print("  ✗ %s — 모순도 없고 필체도 점장이다. **실패하기 전에 알아낼 방법이 없다**"
+					% rule.id)
 		else:
 			var ids := PackedStringArray()
 			for p in partners:
 				ids.append(p.id)
-			print("  ✓ %s — %s 와(과) 모순 → 클립보드만 보고 이상을 감지할 수 있다"
-				% [rule.id, ", ".join(ids)])
+			var hand_note := " · 필체도 다르다(%s)" % rule.hand if rule.is_foreign_hand() else ""
+			print("  ✓ %s — %s 와(과) 모순 → 클립보드만 보고 이상을 감지할 수 있다%s"
+				% [rule.id, ", ".join(ids), hand_note])
+
+
+## 필체만 보고 진위를 맞출 수 있는가. 맞출 수 있으면 퍼즐이 죽은 것이다.
+func _report_hand_correlation() -> void:
+	print("\n%s\n필체와 진위의 상관\n%s" % [SEPARATOR, SEPARATOR])
+	var foreign_true := 0
+	var foreign_false := 0
+	var own_true := 0
+	var own_false := 0
+	for rule in _rules:
+		var lying := rule.is_lie_at(1)
+		if rule.is_foreign_hand():
+			if lying: foreign_false += 1
+			else: foreign_true += 1
+		else:
+			if lying: own_false += 1
+			else: own_true += 1
+	print("  점장 필체 — 참 %d / 거짓 %d" % [own_true, own_false])
+	print("  남의 필체 — 참 %d / 거짓 %d" % [foreign_true, foreign_false])
+	if foreign_false > 0 and foreign_true == 0:
+		print("  ✗ 남의 필체가 전부 거짓이다. 종이 색만 보면 다 풀린다")
+	else:
+		print("  ✓ 필체만으로는 진위를 결정할 수 없다 — 용의자를 좁힐 뿐이다")
 
 
 ## 클립보드를 전부 참으로 믿고, 모순이 나면 위에 적힌 수칙을 따른다.

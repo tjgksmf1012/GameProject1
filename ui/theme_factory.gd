@@ -12,6 +12,11 @@ const TEXT_DIM := Color("6b7275")
 const PAPER := Color("d8d2c4")
 const PAPER_TEXT := Color("23201c")
 const PAPER_EDGE := Color("b3ac9c")
+
+# 잉크 두 종. 점장의 펜과, 나중에 누군가 덧쓴 펜.
+# 차이가 크면 퍼즐이 죽고 작으면 불공정해진다 — 스크린샷으로 조정할 것 (F-05).
+const INK_MANAGER := Color("23201c")
+const INK_LATER := Color("2b2a33")
 const ACCENT := Color("e8a33d")
 const DANGER := Color("c0392b")
 const OK := Color("7fa650")
