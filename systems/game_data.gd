@@ -8,7 +8,13 @@ extends RefCounted
 
 const RULES_DIR := "res://data/rules"
 const CUSTOMERS_DIR := "res://data/customers"
-const STRINGS_PATH := "res://data/strings_ko.json"
+## 지원 로케일. 출시는 한국어 + 영어, 이후 중국어 간체 (F-10).
+const STRINGS_PATHS := {
+	"ko": "res://data/strings_ko.json",
+	"en": "res://data/strings_en.json",
+}
+const DEFAULT_LOCALE := "ko"
+const LOCALE_ARG := "--locale="
 const BALANCE_PATH := "res://data/balance.json"
 const NIGHTS_PATH := "res://data/nights.json"
 
@@ -42,8 +48,29 @@ static func json_files(dir_path: String) -> PackedStringArray:
 	return out
 
 
-static func load_strings(path: String = STRINGS_PATH) -> Dictionary:
-	return read_json(path)
+static func load_strings(locale: String = "") -> Dictionary:
+	return read_json(STRINGS_PATHS[resolve_locale(locale)])
+
+
+## 명시된 로케일 → 실행 인자(`--locale=en`) → OS 언어 → 기본값 순으로 정한다.
+static func resolve_locale(requested: String = "") -> String:
+	if STRINGS_PATHS.has(requested):
+		return requested
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with(LOCALE_ARG):
+			var from_arg := arg.substr(LOCALE_ARG.length())
+			if STRINGS_PATHS.has(from_arg):
+				return from_arg
+	var from_os := OS.get_locale_language()
+	return from_os if STRINGS_PATHS.has(from_os) else DEFAULT_LOCALE
+
+
+static func locales() -> PackedStringArray:
+	var out := PackedStringArray()
+	for locale in STRINGS_PATHS:
+		out.append(locale)
+	out.sort()
+	return out
 
 
 static func load_balance(path: String = BALANCE_PATH) -> Dictionary:

@@ -41,6 +41,7 @@ func run(r: RefCounted) -> void:
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 	_strings_are_externalized(r)
+	_locales_have_identical_keys(r)
 
 
 ## 불변식 1 — 판정에 필요한 모든 단서는 판정 시점에 화면에 존재한다. 숨겨진 스탯 금지.
@@ -200,3 +201,27 @@ func _strings_are_externalized(r: RefCounted) -> void:
 			r.check(_strings.has(key), "문자열 키 없음: %s" % key)
 		for name in customer.trait_names():
 			r.check(_strings.has("trait." + name), "문자열 키 없음: trait.%s" % name)
+
+
+## F-10 — 로케일마다 키가 하나라도 어긋나면 그 언어에서는 화면에 `<key>`가 그대로 뜬다.
+## 번역 누락을 출시 후에 발견하면 늦다.
+func _locales_have_identical_keys(r: RefCounted) -> void:
+	var reference := GameData.DEFAULT_LOCALE
+	var base := _content_keys(GameData.load_strings(reference))
+	for locale in GameData.locales():
+		if locale == reference:
+			continue
+		var other := _content_keys(GameData.load_strings(locale))
+		for key in base:
+			r.check(other.has(key), "F-10: '%s' 로케일에 키가 없다: %s" % [locale, key])
+		for key in other:
+			r.check(base.has(key), "F-10: '%s'에만 있는 키다: %s" % [locale, key])
+
+
+## `_`로 시작하는 키는 주석이므로 번역 대상이 아니다.
+static func _content_keys(strings: Dictionary) -> PackedStringArray:
+	var out := PackedStringArray()
+	for key in strings:
+		if not str(key).begins_with("_"):
+			out.append(str(key))
+	return out

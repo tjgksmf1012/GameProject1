@@ -33,8 +33,11 @@ godot --headless --script res://tools/solver_audit.gd
 xvfb-run -a godot --script res://tools/screenshot.gd -- --out=/tmp/s.png
 xvfb-run -a godot --script res://tools/shoot_states.gd -- --out=/tmp/r.png --verdict=refuse
 
-# 실제 플레이
+# 실제 플레이 (한국어)
 godot
+
+# 영어로 플레이
+godot -- --locale=en
 ```
 
 Claude Code는 루트의 **`CLAUDE.md`를 자동으로 읽는다.** 이 파일이 프로젝트 헌법이다.
@@ -60,6 +63,7 @@ docs/05-prioritization.md에서 현재 마일스톤의 다음 P0를 확인하고
 | 수칙 | 6개 (참 3 / 거짓 3) |
 | 손님 | 13명 |
 | 밤 | 2박 |
+| 언어 | 한국어 · 영어 (키 일치를 테스트가 강제) |
 | 에셋 파일 | **0개** — 아트는 전부 코드 |
 | `.tscn` | 노드 1개씩. 레이아웃은 전부 GDScript |
 | 코드 | `systems/` 는 노드 비의존 — 헤드리스로 전부 검증 가능 |
@@ -79,7 +83,8 @@ godot -- --tester=A1
 5명 기준 `data/balance.json`의 `grace_on_first_trap`을 **켬 3명 / 끔 2명**으로 나눈다.
 첫 함정에서 죽이느냐 봐주느냐가 H1의 성패를 가를 가능성이 높다.
 
-> **M1은 착수하지 않았다.** 게이트를 통과하기 전에 예쁘게 만들면 되돌릴 수 없다 (원칙 3).
+> 지금 플레이테스트를 하면 M0 텍스트 빌드가 아니라 **M2 빌드**로 하게 된다.
+> 오히려 대표성은 더 높지만, H1이 죽으면 M1·M2의 UI·셰이더·사운드가 매몰비용이 된다.
 
 ---
 
@@ -119,8 +124,9 @@ M0에서 코어 훅(거짓 수칙)이 재밌는지 텍스트만으로 검증한�
 - [x] Godot 4.x 설치
 - [x] 저장소 초기화 + 이 문서들 배치
 - [ ] `docs/00-competitive-analysis.md` §5의 확인 항목 실행 (경쟁작 실플레이)
-- [x] **M0 프로토타입 착수** → 수칙 엔진·텍스트 플레이 완료
-- [ ] **5명 플레이테스트** → H1·H2 검증 (다음 할 일)
+- [x] **M0~M2 완료** → 밤 1~2 플레이 가능, 셰이더·사운드·자동저장까지
+- [ ] **5명 플레이테스트** → H1·H2 검증 (사람이 필요한 유일한 항목)
+- [ ] 설명 없이 30초 안에 이해되는지 검증 (M2 게이트)
 
 ---
 
