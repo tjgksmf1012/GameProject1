@@ -16,6 +16,7 @@ const TestNightPlan := preload("res://tests/test_night_plan.gd")
 const TestPatience := preload("res://tests/test_patience.gd")
 const TestRuleVoice := preload("res://tests/test_rule_voice.gd")
 const TestStrings := preload("res://tests/test_strings.gd")
+const TestClipboard := preload("res://tests/test_clipboard.gd")
 
 
 func _initialize() -> void:
@@ -26,7 +27,7 @@ func _initialize() -> void:
 		TestRuleEngine.new(), TestFairness.new(), TestNightSession.new(),
 		TestSessionLog.new(), TestSfxBank.new(), TestPosGate.new(),
 		TestNightPlan.new(), TestPatience.new(), TestRuleVoice.new(),
-		TestStrings.new(),
+		TestStrings.new(), TestClipboard.new(),
 	]
 	for suite in suites:
 		suite.run(reporter)

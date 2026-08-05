@@ -82,7 +82,10 @@ func _t(key: String) -> String:
 
 func show_result(result: JudgeResult, button_text: String) -> void:
 	_headline.text = _headline_for(result)
-	_headline.add_theme_color_override("font_color", Palette.OK if result.correct else Palette.DANGER)
+	# 초록(정상)도 빨강(오판)도 아니다. 맞힌 것도 틀린 것도 아닌 화면이라야 한다.
+	var tone := Palette.OK if result.correct else Palette.DANGER
+	_headline.add_theme_color_override(
+		"font_color", Palette.ACCENT if result.had_true_conflict else tone)
 	_detail.text = _detail_for(result)
 	_reveal(button_text)
 
@@ -108,7 +111,11 @@ func hide_panel() -> void:
 	visible = false
 
 
+## 참 수칙끼리 부딪히면 **어느 쪽도 오답이 아니다** (밤 6).
+## 그때 「정상 응대했다」로 넘어가면 이 밤의 유일한 사건이 화면에서 사라진다.
 func _headline_for(result: JudgeResult) -> String:
+	if result.correct and result.had_true_conflict:
+		return _t("result.either")
 	if result.correct:
 		return _t("result.correct")
 	if result.is_trap_death():
@@ -117,6 +124,8 @@ func _headline_for(result: JudgeResult) -> String:
 
 
 func _detail_for(result: JudgeResult) -> String:
+	if result.correct and result.had_true_conflict:
+		return _t("result.either_detail")
 	if result.correct:
 		return ""
 	# 빈 줄과 별도 머리글은 세로를 두 줄 먹는다. 그 두 줄이 단서 두 줄이다 —

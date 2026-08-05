@@ -91,6 +91,7 @@ func _divider() -> ColorRect:
 ## 목록 맨 아래에 생기므로 그냥 두면 화면 밖이다.** 종이 소리만 나고 화면은 그대로면
 ## 그건 연출이 아니라 버그로 읽힌다. 밤 시작에는 내리지 않는다 (첫째 줄부터 읽어야 한다).
 func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
+	_remove_absent(rules)
 	var added := 0
 	for rule in rules:
 		if _shown_ids.has(rule.id):
@@ -106,6 +107,27 @@ func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
 	rule_added.emit()
 	if reveal:
 		_scroll_to_new_rule()
+
+
+## **더는 붙어 있지 않은 줄은 걷어낸다.**
+##
+## 이게 없으면 클립보드가 한 번 붙은 줄을 영영 들고 있는다. 밤 5의 열째 수칙은
+## 02:00에 붙는데, 그 밤을 실패하고 다시 시작하면 22:00 화면에 이미 붙어 있다 —
+## **아직 쓰이지도 않은 줄을 보고 판정하게 된다.** 엔진은 그 줄을 적용하지 않으므로
+## 화면과 판정이 어긋난다. 밤 6으로 넘어갈 때도 같은 일이 난다.
+func _remove_absent(rules: Array[Rule]) -> void:
+	var keep := PackedStringArray()
+	for rule in rules:
+		keep.append(rule.id)
+	for id in _shown_ids.duplicate():
+		if keep.has(id):
+			continue
+		(_rows[id] as Node).queue_free()
+		_rows.erase(id)
+		_labels.erase(id)
+		_strikes.erase(id)
+		# 목록에서도 빼야 다시 붙을 때 새 줄로 취급돼 애니메이션과 종이 소리가 난다.
+		_shown_ids.remove_at(_shown_ids.find(id))
 
 
 ## 새 줄은 항상 목록 맨 아래에 붙으므로 **끝까지 내린다.**

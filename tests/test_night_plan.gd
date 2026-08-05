@@ -13,6 +13,7 @@ func run(r: RefCounted) -> void:
 	_test_save_roundtrip(r)
 	_test_failed_night_does_not_advance(r)
 	_test_strikes_are_belief_not_truth(r)
+	_test_true_conflict_actually_happens(r)
 
 
 func _test_plan_is_complete(r: RefCounted) -> void:
@@ -89,3 +90,28 @@ func _test_failed_night_does_not_advance(r: RefCounted) -> void:
 	save.advance_to(3)
 	r.equals(save.night, 3, "성공하면 다음 밤으로 간다")
 	r.equals(save.cleared_nights, 2, "넘긴 밤이 기록된다")
+
+
+## 밤 6의 중심 사건 — **참 수칙 둘이 서로 반대를 요구하는 손님이 실제로 있는가.**
+##
+## 이 밤의 유일한 사건이고, 조용히 안 일어나도 화면상으로는 구분이 안 된다.
+## 도착 시각이 1분만 어긋나도(`after 05:00` 경계) 그냥 평범한 손님이 되어버린다.
+## 설계한 순간이 실제로 발동하는지는 검사로만 확인할 수 있다.
+func _test_true_conflict_actually_happens(r: RefCounted) -> void:
+	var engine := RuleEngine.new(GameData.load_rules())
+	var plan := NightPlan.load()
+	var found := PackedStringArray()
+	for night in plan.nights():
+		var customers := plan.customers_for(night)
+		for i in customers.size():
+			var ctx := JudgeContext.new(
+				night, NightSession.arrival_minutes(i, customers.size()), customers[i])
+			if engine.required_verdicts(ctx).size() < 2:
+				continue
+			found.append("%d/%s" % [night, customers[i].id])
+			# 충돌이면 **어느 쪽도 오답이 아니다.** 한쪽만 통과하면 충돌이 아니라 그냥 함정이다.
+			for kind in [Verdict.SERVE, Verdict.REFUSE]:
+				r.check(engine.evaluate(ctx, Verdict.from_id(kind)).correct,
+					"%s: 참끼리 충돌하면 '%s'도 정답이어야 한다" % [customers[i].id, kind])
+	r.check(found.size() > 0,
+		"참 수칙끼리 충돌하는 손님이 하나도 없다 — 밤 6의 사건이 발동하지 않는다")

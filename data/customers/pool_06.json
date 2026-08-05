@@ -1,0 +1,261 @@
+{
+  "_comment": "밤 6 손님 12명. 40분 간격. 마지막 손님(05:20)에서 참 수칙 둘이 부딪힌다.",
+  "_comment_design": "앞은 밤 5까지의 문법을 그대로 쓴다. 열째 수칙은 이 밤에도 02:00에 또 붙는다 — 같은 시각에 같은 줄이 다시 나타나는 것이 이 밤의 배경음이다. 마지막 손님만 다르다: 여덟과 열하나가 둘 다 참인 채로 반대를 요구한다. 어느 쪽을 골라도 오판이 아니다.",
+  "customers": [
+    {
+      "id": "cust_n6_opener",
+      "name_key": "customer.n6_opener",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n6_opener_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n6_carrier",
+      "name_key": "customer.n6_carrier",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n6_carrier_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n6_still",
+      "name_key": "customer.n6_still",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n6_still_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n6_wet_regular",
+      "name_key": "customer.n6_wet_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.n6_wet_regular_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n6_lowered",
+      "name_key": "customer.n6_lowered",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.n6_lowered_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_n6_doubled",
+      "name_key": "customer.n6_doubled",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n6_doubled_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "_comment": "이 손님이 서 있는 동안 열째 수칙이 또 붙는다.",
+      "id": "cust_n6_two_oclock",
+      "name_key": "customer.n6_two_oclock",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.n6_two_oclock_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n6_drinker",
+      "name_key": "customer.n6_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.n6_drinker_1"
+      ],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n6_hidden_regular",
+      "name_key": "customer.n6_hidden_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.n6_hidden_regular_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_n6_wet_nothing",
+      "name_key": "customer.n6_wet_nothing",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.n6_wet_nothing_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "_comment": "네 시가 지났다. 여섯과 열이 응대하라 하고, 참인 여덟은 거부하라 한다.",
+      "id": "cust_n6_dawn_regular",
+      "name_key": "customer.n6_dawn_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.n6_dawn_regular_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "**이 밤의 끝.** 여덟(참)은 거부하라 하고 열하나(참)는 응대하라 한다. 둘 다 점장 필체다.",
+      "id": "cust_n6_last_hour",
+      "name_key": "customer.n6_last_hour",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.n6_last_hour_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": ""
+    }
+  ]
+}
