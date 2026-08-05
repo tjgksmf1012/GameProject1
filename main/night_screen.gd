@@ -78,6 +78,7 @@ func _build() -> void:
 	_view.pos.item_scanned.connect(_audio.play.bind("scan"))
 	_view.pos.id_checked.connect(_audio.play.bind("click"))
 	_view.clipboard.rule_added.connect(_audio.play.bind("paper"))
+	_view.clipboard.strike_toggled.connect(_on_strike_toggled)
 	_view.result.continued.connect(_on_continue)
 
 	_effects = ScreenEffects.new()
@@ -96,7 +97,18 @@ func _start_night(night: int) -> void:
 	var visible := _session.engine.visible_rules(_session.night)
 	_view.clipboard.show_rules(visible)
 	_view.clipboard.apply_night(visible, _session.night)
+	_view.clipboard.set_struck(_save.struck_rule_ids)
 	_present_customer()
+
+
+## 플레이어가 수칙을 그었다. **판정에는 아무 영향이 없다** — 정답은 참 수칙이 정한다.
+## 표시를 세이브에 남기는 이유: 밤 1에서 거짓이라고 결론 낸 줄을 밤 4에서 다시 긋게 하면
+## 그건 추론이 아니라 사무 작업이다.
+func _on_strike_toggled(rule_id: String) -> void:
+	_save.toggle_strike(rule_id)
+	_save.store()
+	_view.clipboard.set_struck(_save.struck_rule_ids, rule_id)
+	_audio.play("pen")
 
 
 func _present_customer() -> void:

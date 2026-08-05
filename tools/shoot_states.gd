@@ -9,6 +9,7 @@ extends SceneTree
 const POS_SCRIPT := "res://ui/pos/pos_terminal.gd"
 const RESULT_SCRIPT := "res://ui/result_panel.gd"
 const CUSTOMER_SCRIPT := "res://ui/customer_view.gd"
+const CLIPBOARD_SCRIPT := "res://ui/clipboard/clipboard_panel.gd"
 const SCENE := "res://main/night_screen.tscn"
 
 const SETTLE_FRAMES := 30
@@ -33,6 +34,7 @@ var _night: int = 1
 var _final_continue: int = -1
 var _final_done: bool = false
 var _pressure_stage: int = -1
+var _strike_ids: PackedStringArray = []
 
 
 func _initialize() -> void:
@@ -49,6 +51,9 @@ func _initialize() -> void:
 	# 인내는 실제로 35~60초가 걸린다. xvfb에서 그만큼 프레임을 돌리면 20분이 넘는다.
 	# 시계 자체는 tests/test_patience.gd 가 헤드리스로 검증한다 — 여기서 볼 것은 **레이아웃**이다.
 	_pressure_stage = int(_arg("--pressure=", "-1"))
+	# 그은 수칙을 화면에서 보려면 실제로 시그널을 쏘아야 한다. 세이브에 직접 쓰면
+	# 클립보드가 그리는 경로(strike_toggled → set_struck)를 건너뛰어 검증이 안 된다.
+	_strike_ids = _arg("--strike=", "").split(",", false)
 	_final_continue = int(_arg("--final-continue=", "-1"))
 	var packed: PackedScene = load(SCENE)
 	root.add_child(packed.instantiate())
@@ -93,6 +98,13 @@ func _fire() -> void:
 			_awaiting_continue = true
 		_next_step_frame = _frames + STEP_FRAMES
 		return
+	if _strike_ids.size() > 0:
+		var clipboard := _find_by_script(root, CLIPBOARD_SCRIPT)
+		if clipboard != null:
+			for id in _strike_ids:
+				clipboard.strike_toggled.emit(id)
+			print("그은 수칙: %s" % ", ".join(_strike_ids))
+		_strike_ids = PackedStringArray()
 	if _pressure_stage >= 0:
 		var view := _find_by_script(root, CUSTOMER_SCRIPT)
 		if view != null:

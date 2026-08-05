@@ -11,6 +11,7 @@ extends PanelContainer
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 const PAPER_SHADER := preload("res://shaders/paper.gdshader")
+const StrikeMark := preload("res://ui/clipboard/strike_mark.gd")
 
 const RULE_SEPARATION := 7
 const RISE_DURATION := 0.34
@@ -27,12 +28,15 @@ const TONE_REWRITTEN := 1.055
 const DIM_ALPHA := 0.32
 
 signal rule_added
+## 플레이어가 수칙 하나를 그었다/지웠다. **믿음일 뿐이고 판정에는 영향이 없다.**
+signal strike_toggled(rule_id: String)
 
 var _list: VBoxContainer = null
 var _strings: Dictionary = {}
 var _shown_ids: PackedStringArray = []
 var _rows: Dictionary = {}
 var _labels: Dictionary = {}
+var _strikes: Dictionary = {}
 
 
 func _init() -> void:
@@ -99,10 +103,37 @@ func show_rules(rules: Array[Rule]) -> void:
 func _make_row(rule: Rule, index: int) -> PanelContainer:
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", _row_style())
+	row.mouse_filter = Control.MOUSE_FILTER_STOP
+	row.gui_input.connect(_on_row_input.bind(rule.id))
 	var label := Palette.make_label("· " + _t(rule.text_key), Palette.SIZE_BODY, Palette.INK_MANAGER)
 	row.add_child(label)
 	_labels[rule.id] = label
+
+	_strikes[rule.id] = StrikeMark.attach(label)
 	return row
+
+
+## 클릭하면 긋고, 다시 클릭하면 지운다. **표시일 뿐 판정은 바뀌지 않는다.**
+## 밤 4에서 수칙이 아홉 줄이 된다. 어느 줄을 거짓으로 결론 냈는지 머리로 들고 있으라고 하면
+## 그건 추론 게임이 아니라 기억력 게임이다.
+func _on_row_input(event: InputEvent, rule_id: String) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var click := event as InputEventMouseButton
+	if not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
+		return
+	strike_toggled.emit(rule_id)
+
+
+## 밤을 새로 열 때는 이미 그어져 있던 줄을 **애니메이션 없이** 되살린다.
+## 밤이 시작되자마자 펜이 저절로 움직이면 누가 긋는 것처럼 보인다.
+func set_struck(rule_ids: PackedStringArray, animate_id: String = "") -> void:
+	for id in _strikes:
+		var mark: Node2D = _strikes[id]
+		if rule_ids.has(id):
+			mark.show_stroke(str(id) == animate_id)
+		else:
+			mark.hide_stroke()
 
 
 ## 밤마다 줄의 종이와 잉크를 다시 칠한다.

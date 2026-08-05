@@ -43,6 +43,11 @@ static func death() -> AudioStreamWAV:
 		tone(62.0, 1.5, 1.6, 0.35, true, 0.28))
 
 
+## 수칙에 줄을 긋는다. 짧게 긁히는 소리 — 잉크가 종이를 지나간다.
+static func pen_stroke() -> AudioStreamWAV:
+	return tone(320.0, 0.16, 16.0, 0.92, false, 0.16)
+
+
 ## 손님이 기다리다 카운터를 두드린다. **UI 소리와 헷갈리면 안 된다** —
 ## 딸깍은 내가 누른 것이고, 이건 저쪽에서 나는 소리다. 그래서 낮고 둔탁하게.
 static func counter_tap() -> AudioStreamWAV:

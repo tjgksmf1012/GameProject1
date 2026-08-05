@@ -4,7 +4,8 @@ extends RefCounted
 ## 오디오 파일이 저장소에 하나도 없다는 사실을 지키는 테스트이기도 하다.
 
 const SOUND_MAKERS := [
-	"click", "scan", "correct", "wrong", "paper", "counter_tap", "door_bell", "death",
+	"click", "scan", "correct", "wrong", "paper",
+	"counter_tap", "pen_stroke", "door_bell", "death",
 ]
 
 
@@ -22,7 +23,8 @@ func _all() -> Array[AudioStreamWAV]:
 	# 나는 소리를 들을 수 없으므로 이 목록이 유일한 방어선이다.
 	return [
 		SfxBank.click(), SfxBank.scan(), SfxBank.correct(), SfxBank.wrong(),
-		SfxBank.paper(), SfxBank.counter_tap(), SfxBank.door_bell(), SfxBank.death(),
+		SfxBank.paper(), SfxBank.counter_tap(), SfxBank.pen_stroke(),
+		SfxBank.door_bell(), SfxBank.death(),
 	]
 
 

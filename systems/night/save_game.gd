@@ -14,6 +14,12 @@ const FIRST_NIGHT := 1
 var night: int = FIRST_NIGHT
 var cleared_nights: int = 0
 
+## 플레이어가 거짓이라고 판단해 그어버린 수칙들. **믿음이지 사실이 아니다.**
+## 판정에는 아무 영향을 주지 않는다 — 정답은 오직 참 수칙이 정한다 (RuleEngine).
+## 밤을 넘어 남는다. 밤 1에서 거짓이라고 결론 낸 줄을 밤 4에서 다시 그어야 하면
+## 그건 추론이 아니라 사무 작업이다.
+var struck_rule_ids: PackedStringArray = []
+
 
 static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
 	var save := SaveGame.new()
@@ -26,6 +32,7 @@ static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
 	var data := parsed as Dictionary
 	save.night = maxi(FIRST_NIGHT, int(data.get("night", FIRST_NIGHT)))
 	save.cleared_nights = int(data.get("cleared_nights", 0))
+	save.struck_rule_ids = Customer._to_string_array(data.get("struck_rule_ids", []))
 	return save
 
 
@@ -37,8 +44,19 @@ func store(path: String = SAVE_PATH) -> bool:
 	file.store_string(JSON.stringify({
 		"night": night,
 		"cleared_nights": cleared_nights,
+		"struck_rule_ids": struck_rule_ids,
 	}, "  "))
 	file.close()
+	return true
+
+
+## 그었다 / 지웠다. 그은 상태를 돌려준다.
+func toggle_strike(rule_id: String) -> bool:
+	var at := struck_rule_ids.find(rule_id)
+	if at >= 0:
+		struck_rule_ids.remove_at(at)
+		return false
+	struck_rule_ids.append(rule_id)
 	return true
 
 

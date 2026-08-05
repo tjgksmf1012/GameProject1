@@ -12,6 +12,7 @@ func run(r: RefCounted) -> void:
 	_test_arrival_spread(r)
 	_test_save_roundtrip(r)
 	_test_failed_night_does_not_advance(r)
+	_test_strikes_are_belief_not_truth(r)
 
 
 func _test_plan_is_complete(r: RefCounted) -> void:
@@ -50,11 +51,32 @@ func _test_save_roundtrip(r: RefCounted) -> void:
 	r.equals(fresh.night, SaveGame.FIRST_NIGHT, "세이브가 없으면 첫 밤부터")
 
 	fresh.advance_to(3)
+	fresh.toggle_strike("rule_refuse_bag")
 	r.check(fresh.store(SAVE_TEST_PATH), "저장된다")
 	var loaded := SaveGame.load_or_new(SAVE_TEST_PATH)
 	r.equals(loaded.night, 3, "밤이 보존된다")
 	r.equals(loaded.cleared_nights, 1, "넘긴 밤 수가 보존된다")
+	r.check(loaded.struck_rule_ids.has("rule_refuse_bag"), "그어둔 수칙이 밤을 넘어 남는다")
 	SaveGame.erase(SAVE_TEST_PATH)
+
+
+## 그은 표시는 **플레이어의 믿음이지 사실이 아니다.**
+## 이게 판정에 새어들면 플레이어가 정답을 직접 쓰는 셈이 되고 게임이 끝난다.
+func _test_strikes_are_belief_not_truth(r: RefCounted) -> void:
+	var save := SaveGame.new()
+	r.check(save.toggle_strike("rule_no_shadow"), "처음 누르면 그어진다")
+	r.check(not save.toggle_strike("rule_no_shadow"), "다시 누르면 지워진다")
+	r.equals(save.struck_rule_ids.size(), 0, "지우면 목록에서 빠진다")
+
+	# 값을 비교해서는 이걸 증명할 수 없다 — 판정 경로에 표시를 넘기는 인자가 아예 없기 때문이다.
+	# **증명해야 할 것은 구조다**: 수칙 엔진이 세이브를 아예 모른다는 것.
+	# 누군가 "그은 줄은 평가에서 빼자"는 최적화를 넣는 순간 여기서 걸린다.
+	for path in ["res://systems/rules/rule_engine.gd", "res://systems/rules/rule.gd"]:
+		var source := FileAccess.get_file_as_string(path)
+		r.check(source != "", "%s를 읽을 수 있다" % path)
+		for forbidden in ["SaveGame", "struck"]:
+			r.check(not source.contains(forbidden),
+				"%s가 '%s'를 참조한다 — 플레이어의 믿음이 정답에 새어들었다" % [path, forbidden])
 
 
 ## 실패한 밤은 진행이 오르면 안 된다. 오르면 못 깬 밤을 건너뛰게 된다.
