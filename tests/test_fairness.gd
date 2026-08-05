@@ -31,6 +31,7 @@ func run(r: RefCounted) -> void:
 	_strings = GameData.load_strings()
 	_invariant_1_all_clues_observable(r)
 	_invariant_2_lies_leave_a_tell(r)
+	_invariant_2b_a_lie_is_detectable_before_failing(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 	_strings_are_externalized(r)
@@ -55,6 +56,38 @@ func _invariant_2_lies_leave_a_tell(r: RefCounted) -> void:
 			continue
 		r.check(rule.tell_key != "",
 			"불변식2: 거짓 수칙 %s에 반증 단서(tell_key)가 없다" % rule.id)
+
+
+## 불변식 2를 강화한 것 — 거짓 수칙 중 **최소 하나는 클립보드만 보고 모순을 감지할 수 있어야** 한다.
+##
+## `tell_key` 문자열이 존재한다는 것과, 실패하기 전에 알아낼 수 있다는 것은 다른 이야기다.
+## F-05의 시각 단서(필체·종이)는 M2에 들어오므로, 그 전까지 모순이 유일한 사전 탐지 경로다.
+## 모순이 하나도 없으면 M0·M1의 코어 훅은 순수한 도박이 된다.
+func _invariant_2b_a_lie_is_detectable_before_failing(r: RefCounted) -> void:
+	var detectable := 0
+	for lie in _rules:
+		if not lie.is_lie_at(1):
+			continue
+		if _conflicting_rule_ids(lie).size() > 0:
+			detectable += 1
+	r.check(detectable > 0,
+		"불변식2b: 모순으로 사전 탐지 가능한 거짓 수칙이 하나도 없다 — 코어 훅이 도박이 된다")
+
+
+## 같은 상황에서 서로 다른 판정을 요구하는 수칙들.
+func _conflicting_rule_ids(target: Rule) -> PackedStringArray:
+	var out := PackedStringArray()
+	for other in _rules:
+		if other.id == target.id:
+			continue
+		for customer in _customers:
+			for minutes in [0, 240, 400]:
+				var ctx := JudgeContext.new(1, minutes, customer)
+				if not (target.matches(ctx) and other.matches(ctx)):
+					continue
+				if not target.verdict().equals(other.verdict()) and not out.has(other.id):
+					out.append(other.id)
+	return out
 
 
 ## 불변식 3 — 실패하면 무엇을 놓쳤는지 항상 보여줄 수 있어야 한다 (3초 리플레이).

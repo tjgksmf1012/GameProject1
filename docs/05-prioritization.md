@@ -65,7 +65,7 @@
 4. ☐ **5명 플레이테스트** → H1(거짓 수칙 재미?), H2(고정 시점 답답?) 검증
 
 > 공정성 불변식 4개(F-01)는 `tests/test_fairness.gd`로 자동 검증 중이다.
-> `godot --headless --script res://tests/run_tests.gd` — 현재 385개 검사 통과.
+> `godot --headless --script res://tests/run_tests.gd` — 현재 422개 검사 통과.
 > 손으로 플레이하기 전에 `tools/playthrough.gd`로 밤 전체 대본을 찍어볼 수 있다.
 
 **플레이테스트 시 반드시 두 조건을 모두 측정할 것**: `data/balance.json`의

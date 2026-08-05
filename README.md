@@ -26,6 +26,9 @@ godot --headless --script res://tests/run_tests.gd
 # 밤 하나를 헤드리스로 끝까지 돌려 대본 출력
 godot --headless --script res://tools/playthrough.gd
 
+# 화면 정보만으로 게임이 풀리는지 감사 (모순 탐지 · 솔버 · 전수 탐색)
+godot --headless --script res://tools/solver_audit.gd
+
 # 실제 플레이
 godot
 ```
@@ -45,7 +48,7 @@ docs/05-prioritization.md에서 현재 마일스톤의 다음 P0를 확인하고
 
 | | |
 |---|---|
-| 테스트 | 421개 검사 통과 |
+| 테스트 | 422개 검사 통과 |
 | 수칙 | 참 2 / 거짓 2 |
 | 손님 | 6명 (함정 2종 포함) |
 | 코드 | `systems/` 는 노드 비의존 — 헤드리스로 전부 검증 가능 |
