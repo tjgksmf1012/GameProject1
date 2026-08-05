@@ -11,6 +11,7 @@ const CustomerView := preload("res://ui/customer_view.gd")
 const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 const PosTerminal := preload("res://ui/pos/pos_terminal.gd")
 const ResultPanel := preload("res://ui/result_panel.gd")
+const DeathSequence := preload("res://ui/death_sequence.gd")
 
 const MARGIN := 44
 const POS_MIN_HEIGHT := 200
@@ -31,11 +32,14 @@ var _customer_view: CustomerView = null
 var _cctv: CctvMonitor = null
 var _pos: PosTerminal = null
 var _result: ResultPanel = null
+var _death: DeathSequence = null
 var _clock: Label = null
 var _status: Label = null
 var _frame: VBoxContainer = null
 
 var _sfx: Dictionary = {}
+var _ambience: Dictionary = {}
+var _audio: Dictionary = {}
 var _judging: bool = false
 var _shown_at_msec: int = 0
 var _night_started_msec: int = 0
@@ -45,8 +49,10 @@ func _ready() -> void:
 	_strings = GameData.load_strings()
 	_balance = GameData.load_balance()
 	_juice = _balance.get("juice", {}) as Dictionary
+	_audio = _balance.get("audio", {}) as Dictionary
 	_log = SessionLog.new(_tester_id(), bool(_balance.get("grace_on_first_trap", true)))
 	_build_audio()
+	_build_ambience()
 	_build_ui()
 	_start_night()
 
@@ -69,13 +75,39 @@ static func _tester_id() -> String:
 func _build_audio() -> void:
 	var makers := {
 		"click": SfxBank.click, "scan": SfxBank.scan, "correct": SfxBank.correct,
-		"wrong": SfxBank.wrong, "paper": SfxBank.paper,
+		"wrong": SfxBank.wrong, "paper": SfxBank.paper, "bell": SfxBank.door_bell, "death": SfxBank.death,
 	}
 	for name in makers:
 		var player := AudioStreamPlayer.new()
 		player.stream = (makers[name] as Callable).call()
 		add_child(player)
 		_sfx[name] = player
+
+
+## 환경음은 밤 내내 돈다. 냉장고 소리는 긴장에 따라 커진다 —
+## 조용한 게임에서 소리는 분위기가 아니라 압박의 일부다 (F-08).
+func _build_ambience() -> void:
+	var beds := {
+		"fridge": [AmbienceBank.fridge, "fridge_db", -24.0],
+		"fluorescent": [AmbienceBank.fluorescent, "fluorescent_db", -32.0],
+		"rain": [AmbienceBank.rain, "rain_db", -27.0],
+	}
+	for name in beds:
+		var spec: Array = beds[name]
+		var player := AudioStreamPlayer.new()
+		player.stream = (spec[0] as Callable).call()
+		player.volume_db = float(_audio.get(spec[1], spec[2]))
+		add_child(player)
+		player.play()
+		_ambience[name] = player
+
+
+func _update_ambience(tension: float) -> void:
+	var player: AudioStreamPlayer = _ambience.get("fridge")
+	if player == null:
+		return
+	player.volume_db = float(_audio.get("fridge_db", -24.0)) \
+		+ tension * float(_audio.get("fridge_tension_boost_db", 7.0))
 
 
 func _play(name: String) -> void:
@@ -109,6 +141,8 @@ func _build_ui() -> void:
 
 	_effects = ScreenEffects.new()
 	add_child(_effects)
+	_death = DeathSequence.new()
+	add_child(_death)
 
 
 func _build_header() -> HBoxContainer:
@@ -175,6 +209,7 @@ func _present_customer() -> void:
 	var customer := _session.current_customer()
 	if customer == null:
 		return
+	_play("bell")
 	_customer_view.show_customer(customer)
 	_cctv.show_customer(customer)
 	_pos.present(customer)
@@ -188,7 +223,9 @@ func _refresh_header() -> void:
 		_session.index + 1, _session.total_customers(),
 		_session.misjudge_count, _session.misjudge_limit(),
 	]
-	_effects.set_tension(_tension())
+	var tension := _tension()
+	_effects.set_tension(tension)
+	_update_ambience(tension)
 
 
 ## 화면에 이미 보이는 것만으로 계산한다 — 남은 오판 여유와 밤의 진행도.
@@ -251,6 +288,10 @@ func _show_result_instead_of_pos(result: JudgeResult) -> void:
 
 
 func _on_continue() -> void:
+	# 판정 흐름(히트스톱 → 리플레이 → 결과)이 아직 도는 중이면 무시한다.
+	# 실제 플레이에선 그 사이 버튼이 안 보이지만, 가드가 없으면 화면 상태가 어긋난다.
+	if _judging:
+		return
 	_play("click")
 	_session.advance()
 	if _session.is_finished():
@@ -262,6 +303,25 @@ func _on_continue() -> void:
 
 
 func _finish_night() -> void:
+	if _session.is_failed():
+		await _play_death()
+	_show_summary()
+
+
+## 소리를 먼저 끈다. 굉음보다 정적이 무섭다 (F-07).
+func _play_death() -> void:
+	for name in _ambience:
+		(_ambience[name] as AudioStreamPlayer).stop()
+	_effects.set_tension(1.0)
+	_pos.visible = false
+	_death.play(size)
+	await get_tree().create_timer(DeathSequence.SILENCE_SECONDS).timeout
+	_play("death")
+	await _death.finished
+	_death.clear()
+
+
+func _show_summary() -> void:
 	_log.record_night_end(_session, (Time.get_ticks_msec() - _night_started_msec) / 1000.0)
 	var headline := _t("night.failed") % _session.misjudge_count if _session.is_failed() \
 		else _t("night.cleared")

@@ -25,6 +25,11 @@ var _verdict: String = Verdict.REFUSE
 var _target_index: int = 0
 var _advanced: int = 0
 var _next_step_frame: int = SETTLE_FRAMES
+var _play_wrong: bool = false
+var _awaiting_continue: bool = false
+var _fire_frame: int = 0
+var _final_continue: int = -1
+var _final_done: bool = false
 
 
 func _initialize() -> void:
@@ -32,6 +37,8 @@ func _initialize() -> void:
 	_verdict = _arg("--verdict=", _verdict)
 	_after_frames = int(_arg("--after=", str(AFTER_FRAMES)))
 	_target_index = int(_arg("--index=", "0"))
+	_play_wrong = _arg("--wrong=", "0") == "1"
+	_final_continue = int(_arg("--final-continue=", "-1"))
 	var packed: PackedScene = load(SCENE)
 	root.add_child(packed.instantiate())
 
@@ -43,7 +50,14 @@ func _process(_delta: float) -> bool:
 	if not _fired and _frames >= _next_step_frame:
 		_fire()
 		return false
-	if _fired and _frames >= SETTLE_FRAMES + _after_frames:
+	# 밤이 실패로 끝나는 연출은 "다음 손님"을 한 번 더 눌러야 시작된다.
+	if _fired and not _final_done and _final_continue >= 0 \
+			and _frames >= _fire_frame + _final_continue:
+		var panel := _find_by_script(root, RESULT_SCRIPT)
+		if panel != null:
+			panel.continued.emit()
+		_final_done = true
+	if _fired and _frames >= _fire_frame + _after_frames:
 		_capture()
 		_done = true
 	return false
@@ -58,17 +72,31 @@ func _fire() -> void:
 		_done = true
 		return
 	if _advanced < _target_index:
-		pos.verdict_chosen.emit(_correct_verdict())
-		result_panel.continued.emit()
-		_advanced += 1
+		# 판정과 진행을 같은 프레임에 쏘면 리플레이가 도는 중에 다음 손님이 들어온다.
+		if _awaiting_continue:
+			result_panel.continued.emit()
+			_awaiting_continue = false
+			_advanced += 1
+		else:
+			pos.verdict_chosen.emit(_step_verdict())
+			_awaiting_continue = true
 		_next_step_frame = _frames + STEP_FRAMES
 		return
 	pos.verdict_chosen.emit(_verdict)
 	_fired = true
+	_fire_frame = _frames
 	print("손님 %d 에서 판정 발사: %s" % [_target_index, _verdict])
 
 
-## 지금 손님의 정답. 목표까지 가는 동안은 틀리지 않아야 밤이 안 끝난다.
+## 목표까지 가는 동안 무엇을 낼지. 기본은 정답(밤이 안 끝나야 하므로),
+## `--wrong=1`이면 일부러 오답을 내서 밤을 실패시킨다 (사망 연출 촬영용).
+func _step_verdict() -> String:
+	var right := _correct_verdict()
+	if not _play_wrong:
+		return right
+	return Verdict.REFUSE if right == Verdict.SERVE else Verdict.SERVE
+
+
 func _correct_verdict() -> String:
 	var engine := RuleEngine.new(GameData.load_rules())
 	var customers := GameData.load_customers()

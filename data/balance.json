@@ -17,5 +17,12 @@
     "replay_seconds": 3.0,
     "replay_dim": 0.3,
     "_comment_replay": "F-07 3초 리플레이. 놓친 줄과 특성만 남기고 나머지를 흐린다. 05-prioritization.md 4절이 절대 자르지 말라고 못박은 항목이다."
+  },
+  "audio": {
+    "_comment": "환경음 기본 볼륨(dB). 긴장이 오르면 냉장고 소리가 커진다 — 조용한 게임에서 소리는 압박의 일부다.",
+    "fridge_db": -24.0,
+    "fluorescent_db": -32.0,
+    "rain_db": -27.0,
+    "fridge_tension_boost_db": 7.0
   }
 }

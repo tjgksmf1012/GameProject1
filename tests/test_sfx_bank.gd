@@ -12,6 +12,7 @@ func run(r: RefCounted) -> void:
 	_test_format(r)
 	_test_length_matches_duration(r)
 	_test_not_silent(r)
+	_test_ambience_loops_seamlessly(r)
 
 
 func _all() -> Array[AudioStreamWAV]:
@@ -47,3 +48,18 @@ func _test_not_silent(r: RefCounted) -> void:
 		for i in range(0, data.size(), 2):
 			peak = maxi(peak, absi(data.decode_s16(i)))
 		r.check(peak > 1000, "파형에 실제 진폭이 있다 (peak=%d)" % peak)
+
+
+## 환경음은 루프다. 이음매에서 딸깍 소리가 나면 몰입이 즉시 깨진다.
+func _test_ambience_loops_seamlessly(r: RefCounted) -> void:
+	for stream in [AmbienceBank.fridge(), AmbienceBank.fluorescent(), AmbienceBank.rain()]:
+		r.equals(stream.loop_mode, AudioStreamWAV.LOOP_FORWARD, "루프로 설정된다")
+		r.equals(stream.loop_begin, 0, "루프가 처음부터 시작한다")
+		r.equals(stream.loop_end, stream.data.size() / 2, "루프 끝이 버퍼 끝과 일치한다")
+
+	# 정수 배음이면 끝과 처음의 위상이 맞는다. 어긋나면 루프에서 딸깍 소리가 난다.
+	var hum := AmbienceBank.fridge().data
+	var first := hum.decode_s16(0)
+	var last := hum.decode_s16(hum.size() - 2)
+	r.check(absi(first - last) < 3000,
+		"루프 이음매의 진폭 차가 작다 (처음 %d, 끝 %d)" % [first, last])

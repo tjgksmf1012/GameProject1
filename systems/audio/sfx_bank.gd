@@ -37,6 +37,29 @@ static func paper() -> AudioStreamWAV:
 	return tone(240.0, 0.13, 30.0, 0.85, false, 0.22)
 
 
+## 사망. 낮고 길게. 정적 다음에 와야 효과가 있다.
+static func death() -> AudioStreamWAV:
+	return _mix(tone(41.0, 1.9, 1.1, 0.20, false, 0.55),
+		tone(62.0, 1.5, 1.6, 0.35, true, 0.28))
+
+
+## 편의점 문 종소리. 두 음이 겹쳐야 종처럼 들린다.
+static func door_bell() -> AudioStreamWAV:
+	return _mix(tone(2093.0, 0.5, 7.0, 0.0, false, 0.20),
+		tone(2637.0, 0.42, 9.0, 0.0, false, 0.14))
+
+
+## 두 파형을 겹친다. 짧은 쪽은 끝나면 무음으로 둔다.
+static func _mix(a: AudioStreamWAV, b: AudioStreamWAV) -> AudioStreamWAV:
+	var data := a.data
+	var other := b.data
+	for i in range(0, mini(data.size(), other.size()), 2):
+		var sum := data.decode_s16(i) + other.decode_s16(i)
+		data.encode_s16(i, clampi(sum, -32768, 32767))
+	a.data = data
+	return a
+
+
 ## 단일 톤 생성. `square`면 사각파, 아니면 사인파. `noise`만큼 잡음을 섞는다.
 static func tone(
 	frequency: float,
