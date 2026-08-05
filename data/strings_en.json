@@ -82,5 +82,6 @@
   "night.cleared": "The night is over. Morning came.",
   "night.failed": "%d errors. The night did not end.",
   "night.summary": "Handled %d   ·   Errors %d   ·   Taken in by a rule %d times",
-  "night.all_cleared": "Seven nights still remain. This is everything that has been built so far."
+  "night.all_cleared": "Seven nights still remain. This is everything that has been built so far.",
+  "death.last_line": "You are not the first to work this shift."
 }

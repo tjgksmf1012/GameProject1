@@ -28,6 +28,7 @@ var _effects: ScreenEffects = null
 var _death: DeathSequence = null
 
 var _judging: bool = false
+var _last_result: JudgeResult = null
 var _shown_at_msec: int = 0
 var _night_started_msec: int = 0
 
@@ -81,6 +82,7 @@ func _build() -> void:
 	add_child(_effects)
 	_death = DeathSequence.new()
 	add_child(_death)
+	_death.setup(_strings)
 
 
 func _start_night(night: int) -> void:
@@ -135,6 +137,7 @@ func _on_verdict(kind: String) -> void:
 	_judging = true
 	var ctx := _session.current_context()
 	var result := _session.judge(Verdict.from_id(kind))
+	_last_result = result
 	_log.record_judgment(ctx, result, (Time.get_ticks_msec() - _shown_at_msec) / 1000.0)
 	_view.pos.lock()
 	_audio.play("correct" if result.correct else "wrong")
@@ -186,11 +189,18 @@ func _play_death() -> void:
 	_audio.silence_ambience()
 	_effects.set_tension(1.0)
 	_view.pos.visible = false
-	_death.play(size)
+	# 무엇이 죽였는지에 따라 다른 연출이 나온다. 같은 화면이 세 번 나오면 안 무섭다.
+	_death.play(_death_kind(), size)
 	await get_tree().create_timer(DeathSequence.SILENCE_SECONDS).timeout
 	_audio.play("death")
 	await _death.finished
 	_death.clear()
+
+
+func _death_kind() -> String:
+	if _last_result == null:
+		return DeathSequence.KIND_APPROACH
+	return DeathSequence.kind_for(_last_result.trap_triggered, _last_result.decisive_fields)
 
 
 func _show_summary() -> void:

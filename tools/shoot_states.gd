@@ -28,6 +28,7 @@ var _next_step_frame: int = SETTLE_FRAMES
 var _play_wrong: bool = false
 var _awaiting_continue: bool = false
 var _fire_frame: int = 0
+var _night: int = 1
 var _final_continue: int = -1
 var _final_done: bool = false
 
@@ -38,9 +39,9 @@ func _initialize() -> void:
 	_after_frames = int(_arg("--after=", str(AFTER_FRAMES)))
 	_target_index = int(_arg("--index=", "0"))
 	# 특정 밤 화면을 찍으려면 세이브를 먼저 써둔다. 게임은 세이브가 가리키는 밤부터 시작한다.
-	var night := int(_arg("--night=", "1"))
+	_night = int(_arg("--night=", "1"))
 	var save := SaveGame.new()
-	save.night = night
+	save.night = _night
 	save.store()
 	_play_wrong = _arg("--wrong=", "0") == "1"
 	_final_continue = int(_arg("--final-continue=", "-1"))
@@ -103,10 +104,12 @@ func _step_verdict() -> String:
 
 
 func _correct_verdict() -> String:
+	# **밤 번호를 넘겨야 한다.** 1로 굳히면 밤 2의 수칙이 빠진 채 정답을 계산해
+	# 도구가 엉뚱한 판정을 쏘고, 밤이 의도대로 진행되지 않는다.
 	var engine := RuleEngine.new(GameData.load_rules())
-	var customers := GameData.load_customers()
+	var customers := NightPlan.load().customers_for(_night)
 	var ctx := JudgeContext.new(
-		1, NightSession.arrival_minutes(_advanced, customers.size()), customers[_advanced])
+		_night, NightSession.arrival_minutes(_advanced, customers.size()), customers[_advanced])
 	return engine.required_verdicts(ctx)[0].id()
 
 
