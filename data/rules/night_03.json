@@ -1,0 +1,21 @@
+{
+  "_comment": "밤 3. **어제 맞던 수칙이 오늘 틀린다** — 엔진의 decaying 을 처음 쓴다.",
+  "_comment_fairness": "전환된 수칙은 그 밤부터 남의 필체로 읽히고 클립보드에 ✎ 표식이 붙는다. 바뀌었다는 게 화면에 안 보이면 그건 '속았다'가 되고 불변식 2가 깨진다. Rule.hand_at() / has_decayed_by() 가 그 처리를 한다.",
+  "rules": [
+    {
+      "id": "rule_no_face",
+      "text_key": "rule.no_face",
+      "veracity": "true",
+      "hand": "later",
+      "conditions": [
+        {
+          "field": "customer.hides_face",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 3
+    }
+  ]
+}

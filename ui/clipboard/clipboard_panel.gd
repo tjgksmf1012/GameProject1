@@ -22,6 +22,8 @@ const TONE_MANAGER := 1.0
 const TONE_LATER := 0.962
 const BLEED_MANAGER := 0.0
 const BLEED_LATER := 0.75
+# 오늘 고쳐 쓴 줄은 **훑어도 보여야 한다.** 나머지와 반대로 밝다 — 덧댄 새 종이다.
+const TONE_REWRITTEN := 1.055
 const DIM_ALPHA := 0.32
 
 signal rule_added
@@ -30,6 +32,7 @@ var _list: VBoxContainer = null
 var _strings: Dictionary = {}
 var _shown_ids: PackedStringArray = []
 var _rows: Dictionary = {}
+var _labels: Dictionary = {}
 
 
 func _init() -> void:
@@ -94,15 +97,29 @@ func show_rules(rules: Array[Rule]) -> void:
 
 
 func _make_row(rule: Rule, index: int) -> PanelContainer:
-	var foreign := rule.is_foreign_hand()
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", _row_style())
-	row.material = _paper_material(foreign, index)
-	row.add_child(Palette.make_label(
-		"· " + _t(rule.text_key),
-		Palette.SIZE_BODY,
-		Palette.INK_LATER if foreign else Palette.INK_MANAGER))
+	var label := Palette.make_label("· " + _t(rule.text_key), Palette.SIZE_BODY, Palette.INK_MANAGER)
+	row.add_child(label)
+	_labels[rule.id] = label
 	return row
+
+
+## 밤마다 줄의 종이와 잉크를 다시 칠한다.
+## **전환된 수칙은 그 밤부터 고쳐 쓴 자국이 남는다** — 안 보이면 "속았다"가 된다.
+func apply_night(rules: Array[Rule], night: int) -> void:
+	for i in rules.size():
+		var rule := rules[i]
+		if not _rows.has(rule.id):
+			continue
+		var foreign := rule.hand_at(night) != Rule.HAND_MANAGER
+		var rewritten := rule.has_decayed_by(night)
+		(_rows[rule.id] as PanelContainer).material = _paper_material(foreign, rewritten, i)
+		var label: Label = _labels[rule.id]
+		label.add_theme_color_override(
+			"font_color", Palette.INK_LATER if foreign else Palette.INK_MANAGER)
+		# 고쳐 쓴 줄에는 표식이 남는다. 잉크 색만으로는 눈에 안 들어온다.
+		label.text = ("✎ " if rewritten else "· ") + _t(rule.text_key)
 
 
 static func _row_style() -> StyleBoxFlat:
@@ -115,11 +132,13 @@ static func _row_style() -> StyleBoxFlat:
 	return box
 
 
-func _paper_material(foreign: bool, index: int) -> ShaderMaterial:
+func _paper_material(foreign: bool, rewritten: bool, index: int) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = PAPER_SHADER
-	material.set_shader_parameter("paper_tone", TONE_LATER if foreign else TONE_MANAGER)
+	var tone := TONE_LATER if foreign else TONE_MANAGER
+	material.set_shader_parameter("paper_tone", TONE_REWRITTEN if rewritten else tone)
 	material.set_shader_parameter("ink_bleed", BLEED_LATER if foreign else BLEED_MANAGER)
+	material.set_shader_parameter("rewritten", 1.0 if rewritten else 0.0)
 	# 줄마다 섬유가 달라야 종이 두 장이 똑같아 보이지 않는다.
 	material.set_shader_parameter("fiber_seed", float(index) * 37.0 + 11.0)
 	return material

@@ -77,6 +77,22 @@ func is_foreign_hand() -> bool:
 	return hand != HAND_MANAGER
 
 
+## 그 밤 기준의 필체. **전환된 수칙은 그 밤부터 남의 필체로 읽힌다.**
+##
+## 어제 맞던 수칙이 오늘 틀리는데 종이가 그대로면 그건 "속았다"가 된다.
+## 누군가 고쳐 썼다는 게 화면에 보여야 공정성 불변식 2가 성립한다.
+func hand_at(night: int) -> String:
+	if has_decayed_by(night):
+		return HAND_LATER
+	return hand
+
+
+## 이 밤에 전환이 이미 일어났는가. 클립보드가 고쳐 쓴 자국을 그릴지 정한다.
+func has_decayed_by(night: int) -> bool:
+	return veracity == VERACITY_DECAYING and decays_at_night != NO_DECAY \
+		and night >= decays_at_night
+
+
 func verdict() -> Verdict:
 	return Verdict.from_id(required_verdict)
 

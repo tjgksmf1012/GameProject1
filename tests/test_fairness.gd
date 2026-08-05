@@ -38,6 +38,7 @@ func run(r: RefCounted) -> void:
 	_invariant_2_lies_leave_a_tell(r)
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
 	_invariant_2c_hand_must_not_solve_it(r)
+	_invariant_2d_manager_hand_must_not_be_free(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 	_strings_are_externalized(r)
@@ -96,17 +97,21 @@ func _invariant_2_lies_leave_a_tell(r: RefCounted) -> void:
 ##   (a) 다른 수칙과의 논리적 모순 — 클립보드만 보고 감지된다
 ##   (b) 남의 필체 — 종이 색조와 잉크가 다르다 (F-05, paper.gdshader)
 ## 둘 다 없는 거짓 수칙은 "속았다"가 되고, 그 순간 이 게임은 불공정해진다.
+## **밤마다 따로 본다.** 전환형 수칙은 밤 1에는 참이고 밤 3부터 거짓이다.
+## 밤 1만 검사하면 전환된 거짓이 통째로 검사망을 빠져나간다.
 func _invariant_2b_a_lie_is_detectable_before_failing(r: RefCounted) -> void:
 	var by_contradiction := 0
-	for lie in _rules:
-		if not lie.is_lie_at(1):
-			continue
-		var conflicts := _conflicting_rule_ids(lie)
-		if conflicts.size() > 0:
-			by_contradiction += 1
-		r.check(conflicts.size() > 0 or lie.is_foreign_hand(),
-			"불변식2b: 거짓 수칙 %s는 실패하기 전에 알아낼 방법이 없다 (모순도 필체 차이도 없음)"
-				% lie.id)
+	for night in NightPlan.load().nights():
+		for lie in _rules:
+			if not lie.is_active_at(night) or not lie.is_lie_at(night):
+				continue
+			var conflicts := _conflicting_rule_ids(lie)
+			if conflicts.size() > 0:
+				by_contradiction += 1
+			# 전환된 수칙은 그 밤부터 남의 필체로 읽힌다 (Rule.hand_at).
+			r.check(conflicts.size() > 0 or lie.hand_at(night) != Rule.HAND_MANAGER,
+				"불변식2b: %d일째 밤의 거짓 수칙 %s는 실패하기 전에 알아낼 방법이 없다"
+					% [night, lie.id])
 	# 모순이 하나도 없으면 시각 단서에만 의존하게 된다. 그건 너무 얇다.
 	r.check(by_contradiction > 0,
 		"불변식2b: 모순으로 감지되는 거짓 수칙이 하나는 있어야 한다 — 시각 단서 하나에만 걸면 위험하다")
@@ -118,21 +123,56 @@ func _invariant_2b_a_lie_is_detectable_before_failing(r: RefCounted) -> void:
 ## 코어 훅이 추론에서 색깔 맞추기로 전락한다 (F-05가 경고한 "너무 명확하면 퍼즐이 죽는다").
 ##
 ## 역할 분담을 강제한다: 필체는 **용의자를 좁히고**, 진위는 다른 단서가 정한다.
+## 밤마다 본다. 어떤 밤에서든 "남의 필체 = 거짓"이 성립하면 그 밤은 색깔 맞추기가 된다.
 func _invariant_2c_hand_must_not_solve_it(r: RefCounted) -> void:
-	var foreign_truths := 0
-	var foreign_lies := 0
-	for rule in _rules:
-		if not rule.is_foreign_hand():
-			continue
-		if rule.is_lie_at(1):
-			foreign_lies += 1
-		else:
-			foreign_truths += 1
-	if foreign_lies == 0:
-		return  # 남의 필체로 쓴 거짓이 없으면 이 위험 자체가 없다
-	r.check(foreign_truths > 0,
-		"불변식2c: 남의 필체가 전부 거짓이다 — 종이 색만 보면 다 풀린다. "
-			+ "참인데 나중에 덧쓴 수칙이 최소 하나는 있어야 한다")
+	for night in NightPlan.load().nights():
+		var foreign_truths := 0
+		var foreign_lies := 0
+		for rule in _rules:
+			if not rule.is_active_at(night) or rule.hand_at(night) == Rule.HAND_MANAGER:
+				continue
+			if rule.is_lie_at(night):
+				foreign_lies += 1
+			else:
+				foreign_truths += 1
+		if foreign_lies == 0:
+			continue  # 남의 필체로 쓴 거짓이 없으면 이 위험 자체가 없다
+		r.check(foreign_truths > 0,
+			"불변식2c: %d일째 밤은 남의 필체가 전부 거짓이다 — 종이 색만 보면 다 풀린다" % night)
+
+
+## 2c의 뒷면. **점장 필체가 곧 참이면 그 줄들은 공짜가 된다.**
+##
+## 2c는 "남의 필체 = 거짓"만 막는다. 반대쪽이 뚫려 있으면 플레이어는
+## "점장이 쓴 줄은 그냥 믿는다"는 완벽한 지름길을 얻는다. 클립보드의 절반이 퍼즐에서 빠진다.
+##
+## 밤 3에서 둘째 수칙이 전환돼 남의 필체로 넘어가면서 점장 필체가 1줄만 남았을 때 이게 드러났다.
+## 1~2줄은 패턴으로 학습되지 않으므로 그 아래는 통과시킨다 — 임계는 이 판단이지 밸런싱 값이 아니다.
+## 본편에서 이 구멍을 막는 방법은 정해져 있다: **점장 필체로 쓰인 거짓 수칙** (03-PRD.md 3.4).
+const HAND_PATTERN_THRESHOLD := 3
+
+
+func _invariant_2d_manager_hand_must_not_be_free(r: RefCounted) -> void:
+	var widest := 0
+	for night in NightPlan.load().nights():
+		var truths := 0
+		var lies := 0
+		for rule in _rules:
+			if not rule.is_active_at(night) or rule.hand_at(night) != Rule.HAND_MANAGER:
+				continue
+			if rule.is_lie_at(night):
+				lies += 1
+			else:
+				truths += 1
+		widest = maxi(widest, truths + lies)
+		if truths + lies < HAND_PATTERN_THRESHOLD:
+			continue  # 점장 필체가 1~2줄뿐이면 "전부 참"이 학습 가능한 규칙이 되지 않는다
+		r.check(lies > 0,
+			"불변식2d: %d일째 밤은 점장 필체 %d줄이 전부 참이다 — 그 줄들은 읽지 않고 믿어도 된다"
+				% [night, truths])
+	if widest < HAND_PATTERN_THRESHOLD:
+		r.note("불변식2d: 점장 필체가 가장 많은 밤도 %d줄뿐이라 아직 한 번도 발동하지 않았다 (임계 %d)"
+			% [widest, HAND_PATTERN_THRESHOLD])
 
 
 ## 같은 상황에서 서로 다른 판정을 요구하는 수칙들.

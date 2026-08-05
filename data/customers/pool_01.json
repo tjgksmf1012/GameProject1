@@ -11,7 +11,8 @@
         "has_bag": false,
         "wants_alcohol": false,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.cup_ramen"
@@ -31,7 +32,8 @@
         "has_bag": true,
         "wants_alcohol": false,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.energy_drink"
@@ -51,7 +53,8 @@
         "has_bag": false,
         "wants_alcohol": false,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.hot_coffee"
@@ -71,7 +74,8 @@
         "has_bag": false,
         "wants_alcohol": false,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.cigarettes"
@@ -91,7 +95,8 @@
         "has_bag": false,
         "wants_alcohol": false,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.umbrella"
@@ -111,7 +116,8 @@
         "has_bag": true,
         "wants_alcohol": true,
         "has_extra_shadow": false,
-        "is_regular": false
+        "is_regular": false,
+        "hides_face": false
       },
       "items": [
         "item.soju"

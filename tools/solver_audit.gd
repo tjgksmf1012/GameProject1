@@ -98,10 +98,15 @@ func _report_lie_detectability() -> void:
 		if not rule.is_lie_at(_night):
 			continue
 		var partners := _conflicting_partners(rule)
+		var hand := rule.hand_at(_night)
+		var foreign := hand != Rule.HAND_MANAGER
 		if partners.is_empty():
-			if rule.is_foreign_hand():
+			if rule.has_decayed_by(_night):
+				print("  ✓ %s — 이 밤에 전환됐다. 종이·잉크가 바뀌고 ✎ 표식이 붙는다 → 탐지 가능"
+					% rule.id)
+			elif foreign:
 				print("  ✓ %s — 모순은 없지만 필체가 다르다 (%s) → 종이와 잉크로 탐지 가능"
-					% [rule.id, rule.hand])
+					% [rule.id, hand])
 			else:
 				print("  ✗ %s — 모순도 없고 필체도 점장이다. **실패하기 전에 알아낼 방법이 없다**"
 					% rule.id)
@@ -109,7 +114,7 @@ func _report_lie_detectability() -> void:
 			var ids := PackedStringArray()
 			for p in partners:
 				ids.append(p.id)
-			var hand_note := " · 필체도 다르다(%s)" % rule.hand if rule.is_foreign_hand() else ""
+			var hand_note := " · 필체도 다르다(%s)" % hand if foreign else ""
 			print("  ✓ %s — %s 와(과) 모순 → 클립보드만 보고 이상을 감지할 수 있다%s"
 				% [rule.id, ", ".join(ids), hand_note])
 
@@ -123,7 +128,7 @@ func _report_hand_correlation() -> void:
 	var own_false := 0
 	for rule in _visible():
 		var lying := rule.is_lie_at(_night)
-		if rule.is_foreign_hand():
+		if rule.hand_at(_night) != Rule.HAND_MANAGER:
 			if lying: foreign_false += 1
 			else: foreign_true += 1
 		else:

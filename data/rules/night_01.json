@@ -21,7 +21,7 @@
     {
       "id": "rule_no_alcohol_after_2am",
       "text_key": "rule.no_alcohol_after_2am",
-      "veracity": "true",
+      "veracity": "decaying",
       "conditions": [
         {
           "field": "time",
@@ -35,7 +35,9 @@
         }
       ],
       "required_verdict": "refuse",
-      "introduced_night": 1
+      "introduced_night": 1,
+      "decays_at_night": 3,
+      "tell_key": "tell.no_alcohol_after_2am"
     },
     {
       "id": "rule_always_serve_wet",
@@ -73,5 +75,6 @@
       "hand": "later"
     }
   ],
-  "_comment_hand": "필체는 진위와 별개다. **일부러 상관을 끊어 놨다.** later 필체 3줄 중 하나(rule_no_shadow)는 참이다. 필체가 진위를 1:1로 결정하면 코어 훅이 색깔 맞추기로 전락한다 — F-05가 경고한 그것이다. 역할 분담: 필체는 '언제 쓰였나'(용의자 좁히기), 문체는 '변명하는가'(진위 판정). tests/test_fairness.gd 의 불변식 2c 가 이 상관을 감시한다."
+  "_comment_hand": "필체는 진위와 별개다. **일부러 상관을 끊어 놨다.** later 필체 3줄 중 하나(rule_no_shadow)는 참이다. 필체가 진위를 1:1로 결정하면 코어 훅이 색깔 맞추기로 전락한다 — F-05가 경고한 그것이다. 역할 분담: 필체는 '언제 쓰였나'(용의자 좁히기), 문체는 '변명하는가'(진위 판정). tests/test_fairness.gd 의 불변식 2c 가 이 상관을 감시한다.",
+  "_comment_decay": "둘째 수칙은 밤 3에 전환된다. 가장 평범하고 점장 필체라 가장 믿음직한 줄이 배신할 때 충격이 가장 크다. 전환된 밤부터 종이와 잉크가 바뀌고 ✎ 표식이 붙는다."
 }

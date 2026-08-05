@@ -91,7 +91,9 @@ func _start_night(night: int) -> void:
 	_night_started_msec = Time.get_ticks_msec()
 	_judging = false
 	_view.swap_to_pos()
-	_view.clipboard.show_rules(_session.engine.visible_rules(_session.night))
+	var visible := _session.engine.visible_rules(_session.night)
+	_view.clipboard.show_rules(visible)
+	_view.clipboard.apply_night(visible, _session.night)
 	_present_customer()
 
 

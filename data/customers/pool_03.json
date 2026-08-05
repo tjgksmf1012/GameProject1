@@ -1,0 +1,196 @@
+{
+  "_comment": "밤 3 손님. 전환된 둘째 수칙(주류)과 새 일곱째 수칙(얼굴)이 부딪히는 밤이다.",
+  "customers": [
+    {
+      "id": "cust_hooded",
+      "name_key": "customer.hooded",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.hooded_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_early_drinker",
+      "name_key": "customer.early_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.early_drinker_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_regular_wet",
+      "name_key": "customer.regular_wet",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.regular_wet_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "_comment": "가방을 **일부러 뺐다.** 가방이 있으면 「넷(거짓)」이 먼저 걸려 우연히 정답이 나온다. 가방을 빼야 「여섯(거짓)」이 물고, 클립보드를 믿는 플레이어가 여기서 처음 죽는다.",
+      "id": "cust_hooded_regular",
+      "name_key": "customer.hooded_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.hooded_regular_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_no_shadow_bag",
+      "name_key": "customer.no_shadow_bag",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.no_shadow_bag_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "_comment": "「셋(거짓) — 젖은 손님은 반드시 응대」와 「일곱(참) — 얼굴을 가린 손님은 거부」가 정면으로 부딪힌다. 거짓이 먼저 적혀 있으므로 순서대로 읽는 플레이어는 판다.",
+      "id": "cust_wet_hooded",
+      "name_key": "customer.wet_hooded",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.wet_hooded_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_night_drinker",
+      "name_key": "customer.night_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.night_drinker_1"
+      ],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_two_shadows_hooded",
+      "name_key": "customer.two_shadows_hooded",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.two_shadows_hooded_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "id": "cust_plain_late",
+      "name_key": "customer.plain_late",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.plain_late_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    }
+  ]
+}
