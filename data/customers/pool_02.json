@@ -1,0 +1,145 @@
+{
+  "_comment": "밤 2 손님. 03-PRD.md 3.4 — 수칙이 추가되고 CCTV 단서가 필요해진다.",
+  "customers": [
+    {
+      "id": "cust_regular_morning",
+      "name_key": "customer.regular_morning",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.regular_morning_1"
+      ],
+      "patience_seconds": 50,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_two_shadows",
+      "name_key": "customer.two_shadows",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.two_shadows_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "id": "cust_regular_no_shadow",
+      "name_key": "customer.regular_no_shadow",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.regular_no_shadow_1"
+      ],
+      "patience_seconds": 60,
+      "anomaly": "regular_no_shadow"
+    },
+    {
+      "id": "cust_wet_bag",
+      "name_key": "customer.wet_bag",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.wet_bag_1"
+      ],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_regular_drinker",
+      "name_key": "customer.regular_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": true
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.regular_drinker_1"
+      ],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_two_shadows_regular",
+      "name_key": "customer.two_shadows_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": true
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.two_shadows_regular_1"
+      ],
+      "patience_seconds": 55,
+      "anomaly": "two_shadows"
+    },
+    {
+      "id": "cust_late_normal",
+      "name_key": "customer.late_normal",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.late_normal_1"
+      ],
+      "patience_seconds": 45,
+      "anomaly": ""
+    }
+  ]
+}

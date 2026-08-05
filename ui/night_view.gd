@@ -14,7 +14,7 @@ const ResultPanel := preload("res://ui/result_panel.gd")
 
 const MARGIN := 44
 const GAP := 16
-const POS_MIN_HEIGHT := 200
+const POS_MIN_HEIGHT := 182
 const CLIPBOARD_RATIO := 1.35
 const CCTV_MIN_WIDTH := 330
 

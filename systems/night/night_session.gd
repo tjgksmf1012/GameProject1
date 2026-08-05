@@ -15,7 +15,7 @@ var grace_used: bool = false
 
 var _misjudge_limit: int = 3
 var _grace_enabled: bool = true
-var _minutes_per_customer: int = 80
+
 
 
 func _init(p_engine: RuleEngine, p_customers: Array[Customer], balance: Dictionary, p_night: int = 1) -> void:
@@ -24,7 +24,6 @@ func _init(p_engine: RuleEngine, p_customers: Array[Customer], balance: Dictiona
 	night = p_night
 	_misjudge_limit = int(balance.get("misjudge_limit", 3))
 	_grace_enabled = bool(balance.get("grace_on_first_trap", true))
-	_minutes_per_customer = int(balance.get("minutes_per_customer", 80))
 
 
 func current_customer() -> Customer:
@@ -34,7 +33,13 @@ func current_customer() -> Customer:
 
 
 func current_context() -> JudgeContext:
-	return JudgeContext.new(night, index * _minutes_per_customer, current_customer())
+	return JudgeContext.new(night, arrival_minutes(index, customers.size()), current_customer())
+
+
+## 손님이 도착하는 시각. 인원 수로 근무 시간(22:00~06:00)을 균등하게 나눈다.
+## 밤마다 인원이 달라도 마지막 손님이 항상 새벽에 오도록 하기 위해서다.
+static func arrival_minutes(index: int, total: int) -> int:
+	return int(float(index) * float(ShiftClock.SHIFT_LENGTH_MINUTES) / maxf(1.0, float(total)))
 
 
 ## 판정하고 결과를 돌려준다. 진행은 `advance()`로 따로 옮긴다 — 결과 화면을 보여줘야 하므로.

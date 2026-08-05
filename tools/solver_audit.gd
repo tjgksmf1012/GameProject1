@@ -16,31 +16,50 @@ var _customers: Array[Customer] = []
 var _engine: RuleEngine = null
 var _contexts: Array[JudgeContext] = []
 var _strings: Dictionary = {}
+var _plan: NightPlan = null
+var _night: int = 1
 
 
 func _initialize() -> void:
 	_rules = GameData.load_rules()
-	_customers = GameData.load_customers()
 	_engine = RuleEngine.new(_rules)
 	_strings = GameData.load_strings()
+	_plan = NightPlan.load()
+	for night in _plan.nights():
+		_audit_night(night)
+	quit(0)
+
+
+## 밤마다 따로 감사한다. 수칙과 손님이 밤마다 다르므로 한 번에 보면 의미가 없다.
+func _audit_night(night: int) -> void:
+	_night = night
+	_customers = _plan.customers_for(night)
+	_contexts = []
 	_build_contexts()
+	print("\n\n╔═══ %d일째 밤 (수칙 %d개 · 손님 %d명) ═══"
+		% [night, _engine.visible_rules(night).size(), _customers.size()])
 	_report_conflicts()
 	_report_lie_detectability()
 	_report_hand_correlation()
 	_report_solver("클립보드를 전부 믿는 플레이어", _naive_verdict)
 	_report_solver("모순된 수칙을 전부 버리는 플레이어", _skeptical_verdict)
+	_report_solver("나중 수칙이 앞 수칙을 덮는다고 보는 플레이어", _override_verdict)
 	_report_exhaustive()
-	quit(0)
 
 
 func _build_contexts() -> void:
 	for customer in _customers:
 		for minutes in SAMPLE_TIMES:
-			_contexts.append(JudgeContext.new(1, minutes, customer))
+			_contexts.append(JudgeContext.new(_night, minutes, customer))
 
 
 func _t(key: String) -> String:
 	return str(_strings.get(key, "<%s>" % key))
+
+
+## 이 밤에 클립보드에 붙어 있는 수칙만 본다.
+func _visible() -> Array[Rule]:
+	return _engine.visible_rules(_night)
 
 
 ## 두 수칙이 같은 상황에서 서로 다른 판정을 요구하는가.
@@ -53,7 +72,7 @@ func _conflicts(a: Rule, b: Rule) -> bool:
 
 func _conflicting_partners(target: Rule) -> Array[Rule]:
 	var out: Array[Rule] = []
-	for other in _rules:
+	for other in _visible():
 		if other.id != target.id and _conflicts(target, other):
 			out.append(other)
 	return out
@@ -62,11 +81,12 @@ func _conflicting_partners(target: Rule) -> Array[Rule]:
 func _report_conflicts() -> void:
 	print("\n%s\n수칙 간 모순 (클립보드만 보고 알아낼 수 있는 것)\n%s" % [SEPARATOR, SEPARATOR])
 	var found := false
-	for i in _rules.size():
-		for j in range(i + 1, _rules.size()):
-			if _conflicts(_rules[i], _rules[j]):
+	var visible := _visible()
+	for i in visible.size():
+		for j in range(i + 1, visible.size()):
+			if _conflicts(visible[i], visible[j]):
 				found = true
-				print("  %s  ↔  %s" % [_rules[i].id, _rules[j].id])
+				print("  %s  ↔  %s" % [visible[i].id, visible[j].id])
 	if not found:
 		print("  없음")
 
@@ -74,8 +94,8 @@ func _report_conflicts() -> void:
 ## 실패하기 **전에** 거짓임을 알아낼 수 있는가. 이게 공정성 불변식 2의 실질이다.
 func _report_lie_detectability() -> void:
 	print("\n%s\n거짓 수칙의 사전 탐지 가능성\n%s" % [SEPARATOR, SEPARATOR])
-	for rule in _rules:
-		if not rule.is_lie_at(1):
+	for rule in _visible():
+		if not rule.is_lie_at(_night):
 			continue
 		var partners := _conflicting_partners(rule)
 		if partners.is_empty():
@@ -101,8 +121,8 @@ func _report_hand_correlation() -> void:
 	var foreign_false := 0
 	var own_true := 0
 	var own_false := 0
-	for rule in _rules:
-		var lying := rule.is_lie_at(1)
+	for rule in _visible():
+		var lying := rule.is_lie_at(_night)
 		if rule.is_foreign_hand():
 			if lying: foreign_false += 1
 			else: foreign_true += 1
@@ -119,20 +139,32 @@ func _report_hand_correlation() -> void:
 
 ## 클립보드를 전부 참으로 믿고, 모순이 나면 위에 적힌 수칙을 따른다.
 func _naive_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _rules:
-		if rule.is_active_at(ctx.night) and rule.matches(ctx):
+	for rule in _visible():
+		if rule.matches(ctx):
 			return rule.verdict()
 	return Verdict.serve()
 
 
 ## 모순에 연루된 수칙은 믿을 수 없다고 보고 전부 버린다.
 func _skeptical_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _rules:
-		if not rule.is_active_at(ctx.night) or not rule.matches(ctx):
+	for rule in _visible():
+		if not rule.matches(ctx):
 			continue
 		if _conflicting_partners(rule).is_empty():
 			return rule.verdict()
 	return Verdict.serve()
+
+
+## 가장 자연스러운 오독. "단골에게는 다른 수칙을 적용하지 마시오" 같은 예외 조항은
+## 법조문처럼 **뒤에 온 것이 앞을 덮는다**고 읽힌다. 그게 이 게임의 진짜 함정이다.
+## 첫 매칭만 따르는 플레이어는 참 수칙이 앞에 나열돼 있어서 우연히 잘 맞는다 —
+## 이 솔버가 그 착시를 걷어낸다.
+func _override_verdict(ctx: JudgeContext) -> Verdict:
+	var chosen: Verdict = Verdict.serve()
+	for rule in _visible():
+		if rule.matches(ctx):
+			chosen = rule.verdict()
+	return chosen
 
 
 func _report_solver(label: String, strategy: Callable) -> void:
@@ -140,7 +172,7 @@ func _report_solver(label: String, strategy: Callable) -> void:
 	var correct := 0
 	var total := 0
 	for customer in _customers:
-		var ctx := JudgeContext.new(1, _arrival_minutes(customer), customer)
+		var ctx := JudgeContext.new(_night, _arrival_minutes(customer), customer)
 		var chosen: Verdict = strategy.call(ctx)
 		var result := _engine.evaluate(ctx, chosen)
 		total += 1
@@ -154,8 +186,7 @@ func _report_solver(label: String, strategy: Callable) -> void:
 
 ## 손님이 실제로 도착하는 시각. NightSession과 같은 규칙을 쓴다.
 func _arrival_minutes(customer: Customer) -> int:
-	var per := int(GameData.load_balance().get("minutes_per_customer", 80))
-	return _customers.find(customer) * per
+	return NightSession.arrival_minutes(_customers.find(customer), _customers.size())
 
 
 ## 모든 손님 × 모든 판정 × 유예 켬/끔 전수. 불변식이 어디서도 깨지지 않는지 본다.

@@ -13,7 +13,7 @@ const CctvChannel := preload("res://ui/cctv/cctv_channel.gd")
 ## CCTV가 **실제로 그릴 수 있는** 특성. 여기 없는 걸 observation.json 이 CCTV로 넘기면
 ## 그 단서는 화면 어디에도 안 나온다 — 공정성 불변식 1이 소리없이 깨진다.
 ## tests/test_fairness.gd 가 이 목록과 데이터를 대조한다.
-const RENDERABLE_TRAITS := ["has_shadow"]
+const RENDERABLE_TRAITS := ["has_shadow", "has_extra_shadow"]
 
 const COUNTER_CHANNEL := 0
 const CHANNEL_KEYS := ["cctv.counter", "cctv.aisle", "cctv.storage", "cctv.entrance"]
@@ -63,12 +63,14 @@ func _build() -> void:
 
 ## 카운터 앞에 선 손님을 계산대 채널에 비춘다.
 func show_customer(customer: Customer) -> void:
-	var has_shadow := bool(customer.get_trait("has_shadow"))
-	_channels[COUNTER_CHANNEL].show_figure(true, has_shadow)
+	_channels[COUNTER_CHANNEL].show_figure(
+		true,
+		bool(customer.get_trait("has_shadow")),
+		bool(customer.get_trait("has_extra_shadow")))
 
 
 func clear_customer() -> void:
-	_channels[COUNTER_CHANNEL].show_figure(false, false)
+	_channels[COUNTER_CHANNEL].show_figure(false, false, false)
 
 
 ## 3초 리플레이(F-07)에서 그림자가 결정적이었을 때 계산대 채널만 남긴다.

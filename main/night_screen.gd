@@ -18,6 +18,8 @@ var _strings: Dictionary = {}
 var _balance: Dictionary = {}
 var _juice: Dictionary = {}
 var _session: NightSession = null
+var _plan: NightPlan = null
+var _save: SaveGame = null
 var _log: SessionLog = null
 
 var _view: NightView = null
@@ -35,8 +37,10 @@ func _ready() -> void:
 	_balance = GameData.load_balance()
 	_juice = _balance.get("juice", {}) as Dictionary
 	_log = SessionLog.new(_tester_id(), bool(_balance.get("grace_on_first_trap", true)))
+	_plan = NightPlan.load()
+	_save = SaveGame.load_or_new()
 	_build()
-	_start_night()
+	_start_night(_save.night)
 
 
 func _t(key: String) -> String:
@@ -79,9 +83,9 @@ func _build() -> void:
 	add_child(_death)
 
 
-func _start_night() -> void:
+func _start_night(night: int) -> void:
 	var engine := RuleEngine.new(GameData.load_rules())
-	_session = NightSession.new(engine, GameData.load_customers(), _balance)
+	_session = NightSession.new(engine, _plan.customers_for(night), _balance, night)
 	_night_started_msec = Time.get_ticks_msec()
 	_judging = false
 	_view.swap_to_pos()
@@ -191,22 +195,41 @@ func _play_death() -> void:
 
 func _show_summary() -> void:
 	_log.record_night_end(_session, (Time.get_ticks_msec() - _night_started_msec) / 1000.0)
-	var headline := _t("night.failed") % _session.misjudge_count if _session.is_failed() \
-		else _t("night.cleared")
+	var next_night := _session.night + 1
+	var cleared := not _session.is_failed()
+	# **실패한 밤은 진행이 오르지 않는다.** 같은 밤을 다시 한다 (F-06).
+	if cleared:
+		_save.advance_to(next_night if _plan.has_night(next_night) else _session.night)
+		_save.store()
+	_view.swap_to_result()
+	_view.result.show_summary(
+		_summary_headline(cleared, next_night),
+		_summary_detail(),
+		_t("ui.night_cleared_next") if cleared and _plan.has_night(next_night) else _t("ui.restart"))
+	_view.result.continued.disconnect(_on_continue)
+	_view.result.continued.connect(_on_restart)
+
+
+func _summary_headline(cleared: bool, next_night: int) -> String:
+	if not cleared:
+		return _t("night.failed") % _session.misjudge_count
+	if not _plan.has_night(next_night):
+		return _t("night.all_cleared")
+	return _t("night.cleared")
+
+
+func _summary_detail() -> String:
 	var lines := PackedStringArray([_t("night.summary") % [
 		_session.correct_count, _session.misjudge_count, _session.trap_count,
 	]])
 	var saved := _log.save()
 	if saved != "":
 		lines.append(_t("ui.log_saved") % saved)
-	_view.swap_to_result()
-	_view.result.show_summary(headline, "\n".join(lines), _t("ui.restart"))
-	_view.result.continued.disconnect(_on_continue)
-	_view.result.continued.connect(_on_restart)
+	return "\n".join(lines)
 
 
 func _on_restart() -> void:
 	_view.result.continued.disconnect(_on_restart)
 	_view.result.continued.connect(_on_continue)
 	_log.begin_next_attempt()
-	_start_night()
+	_start_night(_save.night)

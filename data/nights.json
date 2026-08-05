@@ -1,0 +1,29 @@
+{
+  "_comment": "밤마다 누가 어떤 순서로 오는가. 본편은 수작업 설계 7박이다 (03-PRD.md 5절).",
+  "_comment_curve": "밤 2는 함정을 뒤로 배치했다 — 앞에서 새 수칙(다섯)을 배우고, 뒤에서 그 수칙과 거짓 수칙(여섯)이 충돌한다.",
+  "nights": [
+    {
+      "night": 1,
+      "customers": [
+        "cust_office_worker",
+        "cust_student_bag",
+        "cust_wet_normal",
+        "cust_no_shadow",
+        "cust_wet_no_shadow",
+        "cust_late_drinker"
+      ]
+    },
+    {
+      "night": 2,
+      "customers": [
+        "cust_regular_morning",
+        "cust_two_shadows",
+        "cust_wet_bag",
+        "cust_regular_no_shadow",
+        "cust_two_shadows_regular",
+        "cust_regular_drinker",
+        "cust_late_normal"
+      ]
+    }
+  ]
+}

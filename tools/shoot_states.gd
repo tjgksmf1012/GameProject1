@@ -37,6 +37,11 @@ func _initialize() -> void:
 	_verdict = _arg("--verdict=", _verdict)
 	_after_frames = int(_arg("--after=", str(AFTER_FRAMES)))
 	_target_index = int(_arg("--index=", "0"))
+	# 특정 밤 화면을 찍으려면 세이브를 먼저 써둔다. 게임은 세이브가 가리키는 밤부터 시작한다.
+	var night := int(_arg("--night=", "1"))
+	var save := SaveGame.new()
+	save.night = night
+	save.store()
 	_play_wrong = _arg("--wrong=", "0") == "1"
 	_final_continue = int(_arg("--final-continue=", "-1"))
 	var packed: PackedScene = load(SCENE)
@@ -100,8 +105,8 @@ func _step_verdict() -> String:
 func _correct_verdict() -> String:
 	var engine := RuleEngine.new(GameData.load_rules())
 	var customers := GameData.load_customers()
-	var per := int(GameData.load_balance().get("minutes_per_customer", 80))
-	var ctx := JudgeContext.new(1, _advanced * per, customers[_advanced])
+	var ctx := JudgeContext.new(
+		1, NightSession.arrival_minutes(_advanced, customers.size()), customers[_advanced])
 	return engine.required_verdicts(ctx)[0].id()
 
 

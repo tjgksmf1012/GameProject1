@@ -12,7 +12,7 @@ const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 const PAPER_SHADER := preload("res://shaders/paper.gdshader")
 
-const RULE_SEPARATION := 10
+const RULE_SEPARATION := 7
 const RISE_DURATION := 0.34
 const STAGGER := 0.05
 const MIN_LIST_HEIGHT := 120
@@ -110,8 +110,8 @@ static func _row_style() -> StyleBoxFlat:
 	box.bg_color = Palette.PAPER
 	box.content_margin_left = 6
 	box.content_margin_right = 6
-	box.content_margin_top = 5
-	box.content_margin_bottom = 5
+	box.content_margin_top = 4
+	box.content_margin_bottom = 4
 	return box
 
 

@@ -5,54 +5,120 @@
     {
       "id": "cust_office_worker",
       "name_key": "customer.office_worker",
-      "traits": { "has_shadow": true, "is_wet": false, "has_bag": false, "wants_alcohol": false },
-      "items": ["item.cup_ramen"],
-      "dialogue": ["dialogue.office_worker_1"],
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.cup_ramen"
+      ],
+      "dialogue": [
+        "dialogue.office_worker_1"
+      ],
       "patience_seconds": 45,
       "anomaly": ""
     },
     {
       "id": "cust_student_bag",
       "name_key": "customer.student_bag",
-      "traits": { "has_shadow": true, "is_wet": false, "has_bag": true, "wants_alcohol": false },
-      "items": ["item.energy_drink"],
-      "dialogue": ["dialogue.student_bag_1"],
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.energy_drink"
+      ],
+      "dialogue": [
+        "dialogue.student_bag_1"
+      ],
       "patience_seconds": 40,
       "anomaly": ""
     },
     {
       "id": "cust_wet_normal",
       "name_key": "customer.wet_normal",
-      "traits": { "has_shadow": true, "is_wet": true, "has_bag": false, "wants_alcohol": false },
-      "items": ["item.hot_coffee"],
-      "dialogue": ["dialogue.wet_normal_1"],
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.hot_coffee"
+      ],
+      "dialogue": [
+        "dialogue.wet_normal_1"
+      ],
       "patience_seconds": 45,
       "anomaly": ""
     },
     {
       "id": "cust_no_shadow",
       "name_key": "customer.no_shadow",
-      "traits": { "has_shadow": false, "is_wet": false, "has_bag": false, "wants_alcohol": false },
-      "items": ["item.cigarettes"],
-      "dialogue": ["dialogue.no_shadow_1"],
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.cigarettes"
+      ],
+      "dialogue": [
+        "dialogue.no_shadow_1"
+      ],
       "patience_seconds": 60,
       "anomaly": "no_shadow"
     },
     {
       "id": "cust_wet_no_shadow",
       "name_key": "customer.wet_no_shadow",
-      "traits": { "has_shadow": false, "is_wet": true, "has_bag": false, "wants_alcohol": false },
-      "items": ["item.umbrella"],
-      "dialogue": ["dialogue.wet_no_shadow_1"],
+      "traits": {
+        "has_shadow": false,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.umbrella"
+      ],
+      "dialogue": [
+        "dialogue.wet_no_shadow_1"
+      ],
       "patience_seconds": 60,
       "anomaly": "no_shadow_wet"
     },
     {
       "id": "cust_late_drinker",
       "name_key": "customer.late_drinker",
-      "traits": { "has_shadow": true, "is_wet": false, "has_bag": true, "wants_alcohol": true },
-      "items": ["item.soju"],
-      "dialogue": ["dialogue.late_drinker_1"],
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false
+      },
+      "items": [
+        "item.soju"
+      ],
+      "dialogue": [
+        "dialogue.late_drinker_1"
+      ],
       "patience_seconds": 35,
       "anomaly": ""
     }

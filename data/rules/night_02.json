@@ -1,0 +1,42 @@
+{
+  "_comment": "밤 2에 추가되는 수칙. introduced_night 이 2라 밤 1에는 클립보드에 없다.",
+  "_comment_design": "다섯은 CCTV 없이는 판정할 수 없다 — 그림자가 둘인지는 모니터로만 보인다. 여섯은 모든 수칙을 무력화하려 드는 거짓이라 가장 위험하다. 다섯이 점장 필체(참)이고 여섯이 남의 필체(거짓)지만, 밤 1의 하나가 남의 필체이면서 참이므로 필체만으로는 여전히 못 푼다 (불변식 2c).",
+  "rules": [
+    {
+      "id": "rule_two_shadows",
+      "text_key": "rule.two_shadows",
+      "veracity": "true",
+      "hand": "manager",
+      "conditions": [
+        {
+          "field": "customer.has_extra_shadow",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 2
+    },
+    {
+      "id": "rule_regulars_exempt",
+      "text_key": "rule.regulars_exempt",
+      "veracity": "false",
+      "tell_key": "tell.regulars_exempt",
+      "hand": "later",
+      "conditions": [
+        {
+          "field": "customer.is_regular",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "required_verdict": "serve",
+      "introduced_night": 2,
+      "conflicts_with": [
+        "rule_no_shadow",
+        "rule_two_shadows",
+        "rule_no_alcohol_after_2am"
+      ]
+    }
+  ]
+}

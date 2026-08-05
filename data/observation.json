@@ -2,6 +2,7 @@
   "_comment": "특성을 어느 화면에서 관찰하는가. 어디에 있든 **판정 시점에 화면에 존재해야 한다** (공정성 불변식 1).",
   "_comment_shadow": "그림자는 카운터에서 눈으로 볼 수 없다. CCTV 계산대 채널로만 확인된다. 그래야 CCTV가 분위기용 장식이 아니라 증거 도구가 된다 (F-04). tests/test_fairness.gd 가 모든 특성이 어느 한 화면에는 표시되는지 검사한다.",
   "cctv_traits": [
-    "has_shadow"
+    "has_shadow",
+    "has_extra_shadow"
   ]
 }

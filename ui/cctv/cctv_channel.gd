@@ -9,13 +9,14 @@ const Palette := preload("res://ui/theme_factory.gd")
 const CCTV_SHADER := preload("res://shaders/cctv.gdshader")
 
 const CHANNEL_WIDTH := 152.0
-const CHANNEL_HEIGHT := 106.0
+const CHANNEL_HEIGHT := 92.0
 const COUNTER_INDEX := 0
 const SHELF_COUNT := 3
 const FIGURE_WIDTH := 14.0
 const FIGURE_HEIGHT := 34.0
 const SHADOW_WIDTH := 30.0
 const SHADOW_HEIGHT := 9.0
+const EXTRA_SHADOW_OFFSET := 21.0
 
 var _index: int = 0
 var _label_key: String = ""
@@ -23,6 +24,7 @@ var _strings: Dictionary = {}
 var _screen: ColorRect = null
 var _figure: Polygon2D = null
 var _shadow: Polygon2D = null
+var _extra_shadow: Polygon2D = null
 var _time: float = 0.0
 
 
@@ -56,6 +58,11 @@ func _build() -> void:
 	_shadow.color = Color(0.0, 0.0, 0.0, 0.82)
 	_screen.add_child(_shadow)
 
+	# 두 번째 그림자. 방향이 어긋나 있어야 "하나가 더 있다"로 읽힌다.
+	_extra_shadow = Polygon2D.new()
+	_extra_shadow.color = Color(0.0, 0.0, 0.0, 0.72)
+	_screen.add_child(_extra_shadow)
+
 	_figure = Polygon2D.new()
 	_figure.color = Color(0.0, 0.0, 0.0, 0.9)
 	_screen.add_child(_figure)
@@ -84,8 +91,8 @@ func _make_floor() -> Polygon2D:
 	floor_light.color = Color(0.34, 0.35, 0.35, 1.0)
 	var center := CHANNEL_WIDTH * 0.5
 	floor_light.polygon = PackedVector2Array([
-		Vector2(center - 44.0, 62.0), Vector2(center + 44.0, 62.0),
-		Vector2(center + 54.0, 100.0), Vector2(center - 54.0, 100.0),
+		Vector2(center - 42.0, 56.0), Vector2(center + 42.0, 56.0),
+		Vector2(center + 52.0, 90.0), Vector2(center - 52.0, 90.0),
 	])
 	return floor_light
 
@@ -95,10 +102,10 @@ func _make_shelf(i: int) -> Polygon2D:
 	var shelf := Polygon2D.new()
 	shelf.color = Color(0.20, 0.21, 0.21, 0.9)
 	var x := 14.0 + float(i) * 44.0
-	var top := 52.0 + float((i + _index) % 2) * 10.0
+	var top := 46.0 + float((i + _index) % 2) * 9.0
 	shelf.polygon = PackedVector2Array([
 		Vector2(x, top), Vector2(x + 30.0, top),
-		Vector2(x + 30.0, 96.0), Vector2(x, 96.0),
+		Vector2(x + 30.0, 86.0), Vector2(x, 86.0),
 	])
 	return shelf
 
@@ -109,11 +116,13 @@ func _process(delta: float) -> void:
 
 
 ## 계산대 채널에만 의미가 있다. 그림자가 없으면 발밑이 비어 있다.
-func show_figure(visible_figure: bool, has_shadow: bool) -> void:
-	var base := Vector2(CHANNEL_WIDTH * 0.5, 80.0)
+func show_figure(visible_figure: bool, has_shadow: bool, has_extra: bool) -> void:
+	var base := Vector2(CHANNEL_WIDTH * 0.5, 72.0)
 	_figure.polygon = _figure_shape(base) if visible_figure else PackedVector2Array()
-	_shadow.polygon = _shadow_shape(base) if visible_figure and has_shadow \
+	_shadow.polygon = _shadow_shape(base, 0.0) if visible_figure and has_shadow \
 		else PackedVector2Array()
+	_extra_shadow.polygon = _shadow_shape(base, EXTRA_SHADOW_OFFSET) \
+		if visible_figure and has_extra else PackedVector2Array()
 
 
 static func _figure_shape(base: Vector2) -> PackedVector2Array:
@@ -129,11 +138,11 @@ static func _figure_shape(base: Vector2) -> PackedVector2Array:
 
 
 ## 발밑에 깔리는 타원 근사. 8각형이면 충분히 그림자로 읽힌다.
-static func _shadow_shape(base: Vector2) -> PackedVector2Array:
+static func _shadow_shape(base: Vector2, offset_x: float) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	for i in 8:
 		var angle := TAU * float(i) / 8.0
 		points.append(base + Vector2(
-			cos(angle) * SHADOW_WIDTH * 0.5,
+			cos(angle) * SHADOW_WIDTH * 0.5 + offset_x,
 			sin(angle) * SHADOW_HEIGHT * 0.5 + 2.0))
 	return points
