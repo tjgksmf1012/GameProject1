@@ -104,5 +104,7 @@
   "dialogue.two_shadows_hooded_1": ".........",
   "dialogue.plain_late_1": "Late, I know. Just this one.",
   "customer.wet_hooded": "Someone without an umbrella",
-  "dialogue.wet_hooded_1": "I didn't get rained on."
+  "dialogue.wet_hooded_1": "I didn't get rained on.",
+  "pressure.urging": "...I'll wait.",
+  "pressure.demanding": "...I'll keep waiting."
 }

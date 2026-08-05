@@ -27,6 +27,7 @@ var _audio: AudioDeck = null
 var _effects: ScreenEffects = null
 var _death: DeathSequence = null
 
+var _patience: PatienceClock = null
 var _judging: bool = false
 var _last_result: JudgeResult = null
 var _shown_at_msec: int = 0
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_juice = _balance.get("juice", {}) as Dictionary
 	_log = SessionLog.new(_tester_id(), bool(_balance.get("grace_on_first_trap", true)))
 	_plan = NightPlan.load()
+	_patience = PatienceClock.from_balance(_balance)
 	_save = SaveGame.load_or_new()
 	_build()
 	_start_night(_save.night)
@@ -105,8 +107,21 @@ func _present_customer() -> void:
 	_view.customer_view.show_customer(customer)
 	_view.cctv.show_customer(customer)
 	_view.pos.present(customer)
+	_patience.start(customer)
 	_shown_at_msec = Time.get_ticks_msec()
 	_refresh_header()
+
+
+## 손님이 기다린다. **판정에는 손대지 않는다** — 긴장도만 올리고 재촉하게 둔다
+## (왜 죽이지 않는지는 `PatienceClock` 주석).
+## 판정 흐름이 도는 동안과 결과 화면에서는 멈춘다. 히트스톱은 delta가 0이라 저절로 선다.
+func _process(delta: float) -> void:
+	if _judging or _session == null or _session.is_finished():
+		return
+	if _patience.tick(delta):
+		_view.customer_view.set_pressure_stage(_patience.stage())
+		_audio.play("tap")
+	_apply_tension()
 
 
 func _refresh_header() -> void:
@@ -116,19 +131,25 @@ func _refresh_header() -> void:
 			_session.index + 1, _session.total_customers(),
 			_session.misjudge_count, _session.misjudge_limit(),
 		])
+	_apply_tension()
+
+
+func _apply_tension() -> void:
 	var tension := _tension()
 	_effects.set_tension(tension)
 	_audio.set_tension(tension)
 
 
-## 화면에 이미 보이는 것만으로 계산한다 — 남은 오판 여유와 밤의 진행도.
+## 화면에 이미 보이는 것만으로 계산한다 — 남은 오판 여유, 밤의 진행도, 손님이 기다린 시간.
 ## 이상 손님 여부에 연동하면 셰이더가 정답을 흘리고, 그 순간 퍼즐이 죽는다.
+## 인내도 마찬가지다. **모든 손님이 똑같은 속도로 조인다.**
 func _tension() -> float:
 	var from_misjudge := float(_session.misjudge_count) / maxf(1.0, float(_session.misjudge_limit()))
 	var from_progress := float(_session.index) / maxf(1.0, float(_session.total_customers()))
 	return clampf(
 		from_misjudge * _j("tension_from_misjudge", 0.6)
-			+ from_progress * _j("tension_from_progress", 0.4),
+			+ from_progress * _j("tension_from_progress", 0.4)
+			+ _patience.tension_bonus(),
 		0.0, 1.0)
 
 
@@ -137,6 +158,7 @@ func _on_verdict(kind: String) -> void:
 	if _judging or _session.is_finished():
 		return
 	_judging = true
+	_patience.stop()
 	var ctx := _session.current_context()
 	var result := _session.judge(Verdict.from_id(kind))
 	_last_result = result

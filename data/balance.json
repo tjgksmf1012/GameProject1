@@ -6,6 +6,13 @@
   "night_start_time": "22:00",
   "minutes_per_customer": 80,
   "_comment_time": "손님 6명 x 80분 = 480분 = 22:00~06:00 근무 전체. 마지막 손님이 04:40에 도착하므로 '새벽 2시 이후' 수칙이 실제로 발동한다.",
+  "patience": {
+    "_comment": "손님이 기다리는 시간. 손님별 초는 data/customers/*.json 의 patience_seconds.",
+    "_comment_no_fail": "**인내가 다해도 죽지 않는다.** 시간으로 죽이는 설계를 검토하고 버렸다 — 수칙 일곱 줄을 읽고 CCTV와 대조해야 하는 게임에서 타이머로 죽이면 꼼꼼히 읽는 행동이 처벌받는다. 마음이 바뀌면 systems/night/patience_clock.gd 의 주석부터 읽을 것.",
+    "urge_at": 0.55,
+    "demand_at": 0.85,
+    "tension_boost": 0.25
+  },
   "juice": {
     "_comment": "주스 상수 (CLAUDE.md 5절). 히트스톱 0.05~0.12초, 셰이크는 감쇠 필수.",
     "hitstop_correct": 0.05,

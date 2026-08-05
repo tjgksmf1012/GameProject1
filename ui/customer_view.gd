@@ -10,11 +10,19 @@ const Juice := preload("res://ui/juice.gd")
 
 const SILHOUETTE_HEIGHT := 96
 const RISE_DURATION := 0.3
+const PRESSURE_FADE := 0.5
+
+## 단계별 문구. 손님이 누구든 **똑같다** — `PatienceClock` 주석 참고.
+const PRESSURE_KEYS := {
+	PatienceClock.STAGE_URGING: "pressure.urging",
+	PatienceClock.STAGE_DEMANDING: "pressure.demanding",
+}
 
 var _strings: Dictionary = {}
 var _silhouette: Control = null
 var _name: Label = null
 var _dialogue: Label = null
+var _pressure: Label = null
 var _traits: VBoxContainer = null
 var _body: VBoxContainer = null
 var _trait_rows: Dictionary = {}
@@ -40,6 +48,10 @@ func _build() -> void:
 	_body.add_child(_name)
 	_dialogue = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT_DIM)
 	_body.add_child(_dialogue)
+	# 재촉하는 말은 처음 대사와 **다른 색**이라야 새로 한 말로 읽힌다.
+	_pressure = Palette.make_label("", Palette.SIZE_BODY, Palette.ACCENT)
+	_pressure.modulate.a = 0.0
+	_body.add_child(_pressure)
 	_body.add_child(Palette.make_label(_t("ui.observation_header"), Palette.SIZE_SMALL, Palette.ACCENT))
 	_traits = VBoxContainer.new()
 	_traits.add_theme_constant_override("separation", 4)
@@ -78,8 +90,22 @@ func _make_silhouette() -> Control:
 func show_customer(customer: Customer) -> void:
 	_name.text = _t(customer.name_key)
 	_dialogue.text = _dialogue_text(customer)
+	_pressure.text = ""
+	_pressure.modulate.a = 0.0
 	_fill_traits(customer)
 	Juice.fade_in(_body, RISE_DURATION)
+
+
+## 손님이 오래 기다렸다. 단계가 바뀐 순간에만 부른다.
+##
+## 문구는 손님마다 다르지 않다. **이상 손님만 다르게 굴면 플레이어는 관찰 대신
+## 기다리기로 푼다** — CCTV도 클립보드도 필요 없어진다 (PatienceClock 주석).
+func set_pressure_stage(stage: int) -> void:
+	if not PRESSURE_KEYS.has(stage):
+		_pressure.modulate.a = 0.0
+		return
+	_pressure.text = _t(str(PRESSURE_KEYS[stage]))
+	Juice.fade_in(_pressure, PRESSURE_FADE)
 
 
 func _dialogue_text(customer: Customer) -> String:

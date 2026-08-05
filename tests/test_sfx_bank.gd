@@ -3,7 +3,9 @@ extends RefCounted
 ## 절차 생성 효과음. 소리를 들을 수 없어도 파형이 맞는지는 볼 수 있다.
 ## 오디오 파일이 저장소에 하나도 없다는 사실을 지키는 테스트이기도 하다.
 
-const SOUND_MAKERS := ["click", "scan", "correct", "wrong", "paper"]
+const SOUND_MAKERS := [
+	"click", "scan", "correct", "wrong", "paper", "counter_tap", "door_bell", "death",
+]
 
 
 func run(r: RefCounted) -> void:
@@ -16,7 +18,12 @@ func run(r: RefCounted) -> void:
 
 
 func _all() -> Array[AudioStreamWAV]:
-	return [SfxBank.click(), SfxBank.scan(), SfxBank.correct(), SfxBank.wrong(), SfxBank.paper()]
+	# **뱅크에 있는 소리는 전부 여기 들어와야 한다.** 빠진 소리는 무음이어도 아무도 모른다 —
+	# 나는 소리를 들을 수 없으므로 이 목록이 유일한 방어선이다.
+	return [
+		SfxBank.click(), SfxBank.scan(), SfxBank.correct(), SfxBank.wrong(),
+		SfxBank.paper(), SfxBank.counter_tap(), SfxBank.door_bell(), SfxBank.death(),
+	]
 
 
 func _test_all_sounds_generate(r: RefCounted) -> void:

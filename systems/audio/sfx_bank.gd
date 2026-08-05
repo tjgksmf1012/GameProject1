@@ -43,6 +43,12 @@ static func death() -> AudioStreamWAV:
 		tone(62.0, 1.5, 1.6, 0.35, true, 0.28))
 
 
+## 손님이 기다리다 카운터를 두드린다. **UI 소리와 헷갈리면 안 된다** —
+## 딸깍은 내가 누른 것이고, 이건 저쪽에서 나는 소리다. 그래서 낮고 둔탁하게.
+static func counter_tap() -> AudioStreamWAV:
+	return tone(150.0, 0.11, 42.0, 0.55, false, 0.20)
+
+
 ## 편의점 문 종소리. 두 음이 겹쳐야 종처럼 들린다.
 static func door_bell() -> AudioStreamWAV:
 	return _mix(tone(2093.0, 0.5, 7.0, 0.0, false, 0.20),

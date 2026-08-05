@@ -36,6 +36,7 @@ func _build_sfx() -> void:
 		"wrong": SfxBank.wrong,
 		"paper": SfxBank.paper,
 		"bell": SfxBank.door_bell,
+		"tap": SfxBank.counter_tap,
 		"death": SfxBank.death,
 	}
 	for name in makers:
