@@ -12,6 +12,7 @@ extends Control
 const ScreenEffects := preload("res://ui/screen_effects.gd")
 const TitleView := preload("res://ui/title_view.gd")
 const AudioDeck := preload("res://ui/audio_deck.gd")
+const Palette := preload("res://ui/theme_factory.gd")
 
 const NIGHT_SCENE := "res://main/night_screen.tscn"
 const BOOTH_ARG := "--booth"
@@ -23,6 +24,12 @@ var _entered: bool = false
 
 
 func _ready() -> void:
+	# 내보낸 빌드가 멀쩡한지 스스로 검사하고 끝낸다. PCK에서만 일어나는 사고를 잡는다.
+	if BuildCheck.requested():
+		# 종료 코드는 `SceneTree.quit(code)` 로만 나간다. Godot 4.4에 OS.set_exit_code 는 없다.
+		get_tree().quit(BuildCheck.new().run(Palette.font()))
+		return
+
 	var strings := GameData.load_strings()
 	var balance := GameData.load_balance()
 	if is_booth():

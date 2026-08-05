@@ -43,6 +43,14 @@ godot -- --locale=en
 
 # 부스 모드 — 세이브를 무시하고 항상 첫 밤부터
 godot -- --booth
+
+# 빌드 내보내기 (export_presets.cfg 가 저장소에 있다)
+godot --headless --export-release "Linux" build/nightshift.x86_64
+godot --headless --export-release "Windows" build/nightshift.exe
+
+# **내보낸 빌드 자체 검사** — 데이터·문자열·셰이더가 PCK에 들어갔는지, 개발 파일이
+# 새어 나갔는지, 한글이 그려지는지. 종료 코드로 판단한다
+./build/nightshift.x86_64 --headless -- --selftest
 ```
 
 Claude Code는 루트의 **`CLAUDE.md`를 자동으로 읽는다.** 이 파일이 프로젝트 헌법이다.
