@@ -12,8 +12,9 @@ const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 const PosTerminal := preload("res://ui/pos/pos_terminal.gd")
 const ResultPanel := preload("res://ui/result_panel.gd")
 
-const MARGIN := 44
-const GAP := 16
+## 720p에서 여백 44는 사치다. 밤 4에서 수칙 9줄 + 긴 단서가 들어오자 세로가 모자랐다.
+const MARGIN := 28
+const GAP := 14
 const POS_MIN_HEIGHT := 182
 const CLIPBOARD_RATIO := 1.35
 const CCTV_MIN_WIDTH := 330
@@ -107,9 +108,10 @@ func set_header(clock_text: String, status_text: String) -> void:
 
 ## 결과는 POS 자리를 대신 쓴다. 클립보드와 손님은 계속 보여야 한다 —
 ## 놓친 단서를 읽으면서 수칙을 다시 대조할 수 있어야 하기 때문이다.
+## **높이는 결과 패널이 스스로 정한다** — 설명이 있으면 더 가져가야 하는데,
+## 그건 여기서 알 수 없고 패널만 안다.
 func swap_to_result() -> void:
 	pos.visible = false
-	result.custom_minimum_size = Vector2(0, POS_MIN_HEIGHT)
 
 
 func swap_to_pos() -> void:

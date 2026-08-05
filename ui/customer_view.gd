@@ -8,7 +8,8 @@ extends PanelContainer
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 
-const SILHOUETTE_HEIGHT := 96
+const SILHOUETTE_HEIGHT := 78
+const FIGURE_DESIGN_HEIGHT := 96.0
 const RISE_DURATION := 0.3
 const PRESSURE_FADE := 0.5
 
@@ -73,18 +74,27 @@ func _t(key: String) -> String:
 
 
 ## 창밖 실루엣. 이미지가 아니라 절차적 도형이다 (CLAUDE.md 1.1).
+## **도형은 홀더 높이에 맞춰 그린다.** 높이만 줄이면 발이 잘린다 — 실제로 그랬다.
 func _make_silhouette() -> Control:
 	var holder := Control.new()
 	holder.custom_minimum_size = Vector2(0, SILHOUETTE_HEIGHT)
 	var polygon := Polygon2D.new()
 	polygon.color = Color(0.0, 0.0, 0.0, 0.85)
-	polygon.polygon = PackedVector2Array([
+	polygon.polygon = _figure(float(SILHOUETTE_HEIGHT) / FIGURE_DESIGN_HEIGHT)
+	holder.add_child(polygon)
+	return holder
+
+
+## 원래 96픽셀 높이로 잡은 형상. 배율만 곱해 다시 쓴다.
+static func _figure(scale: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in [
 		Vector2(28, 96), Vector2(28, 44), Vector2(36, 30),
 		Vector2(34, 18), Vector2(46, 8), Vector2(58, 18),
 		Vector2(56, 30), Vector2(64, 44), Vector2(64, 96),
-	])
-	holder.add_child(polygon)
-	return holder
+	]:
+		out.append(Vector2(p.x, p.y * scale))
+	return out
 
 
 func show_customer(customer: Customer) -> void:

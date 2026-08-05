@@ -1,0 +1,42 @@
+{
+  "_comment": "밤 4. **점장 필체로 쓴 거짓 수칙이 처음 나온다.** 05-prioritization.md 가 M3에서 빚으로 적어둔 항목이다.",
+  "_comment_why": "밤 3까지는 점장 필체가 곧 참이었다. 그래서 「점장이 쓴 줄은 그냥 믿는다」가 100% 통하는 지름길이었고, 클립보드의 일부가 퍼즐에서 빠져 있었다. 불변식 2d가 이 밤에 깨어나 그걸 막는다.",
+  "_comment_fairness": "점장 필체 거짓은 종이로 탐지할 수 없다. 그래서 **반드시 다른 수칙과 모순돼야 한다** (불변식 2b). 아홉은 일곱과 정면으로 어긋난다. 그리고 문체 규약은 그대로 살아 있다 — 점장은 이유를 대지 않는데 이 줄은 「부끄러워서이니」라고 변명한다. 단서가 종이에서 문체와 논리로 옮겨간 것이지, 사라진 게 아니다.",
+  "rules": [
+    {
+      "id": "rule_no_sales_after_4am",
+      "text_key": "rule.no_sales_after_4am",
+      "veracity": "true",
+      "hand": "manager",
+      "conditions": [
+        {
+          "field": "time",
+          "op": "after",
+          "value": "04:00"
+        }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 4
+    },
+    {
+      "id": "rule_face_is_shy",
+      "text_key": "rule.face_is_shy",
+      "veracity": "false",
+      "tell_key": "tell.face_is_shy",
+      "hand": "manager",
+      "conditions": [
+        {
+          "field": "customer.hides_face",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "required_verdict": "serve",
+      "introduced_night": 4,
+      "conflicts_with": [
+        "rule_no_face"
+      ]
+    }
+  ],
+  "_comment_reading": "아홉은 일곱의 **개정 조항처럼** 읽힌다 — 나중에 온 것이 앞을 덮는다는 법조문 독법. 밤 2의 여섯이 그 독법을 처벌했고, 밤 4는 같은 독법을 점장 필체로 다시 낚는다. 이번에는 종이가 도와주지 않는다."
+}

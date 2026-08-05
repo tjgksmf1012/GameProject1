@@ -1,0 +1,178 @@
+{
+  "_comment": "밤 4 손님 10명. 손님이 늘어난 만큼 도착 간격이 48분으로 좁아진다.",
+  "_comment_design": "노리는 것은 두 독법이다. ① 클립보드를 첫 매칭으로 읽는 사람 — 여섯(거짓)이 여덟(참)보다 앞에 있어 새벽 단골에서 무너진다. ② 나중 수칙이 앞을 덮는다고 읽는 사람 — 아홉(거짓·점장 필체)이 일곱(참)을 덮어 얼굴 가린 손님에서 무너진다. 두 독법 다 오판 한계를 넘긴다. tools/solver_audit.gd 가 매번 확인한다.",
+  "customers": [
+    {
+      "id": "cust_n4_opener",
+      "name_key": "customer.n4_opener",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.cigarettes"],
+      "dialogue": ["dialogue.n4_opener_1"],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n4_bagman",
+      "name_key": "customer.n4_bagman",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": true,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.cup_ramen", "item.energy_drink"],
+      "dialogue": ["dialogue.n4_bagman_1"],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n4_hooded",
+      "name_key": "customer.n4_hooded",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": true
+      },
+      "items": ["item.hot_coffee"],
+      "dialogue": ["dialogue.n4_hooded_1"],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "id": "cust_n4_wet_regular",
+      "name_key": "customer.n4_wet_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": true,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": ["item.umbrella"],
+      "dialogue": ["dialogue.n4_wet_regular_1"],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n4_shadowless",
+      "name_key": "customer.n4_shadowless",
+      "traits": {
+        "has_shadow": false,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.cup_ramen"],
+      "dialogue": ["dialogue.n4_shadowless_1"],
+      "patience_seconds": 55,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_n4_twin",
+      "name_key": "customer.n4_twin",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": true,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.energy_drink"],
+      "dialogue": ["dialogue.n4_twin_1"],
+      "patience_seconds": 60,
+      "anomaly": "two_shadows"
+    },
+    {
+      "id": "cust_n4_late_drinker",
+      "name_key": "customer.n4_late_drinker",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": true,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.soju"],
+      "dialogue": ["dialogue.n4_late_drinker_1"],
+      "patience_seconds": 35,
+      "anomaly": ""
+    },
+    {
+      "_comment": "이 밤의 핵심. 여섯(거짓)은 응대하라 하고 아홉(거짓·점장 필체)도 응대하라 한다. 참인 일곱만이 거부하라고 한다.",
+      "id": "cust_n4_hooded_regular",
+      "name_key": "customer.n4_hooded_regular",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": true
+      },
+      "items": ["item.cigarettes"],
+      "dialogue": ["dialogue.n4_hooded_regular_1"],
+      "patience_seconds": 50,
+      "anomaly": "hidden_face"
+    },
+    {
+      "_comment": "새벽 4시가 지났다. 여섯(거짓)이 여덟(참)보다 앞에 적혀 있어, 첫 매칭으로 읽는 사람은 여기서 판다.",
+      "id": "cust_n4_regular_late",
+      "name_key": "customer.n4_regular_late",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": true,
+        "hides_face": false
+      },
+      "items": ["item.hot_coffee"],
+      "dialogue": ["dialogue.n4_regular_late_1"],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_n4_last",
+      "name_key": "customer.n4_last",
+      "traits": {
+        "has_shadow": true,
+        "is_wet": false,
+        "has_bag": false,
+        "wants_alcohol": false,
+        "has_extra_shadow": false,
+        "is_regular": false,
+        "hides_face": false
+      },
+      "items": ["item.cup_ramen"],
+      "dialogue": ["dialogue.n4_last_1"],
+      "patience_seconds": 40,
+      "anomaly": ""
+    }
+  ]
+}
