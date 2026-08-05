@@ -33,12 +33,16 @@ godot --headless --script res://tools/solver_audit.gd
 xvfb-run -a godot --script res://tools/screenshot.gd -- --out=/tmp/s.png
 xvfb-run -a godot --script res://tools/shoot_states.gd -- --out=/tmp/r.png --verdict=refuse
 xvfb-run -a godot --script res://tools/shoot_states.gd -- --out=/tmp/n3.png --night=3 --locale=ko
+xvfb-run -a godot --script res://tools/screenshot.gd -- --scene=res://main/title_screen.tscn --out=/tmp/t.png --press=200 --frames=280
 
-# 실제 플레이 (한국어)
+# 실제 플레이 (한국어) — 제목 화면부터
 godot
 
 # 영어로 플레이
 godot -- --locale=en
+
+# 부스 모드 — 세이브를 무시하고 항상 첫 밤부터
+godot -- --booth
 ```
 
 Claude Code는 루트의 **`CLAUDE.md`를 자동으로 읽는다.** 이 파일이 프로젝트 헌법이다.
@@ -64,7 +68,7 @@ docs/05-prioritization.md에서 현재 마일스톤의 다음 P0를 확인하고
 
 | | |
 |---|---|
-| 테스트 | 1,985개 검사 통과 |
+| 테스트 | 1,997개 검사 통과 |
 | 수칙 | 7개 (참 3 / 거짓 3 / 전환 1) |
 | 손님 | 22명 |
 | 밤 | 3박 |

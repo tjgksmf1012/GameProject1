@@ -5,6 +5,10 @@ extends SceneTree
 ##   xvfb-run -a godot --path . --script res://tools/screenshot.gd -- \
 ##       --scene=res://main/night_screen.tscn --out=/tmp/shot.png --frames=40
 ##
+## `--press=N`이면 N번째 프레임에 키를 한 번 눌러준다. "아무 키나 눌러 시작" 같은
+## 화면은 **넘어가는 것까지 봐야** 검증이 끝난다 — 씬 전환이 조용히 실패하면
+## 제목 화면만 찍어서는 알 수 없다.
+##
 ## 시각 변경은 반드시 이걸로 확인한다. 추측해서 진행하지 않는다.
 
 const DEFAULT_SCENE := "res://main/night_screen.tscn"
@@ -13,6 +17,8 @@ const DEFAULT_FRAMES := 40
 
 var _frames_waited: int = 0
 var _frames_needed: int = DEFAULT_FRAMES
+var _press_at: int = -1
+var _pressed: bool = false
 var _out_path: String = DEFAULT_OUT
 var _done: bool = false
 
@@ -21,6 +27,7 @@ func _initialize() -> void:
 	var scene_path := _arg("--scene=", DEFAULT_SCENE)
 	_out_path = _arg("--out=", DEFAULT_OUT)
 	_frames_needed = int(_arg("--frames=", str(DEFAULT_FRAMES)))
+	_press_at = int(_arg("--press=", "-1"))
 	var packed: PackedScene = load(scene_path)
 	if packed == null:
 		push_error("씬을 열 수 없다: %s" % scene_path)
@@ -33,11 +40,25 @@ func _process(_delta: float) -> bool:
 	if _done:
 		return true
 	_frames_waited += 1
+	if not _pressed and _press_at >= 0 and _frames_waited >= _press_at:
+		_press_any_key()
+		_pressed = true
 	if _frames_waited < _frames_needed:
 		return false
 	_capture()
 	_done = true
 	return true
+
+
+## 스페이스바를 한 번 눌렀다 뗀다. 뗄 때 반응하는 화면도 있으므로 둘 다 보낸다.
+func _press_any_key() -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = KEY_SPACE
+		event.physical_keycode = KEY_SPACE
+		event.pressed = pressed
+		Input.parse_input_event(event)
+	print("키 입력 주입: %d 프레임" % _frames_waited)
 
 
 func _capture() -> void:

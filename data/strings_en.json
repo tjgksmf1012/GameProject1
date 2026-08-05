@@ -106,5 +106,11 @@
   "customer.wet_hooded": "Someone without an umbrella",
   "dialogue.wet_hooded_1": "I didn't get rained on.",
   "pressure.urging": "...I'll wait.",
-  "pressure.demanding": "...I'll keep waiting."
+  "pressure.demanding": "...I'll keep waiting.",
+  "title.store": "BAMSAEM MART",
+  "title.hours": "2 4  H O U R S",
+  "title.premise": "Serve customers according to the rules the manager left.",
+  "title.twist": "Not all of the rules are true.",
+  "title.start": "Press any key to begin",
+  "title.continue_night": "Resuming night %d"
 }

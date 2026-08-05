@@ -106,5 +106,11 @@
   "customer.wet_hooded": "우산 없는 사람",
   "dialogue.wet_hooded_1": "비 안 맞았는데요.",
   "pressure.urging": "…기다릴게요.",
-  "pressure.demanding": "…계속 기다릴게요."
+  "pressure.demanding": "…계속 기다릴게요.",
+  "title.store": "밤샘마트",
+  "title.hours": "2 4 시",
+  "title.premise": "점장이 남긴 수칙대로 손님을 받으시오.",
+  "title.twist": "수칙 전부가 참인 것은 아니다.",
+  "title.start": "아무 키나 눌러 시작",
+  "title.continue_night": "%d일째 밤부터"
 }
