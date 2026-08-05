@@ -5,6 +5,8 @@ extends RefCounted
 ## 이 게임의 생사는 "속았다"와 "알아챌 수 있었는데 놓쳤다"의 차이에 달려 있다.
 ## 그 차이를 지키는 게 이 파일이다. 05-prioritization.md §4에서 **절대 자르지 않는 항목**으로 지정돼 있다.
 
+const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
+
 const DETERMINISM_REPEATS := 20
 
 ## prototype.gd 가 `_t()`로 찾는 키 전부. 없으면 화면에 `<key>`가 그대로 뜬다.
@@ -15,6 +17,8 @@ const UI_KEYS := [
 	"result.correct", "result.wrong", "result.trap", "result.trap_grace",
 	"result.expected", "result.missed_header",
 	"night.cleared", "night.failed", "night.summary",
+	"ui.cctv_header", "cctv.counter", "cctv.aisle", "cctv.storage", "cctv.entrance",
+	"ui.scan_header", "ui.receipt_header", "ui.receipt_empty", "ui.total", "ui.id_check",
 ]
 
 var _rules: Array[Rule] = []
@@ -30,6 +34,7 @@ func run(r: RefCounted) -> void:
 	_engine = RuleEngine.new(_rules)
 	_strings = GameData.load_strings()
 	_invariant_1_all_clues_observable(r)
+	_invariant_1b_every_trait_is_drawn_somewhere(r)
 	_invariant_2_lies_leave_a_tell(r)
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
 	_invariant_2c_hand_must_not_solve_it(r)
@@ -48,6 +53,30 @@ func _invariant_1_all_clues_observable(r: RefCounted) -> void:
 				r.check(observable.has(field),
 					"불변식1: 수칙 %s가 참조하는 '%s'를 손님 %s에게서 관찰할 수 없다"
 						% [rule.id, field, customer.id])
+
+
+## 불변식 1을 화면까지 밀어붙인 것 — **모든 특성은 어느 한 화면에는 반드시 그려진다.**
+##
+## 데이터가 관찰 가능하다고 말하는 것과, 화면이 실제로 그리는 것은 다른 이야기다.
+## `observation.json`이 CCTV로 넘긴 특성을 CCTV가 그리지 못하면 그 단서는 어디에도 없다.
+## 손님 패널은 CCTV 담당분을 빼고 그리므로, 양쪽 다 놓치면 단서가 조용히 사라진다.
+func _invariant_1b_every_trait_is_drawn_somewhere(r: RefCounted) -> void:
+	var observation := GameData.read_json("res://data/observation.json")
+	var on_cctv := Customer._to_string_array(observation.get("cctv_traits", []))
+	for name in on_cctv:
+		r.check(CctvMonitor.RENDERABLE_TRAITS.has(name),
+			"불변식1b: '%s'를 CCTV로 넘겼는데 CCTV가 그리지 못한다 — 단서가 화면에서 사라진다"
+				% name)
+	# 손님이 가진 모든 특성이 두 화면 중 하나에는 실제로 그려지는가.
+	# 손님 패널은 CCTV 담당분을 빼고 그리고, CCTV는 자기가 그릴 수 있는 것만 그린다.
+	# 둘 사이로 빠지는 특성이 생기면 그 단서는 화면 어디에도 없다.
+	for customer in _customers:
+		for name in customer.trait_names():
+			var drawn_on_counter := not on_cctv.has(name)
+			var drawn_on_monitor := on_cctv.has(name) and CctvMonitor.RENDERABLE_TRAITS.has(name)
+			r.check(drawn_on_counter or drawn_on_monitor,
+				"불변식1b: 손님 %s의 '%s'가 카운터에도 CCTV에도 그려지지 않는다"
+					% [customer.id, name])
 
 
 ## 불변식 2 — 거짓 수칙은 반드시 사전에 반증 가능한 단서를 남긴다.

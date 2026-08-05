@@ -18,6 +18,7 @@ var _dialogue: Label = null
 var _traits: VBoxContainer = null
 var _body: VBoxContainer = null
 var _trait_rows: Dictionary = {}
+var _cctv_traits: PackedStringArray = []
 
 
 func _init() -> void:
@@ -48,6 +49,11 @@ func _build() -> void:
 func set_strings(strings: Dictionary) -> void:
 	_strings = strings
 	_build()
+
+
+## CCTV가 담당하는 특성은 여기서 빼고 보여준다. 두 곳에 그리면 CCTV가 장식이 된다.
+func set_cctv_traits(names: PackedStringArray) -> void:
+	_cctv_traits = names
 
 
 func _t(key: String) -> String:
@@ -88,6 +94,8 @@ func _fill_traits(customer: Customer) -> void:
 		child.queue_free()
 	_trait_rows.clear()
 	for name in customer.trait_names():
+		if _cctv_traits.has(name):
+			continue
 		# 있고 없음은 표식(●/○)만으로 나타낸다. **색으로 나타내면 안 된다.**
 		# 없는 특성을 흐리게 그리면 "그림자 없음" 같은 가장 중요한 단서가 가장 안 보이게 되고,
 		# 3초 리플레이의 흐림과도 충돌해 무엇이 강조된 건지 구분이 안 된다.

@@ -12,6 +12,8 @@ const SCENE := "res://main/night_screen.tscn"
 
 const SETTLE_FRAMES := 30
 const AFTER_FRAMES := 45
+## 판정 → 리플레이 → 결과가 한 사이클이다. 한 프레임에 몰아 쏘면 흐름이 겹친다.
+const STEP_FRAMES := 250
 
 var _after_frames: int = AFTER_FRAMES
 
@@ -22,6 +24,7 @@ var _out_path: String = "user://state.png"
 var _verdict: String = Verdict.REFUSE
 var _target_index: int = 0
 var _advanced: int = 0
+var _next_step_frame: int = SETTLE_FRAMES
 
 
 func _initialize() -> void:
@@ -37,7 +40,7 @@ func _process(_delta: float) -> bool:
 	if _done:
 		return true
 	_frames += 1
-	if not _fired and _frames >= SETTLE_FRAMES:
+	if not _fired and _frames >= _next_step_frame:
 		_fire()
 		return false
 	if _fired and _frames >= SETTLE_FRAMES + _after_frames:
@@ -54,10 +57,12 @@ func _fire() -> void:
 		push_error("화면 구성이 바뀌었다 — POS 또는 결과 패널을 찾을 수 없다")
 		_done = true
 		return
-	while _advanced < _target_index:
+	if _advanced < _target_index:
 		pos.verdict_chosen.emit(_correct_verdict())
 		result_panel.continued.emit()
 		_advanced += 1
+		_next_step_frame = _frames + STEP_FRAMES
+		return
 	pos.verdict_chosen.emit(_verdict)
 	_fired = true
 	print("손님 %d 에서 판정 발사: %s" % [_target_index, _verdict])

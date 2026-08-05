@@ -8,12 +8,15 @@ const Juice := preload("res://ui/juice.gd")
 const ScreenEffects := preload("res://ui/screen_effects.gd")
 const ClipboardPanel := preload("res://ui/clipboard/clipboard_panel.gd")
 const CustomerView := preload("res://ui/customer_view.gd")
+const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 const PosTerminal := preload("res://ui/pos/pos_terminal.gd")
 const ResultPanel := preload("res://ui/result_panel.gd")
 
 const MARGIN := 44
 const POS_MIN_HEIGHT := 200
 const GAP := 16
+const CLIPBOARD_RATIO := 1.35
+const CCTV_MIN_WIDTH := 330
 const TESTER_ARG := "--tester="
 
 var _strings: Dictionary = {}
@@ -25,6 +28,7 @@ var _log: SessionLog = null
 var _effects: ScreenEffects = null
 var _clipboard: ClipboardPanel = null
 var _customer_view: CustomerView = null
+var _cctv: CctvMonitor = null
 var _pos: PosTerminal = null
 var _result: ResultPanel = null
 var _clock: Label = null
@@ -32,6 +36,7 @@ var _status: Label = null
 var _frame: VBoxContainer = null
 
 var _sfx: Dictionary = {}
+var _judging: bool = false
 var _shown_at_msec: int = 0
 var _night_started_msec: int = 0
 
@@ -124,13 +129,25 @@ func _build_main_row() -> HBoxContainer:
 	row.add_theme_constant_override("separation", GAP)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
+	var observation := GameData.read_json("res://data/observation.json")
+	var cctv_traits := Customer._to_string_array(observation.get("cctv_traits", []))
+
 	_clipboard = ClipboardPanel.new()
 	_clipboard.set_strings(_strings)
 	_clipboard.rule_added.connect(_play.bind("paper"))
+	_clipboard.size_flags_stretch_ratio = CLIPBOARD_RATIO
+
+	_cctv = CctvMonitor.new()
+	_cctv.set_strings(_strings)
+	_cctv.custom_minimum_size = Vector2(CCTV_MIN_WIDTH, 0)
+	_cctv.size_flags_horizontal = Control.SIZE_FILL
+
 	_customer_view = CustomerView.new()
+	_customer_view.set_cctv_traits(cctv_traits)
 	_customer_view.set_strings(_strings)
 
 	row.add_child(_clipboard)
+	row.add_child(_cctv)
 	row.add_child(_customer_view)
 	return row
 
@@ -159,6 +176,7 @@ func _present_customer() -> void:
 	if customer == null:
 		return
 	_customer_view.show_customer(customer)
+	_cctv.show_customer(customer)
 	_pos.present(customer)
 	_shown_at_msec = Time.get_ticks_msec()
 	_refresh_header()
@@ -184,6 +202,10 @@ func _tension() -> float:
 
 
 func _on_verdict(kind: String) -> void:
+	# 판정은 히트스톱·리플레이를 거치는 비동기 흐름이다. 겹쳐 들어오면 화면 상태가 어긋난다.
+	if _judging or _session.is_finished():
+		return
+	_judging = true
 	var ctx := _session.current_context()
 	var result := _session.judge(Verdict.from_id(kind))
 	_log.record_judgment(ctx, result, (Time.get_ticks_msec() - _shown_at_msec) / 1000.0)
@@ -199,6 +221,7 @@ func _on_verdict(kind: String) -> void:
 	if not result.correct and result.missed_rule_ids.size() > 0:
 		await _replay_missed_clues(result)
 	_show_result_instead_of_pos(result)
+	_judging = false
 
 
 ## 3초 리플레이 (F-07, 공정성 불변식 3).
@@ -210,9 +233,13 @@ func _replay_missed_clues(result: JudgeResult) -> void:
 	var dim := _j("replay_dim", 0.3)
 	_clipboard.highlight(result.missed_rule_ids)
 	_customer_view.highlight_fields(result.decisive_fields, dim)
+	# 그림자는 CCTV에서만 보인다. 그게 결정적이었으면 모니터를 짚어줘야 한다.
+	if result.decisive_fields.has(JudgeContext.CUSTOMER_PREFIX + "has_shadow"):
+		_cctv.highlight_counter(dim)
 	await get_tree().create_timer(_j("replay_seconds", 3.0)).timeout
 	_clipboard.clear_highlight()
 	_customer_view.clear_highlight()
+	_cctv.clear_highlight()
 
 
 ## 결과는 POS 자리에 뜬다. 클립보드와 손님은 계속 보여야 한다 —

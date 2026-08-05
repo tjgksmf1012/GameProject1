@@ -56,5 +56,10 @@
   "ui.receipt_header": "영수증",
   "ui.receipt_empty": "—",
   "ui.total": "합계  %s",
-  "ui.id_check": "신분 확인"
+  "ui.id_check": "신분 확인",
+  "ui.cctv_header": "CCTV",
+  "cctv.counter": "CH1 계산대",
+  "cctv.aisle": "CH2 매대",
+  "cctv.storage": "CH3 창고",
+  "cctv.entrance": "CH4 출입구"
 }
