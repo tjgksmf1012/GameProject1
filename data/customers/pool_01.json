@@ -1,0 +1,60 @@
+{
+  "_comment": "M0 손님 풀. 모든 손님이 동일한 trait 집합을 갖는다 — 그래야 어떤 수칙도 '보이지 않는 필드'를 참조하지 않는다 (공정성 불변식 1).",
+  "_comment_design": "cust_wet_normal은 의도적으로 거짓 수칙이 '우연히 맞는' 경우다. 거짓 수칙이 항상 틀리면 플레이어가 '거짓이면 무조건 반대로'를 학습해버려 긴장이 죽는다.",
+  "customers": [
+    {
+      "id": "cust_office_worker",
+      "name_key": "customer.office_worker",
+      "traits": { "has_shadow": true, "is_wet": false, "has_bag": false, "wants_alcohol": false },
+      "items": ["item.cup_ramen"],
+      "dialogue": ["dialogue.office_worker_1"],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_student_bag",
+      "name_key": "customer.student_bag",
+      "traits": { "has_shadow": true, "is_wet": false, "has_bag": true, "wants_alcohol": false },
+      "items": ["item.energy_drink"],
+      "dialogue": ["dialogue.student_bag_1"],
+      "patience_seconds": 40,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_wet_normal",
+      "name_key": "customer.wet_normal",
+      "traits": { "has_shadow": true, "is_wet": true, "has_bag": false, "wants_alcohol": false },
+      "items": ["item.hot_coffee"],
+      "dialogue": ["dialogue.wet_normal_1"],
+      "patience_seconds": 45,
+      "anomaly": ""
+    },
+    {
+      "id": "cust_no_shadow",
+      "name_key": "customer.no_shadow",
+      "traits": { "has_shadow": false, "is_wet": false, "has_bag": false, "wants_alcohol": false },
+      "items": ["item.cigarettes"],
+      "dialogue": ["dialogue.no_shadow_1"],
+      "patience_seconds": 60,
+      "anomaly": "no_shadow"
+    },
+    {
+      "id": "cust_wet_no_shadow",
+      "name_key": "customer.wet_no_shadow",
+      "traits": { "has_shadow": false, "is_wet": true, "has_bag": false, "wants_alcohol": false },
+      "items": ["item.umbrella"],
+      "dialogue": ["dialogue.wet_no_shadow_1"],
+      "patience_seconds": 60,
+      "anomaly": "no_shadow_wet"
+    },
+    {
+      "id": "cust_late_drinker",
+      "name_key": "customer.late_drinker",
+      "traits": { "has_shadow": true, "is_wet": false, "has_bag": true, "wants_alcohol": true },
+      "items": ["item.soju"],
+      "dialogue": ["dialogue.late_drinker_1"],
+      "patience_seconds": 35,
+      "anomaly": ""
+    }
+  ]
+}

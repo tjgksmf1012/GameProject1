@@ -1,0 +1,50 @@
+{
+  "_comment": "M0 프로토타입용 수칙 세트. 참 2개 + 거짓 2개. (05-prioritization.md M0-1)",
+  "_comment_progression": "본편의 밤별 도입 순서(밤 1은 전부 참, 거짓은 밤 5부터)는 03-PRD.md 3.4를 따른다. M0는 H1을 즉시 검증해야 하므로 전부 밤 1에 배치한다.",
+  "rules": [
+    {
+      "id": "rule_no_shadow",
+      "text_key": "rule.no_shadow",
+      "veracity": "true",
+      "conditions": [
+        { "field": "customer.has_shadow", "op": "eq", "value": false }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 1
+    },
+    {
+      "id": "rule_no_alcohol_after_2am",
+      "text_key": "rule.no_alcohol_after_2am",
+      "veracity": "true",
+      "conditions": [
+        { "field": "time", "op": "after", "value": "02:00" },
+        { "field": "customer.wants_alcohol", "op": "eq", "value": true }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 1
+    },
+    {
+      "id": "rule_always_serve_wet",
+      "text_key": "rule.always_serve_wet",
+      "veracity": "false",
+      "tell_key": "tell.always_serve_wet",
+      "conditions": [
+        { "field": "customer.is_wet", "op": "eq", "value": true }
+      ],
+      "required_verdict": "serve",
+      "introduced_night": 1,
+      "conflicts_with": ["rule_no_shadow"]
+    },
+    {
+      "id": "rule_refuse_bag",
+      "text_key": "rule.refuse_bag",
+      "veracity": "false",
+      "tell_key": "tell.refuse_bag",
+      "conditions": [
+        { "field": "customer.has_bag", "op": "eq", "value": true }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 1
+    }
+  ]
+}

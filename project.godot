@@ -1,0 +1,21 @@
+; NIGHTSHIFT — Godot 4.x
+; 설정은 최소로 유지한다. 에디터에서만 존재하는 설정을 만들지 않는다 (CLAUDE.md 1.2)
+
+config_version=5
+
+[application]
+
+config/name="NIGHTSHIFT"
+run/main_scene="res://main/prototype.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
