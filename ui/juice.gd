@@ -39,18 +39,41 @@ static func press(node: Control, duration: float) -> void:
 
 
 ## 감쇠하는 흔들림. 감쇠가 없으면 그냥 멀미다.
+## **앵커가 걸린 Control에 `position`을 쓰면 움직이는 게 아니라 늘어난다.**
+##
+## `position`은 `offset_left`/`offset_top`만 건드리고 `offset_right`/`offset_bottom`은
+## 그대로 둔다. 앵커가 0~1로 펼쳐져 있으면 그 차이가 곧 크기라서, 위로 밀면 아래로 자란다.
+##
+## 실제로 그랬다. 오답 셰이크 한 번에 720 화면에서 VBox가 **740**이 되고, 안에 있던
+## POS가 화면 밖으로 밀려 **REFUSE를 누를 수 없게** 됐다. 오답일 때만 나는 버그라
+## 정상 플레이 스크린샷에는 절대 안 잡힌다 — 실제로 두 번 잘못 진단했다.
+##
+## 네 offset을 **같이** 민다. 그러면 크기는 그대로고 자리만 움직인다.
 static func shake(node: Control, strength: float, duration: float, steps: int = 8) -> void:
-	var origin := node.position
+	var origin := Vector2(node.offset_left, node.offset_top)
+	var span := Vector2(
+		node.offset_right - node.offset_left, node.offset_bottom - node.offset_top)
 	var tween := node.create_tween()
 	tween.set_ease(EASE).set_trans(Tween.TRANS_SINE)
+	var at := origin
 	for i in steps:
 		var falloff := 1.0 - float(i) / float(steps)
-		var offset := Vector2(
+		var target := origin + Vector2(
 			randf_range(-strength, strength) * falloff,
-			randf_range(-strength, strength) * falloff
-		)
-		tween.tween_property(node, "position", origin + offset, duration / float(steps))
-	tween.tween_property(node, "position", origin, duration / float(steps))
+			randf_range(-strength, strength) * falloff)
+		tween.tween_method(_nudge.bind(node, span), at, target, duration / float(steps))
+		at = target
+	tween.tween_method(_nudge.bind(node, span), at, origin, duration / float(steps))
+
+
+## 크기를 유지한 채 자리만 옮긴다. `position`을 쓰면 안 되는 이유는 `shake` 주석 참고.
+static func _nudge(at: Vector2, node: Control, span: Vector2) -> void:
+	if not is_instance_valid(node):
+		return
+	node.offset_left = at.x
+	node.offset_top = at.y
+	node.offset_right = at.x + span.x
+	node.offset_bottom = at.y + span.y
 
 
 ## 판정 순간 시간을 멈춘다. 0.05~0.12초.

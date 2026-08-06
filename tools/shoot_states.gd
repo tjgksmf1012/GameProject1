@@ -36,6 +36,7 @@ var _final_done: bool = false
 var _pressure_stage: int = -1
 var _step_frames: int = STEP_FRAMES
 var _strike_ids: PackedStringArray = []
+var _layout_failed: bool = false
 
 
 func _initialize() -> void:
@@ -64,6 +65,10 @@ func _initialize() -> void:
 
 func _process(_delta: float) -> bool:
 	if _done:
+		# 배치 검사가 실패했으면 종료 코드로 알린다. 스크린샷만 남기고 0을 돌려주면
+		# 자동화가 통과로 읽는다 — 검사가 아니라 장식이 된다.
+		if _layout_failed:
+			quit(1)
 		return true
 	_frames += 1
 	if not _fired and _frames >= _next_step_frame:
@@ -141,7 +146,60 @@ func _correct_verdict() -> String:
 	return engine.required_verdicts(ctx)[0].id()
 
 
+## 찍는 **그 프레임**의 배치를 같이 찍는다.
+##
+## 화면에서 잘려 나간 것을 스크린샷만 보고 추론하다 두 번 틀렸다. 어느 상자가
+## 얼마나 커졌는지는 스크린샷에 안 나오고 숫자에만 나온다.
+func _dump_layout() -> void:
+	var box := _find_layout_box(root)
+	if box == null:
+		return
+	print("배치 (화면 %d) — VBox y=%.0f h=%.0f min=%.0f"
+		% [root.size.y, box.global_position.y, box.size.y, box.get_combined_minimum_size().y])
+	for child in box.get_children():
+		if child is Control:
+			var c := child as Control
+			print("  %-16s vis=%-5s y=%6.1f h=%6.1f bottom=%6.1f min=%5.1f"
+				% [c.get_class(), str(c.visible), c.global_position.y, c.size.y,
+					c.global_position.y + c.size.y, c.get_combined_minimum_size().y])
+
+
+static func _find_layout_box(node: Node) -> VBoxContainer:
+	if node is VBoxContainer and node.get_child_count() >= 4:
+		return node as VBoxContainer
+	for child in node.get_children():
+		var found := _find_layout_box(child)
+		if found != null:
+			return found
+	return null
+
+
+## 내용이 화면 밖으로 나갔는가. **나갔으면 버튼을 못 누른다.**
+##
+## 헤드리스 단위 테스트로는 못 잡는다 — 실제로 시도했고 예전 코드를 넣어도 통과했다.
+## 늘어나는 조건(오답 셰이크 + 내용이 정한 최소 크기 + 앵커)이 진짜 화면에서만 갖춰진다.
+## 그래서 **여기가 이 버그의 유일한 검사 자리**다:
+##   xvfb-run -a godot --script res://tools/shoot_states.gd -- \
+##     --out=/tmp/x.png --night=6 --wrong=1 --index=1 --assert-layout=1
+func _assert_layout() -> int:
+	var box := _find_layout_box(root)
+	if box == null:
+		print("배치 상자를 못 찾았다 — 화면 구조가 바뀌었다")
+		return 1
+	var bottom := box.global_position.y + box.size.y
+	if bottom <= root.size.y:
+		print("배치 정상 — 바닥 %.0f ≤ 화면 %d" % [bottom, root.size.y])
+		return 0
+	print("배치 넘침 — 바닥 %.0f > 화면 %d (%.0fpx 잘렸다). 버튼을 누를 수 없다"
+		% [bottom, root.size.y, bottom - root.size.y])
+	return 1
+
+
 func _capture() -> void:
+	if _arg("--dump-layout=", "0") == "1":
+		_dump_layout()
+	if _arg("--assert-layout=", "0") == "1" and _assert_layout() != 0:
+		_layout_failed = true
 	var image := root.get_texture().get_image()
 	if image == null or image.save_png(_out_path) != OK:
 		push_error("스크린샷 저장 실패")

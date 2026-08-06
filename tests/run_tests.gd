@@ -34,7 +34,10 @@ func _initialize() -> void:
 		TestStrings.new(), TestClipboard.new(), TestNightReport.new(),
 		TestSnapshot.new(),
 	]
+	# `await`를 붙여둔다. 대부분의 스위트는 코루틴이 아니라 즉시 돌아오고, 프레임을
+	# 기다려야 하는 스위트(트윈이 실제로 도는지 보는 것들)만 여기서 멈춘다.
+	# 안 붙이면 그런 스위트는 첫 await에서 멈춘 채 아래 quit()에 죽는다 — 조용히.
 	for suite in suites:
-		suite.run(reporter)
+		await suite.run(reporter)
 	var code := reporter.print_report()
 	quit(code)
