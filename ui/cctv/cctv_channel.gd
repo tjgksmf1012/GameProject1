@@ -27,6 +27,10 @@ var _index: int = 0
 var _label_key: String = ""
 var _strings: Dictionary = {}
 var _screen: ColorRect = null
+## 도형을 전부 담는 무대. **설계 좌표(152x92)를 그대로 쓰고 이 노드만 늘린다.**
+## 좌표를 하나하나 비율로 고치면 조명 웅덩이·그림자·형상의 관계가 어긋나기 쉽고,
+## 그 관계가 곧 「그림자가 없다」를 읽히게 하는 장치다 (F-04).
+var _stage: Node2D = null
 var _figure: Polygon2D = null
 var _shadow: Polygon2D = null
 var _extra_shadow: Polygon2D = null
@@ -40,6 +44,7 @@ func setup(index: int, label_key: String, strings: Dictionary) -> void:
 	custom_minimum_size = Vector2(CHANNEL_WIDTH, CHANNEL_HEIGHT)
 	clip_contents = true
 	_build()
+	resized.connect(_fit_stage)
 
 
 func _build() -> void:
@@ -51,32 +56,50 @@ func _build() -> void:
 	_screen.material = _make_material()
 	add_child(_screen)
 
+	_stage = Node2D.new()
+	_screen.add_child(_stage)
+
 	if _index == COUNTER_INDEX:
 		# 계산대 위에는 조명이 있다. 밝은 바닥이 있어야 **그림자가 없다는 사실**이 읽힌다.
 		# 어두운 바닥에 검은 그림자를 그리면 있으나 없으나 똑같아 보인다.
-		_screen.add_child(_make_floor())
+		_stage.add_child(_make_floor())
 	else:
 		for i in SHELF_COUNT:
-			_screen.add_child(_make_shelf(i))
+			_stage.add_child(_make_shelf(i))
 
 	_shadow = Polygon2D.new()
 	_shadow.color = Color(0.0, 0.0, 0.0, 0.82)
-	_screen.add_child(_shadow)
+	_stage.add_child(_shadow)
 
 	# 두 번째 그림자. 방향이 어긋나 있어야 "하나가 더 있다"로 읽힌다.
 	_extra_shadow = Polygon2D.new()
 	_extra_shadow.color = Color(0.0, 0.0, 0.0, 0.72)
-	_screen.add_child(_extra_shadow)
+	_stage.add_child(_extra_shadow)
 
 	_figure = Polygon2D.new()
 	_figure.color = Color(0.0, 0.0, 0.0, 0.9)
-	_screen.add_child(_figure)
+	_stage.add_child(_figure)
 
 	var tag := Palette.make_label(
 		str(_strings.get(_label_key, _label_key)), Palette.SIZE_SMALL, Palette.TEXT_DIM)
 	tag.autowrap_mode = TextServer.AUTOWRAP_OFF
 	tag.position = Vector2(6, 4)
 	add_child(tag)
+
+
+## 패널이 커지면 무대도 같이 커진다. **도형만 원래 크기로 남으면 조명 웅덩이 밖에
+## 사람이 서게 되고, 그 순간 「그림자가 없다」가 안 읽힌다.**
+func _fit_stage() -> void:
+	if _stage == null or size.x <= 0.0 or size.y <= 0.0:
+		return
+	_stage.scale = Vector2(size.x / CHANNEL_WIDTH, size.y / CHANNEL_HEIGHT)
+	# 주사선과 잡음은 **설계 크기가 아니라 실제 크기**에서 역산한다.
+	# 설계 크기로 굳혀두면 패널을 키우는 순간 주기가 같이 늘어나 줄이 굵어지고
+	# 잡음 셀이 네모가 아니게 된다 — 92px용 값을 175px 패널에 쓰면 주기가 7.6px다.
+	var material := _screen.material as ShaderMaterial
+	material.set_shader_parameter("scanline_count", 2.0 * size.y / SCANLINE_PITCH_PX)
+	material.set_shader_parameter("noise_cells", Vector2(
+		size.x / NOISE_CELL_PX, size.y / NOISE_CELL_PX))
 
 
 func _make_material() -> ShaderMaterial:
@@ -88,9 +111,7 @@ func _make_material() -> ShaderMaterial:
 	# 주사선은 네 채널이 **같아야** 한다. 예전에는 채널마다 줄 수를 달리해 구분했는데,
 	# 그 차이가 전부 앨리어싱이라 화면마다 다른 **밝기 얼룩**으로 나왔다.
 	# 구분은 잡음·롤링 속도로 낸다 — 그쪽은 정말로 채널마다 달라도 되는 것들이다.
-	material.set_shader_parameter("scanline_count", 2.0 * CHANNEL_HEIGHT / SCANLINE_PITCH_PX)
-	material.set_shader_parameter("noise_cells", Vector2(
-		CHANNEL_WIDTH / NOISE_CELL_PX, CHANNEL_HEIGHT / NOISE_CELL_PX))
+	# 실제 값은 `_fit_stage`가 패널 크기에서 다시 잡는다. 여기 것은 첫 프레임용이다.
 	material.set_shader_parameter("roll_speed", 0.08 + float(_index) * 0.05)
 	return material
 

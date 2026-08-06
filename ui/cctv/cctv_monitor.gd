@@ -27,8 +27,10 @@ var _grid: GridContainer = null
 
 func _init() -> void:
 	add_theme_stylebox_override("panel", Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE))
-	# 그리드가 세로로 늘어나면 채널이 찌그러진다. 내용 크기 그대로 둔다.
-	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	# 세로를 채운다. 예전에는 SHRINK_BEGIN이라 패널이 243px에서 멈추고 형제는 404px여서
+	# **161px가 죽은 공간으로 남았다.** 화면에서 가장 큰 빈자리가 하필 증거 도구 아래였다.
+	# 채널 도형은 이제 패널 크기를 따라간다(cctv_channel.gd `_fit_stage`).
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 
 func set_strings(strings: Dictionary) -> void:
@@ -49,6 +51,7 @@ func _build() -> void:
 	box.add_child(Palette.make_label(_t("ui.cctv_header"), Palette.SIZE_SMALL, Palette.SECTION))
 
 	_grid = GridContainer.new()
+	_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_grid.columns = GRID_COLUMNS
 	_grid.add_theme_constant_override("h_separation", GRID_GAP)
 	_grid.add_theme_constant_override("v_separation", GRID_GAP)
@@ -56,6 +59,8 @@ func _build() -> void:
 
 	for i in CHANNEL_KEYS.size():
 		var channel := CctvChannel.new()
+		channel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		channel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_grid.add_child(channel)
 		channel.setup(i, CHANNEL_KEYS[i], _strings)
 		_channels.append(channel)
