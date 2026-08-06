@@ -30,6 +30,16 @@ const FIGURE_ANCHOR_X := 0.74
 ## 숨. 정지한 실루엣은 아이콘이고, 미세하게 움직이면 사람이다.
 const BREATH_PIXELS := 2.6
 const BREATH_SECONDS := 4.2
+## 재촉할수록 숨이 빨라지고 깊어진다. **손님이 누구든 똑같다** —
+## 이상 손님만 다르게 굴면 관찰이 아니라 기다리기로 풀린다 (불변식 2g).
+const BREATH_RATE := [1.0, 1.8, 2.8]
+const BREATH_DEPTH := [1.0, 1.5, 2.2]
+## 마지막 단계에서만 테두리가 맥동한다.
+##
+## 첫 단계에는 일부러 아무것도 안 한다. 읽기 부하를 재보니 **처음 보는 사람은 밤 1부터
+## 다 읽기 전에 재촉을 받는다**(문턱의 2.13배). 늘 켜져 있는 신호는 신호가 아니다.
+const PULSE_SECONDS := 0.7
+const PULSE_TINT := Color("8a5a2a")
 ## 뒤쪽 매대. 실루엣은 **대비할 것이 있어야** 실루엣이다.
 const SHELF_COUNT := 3
 const SHELF_TONE := Color("1d2325")
@@ -51,10 +61,16 @@ var _trait_rows: Dictionary = {}
 var _cctv_traits: PackedStringArray = []
 var _figure_poly: Polygon2D = null
 var _breath: float = 0.0
+var _stage: int = PatienceClock.STAGE_CALM
+var _edge: StyleBoxFlat = null
+var _pulse: Tween = null
 
 
 func _init() -> void:
-	add_theme_stylebox_override("panel", Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE))
+	# 맥동시키려면 스타일박스를 들고 있어야 한다. 테마에서 다시 꺼내오면 공유본이라
+	# 다른 패널까지 같이 깜빡인다.
+	_edge = Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE)
+	add_theme_stylebox_override("panel", _edge)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clip_contents = true
 
@@ -171,13 +187,15 @@ static func _figure(scale: float) -> PackedVector2Array:
 func _process(delta: float) -> void:
 	if _figure_poly == null:
 		return
-	_breath = fposmod(_breath + delta, BREATH_SECONDS)
+	var level := clampi(_stage, 0, BREATH_RATE.size() - 1)
+	_breath = fposmod(_breath + delta * float(BREATH_RATE[level]), BREATH_SECONDS)
 	var phase := sin(_breath / BREATH_SECONDS * TAU)
 	_figure_poly.skew = phase * 0.004
-	_figure_poly.offset = Vector2(0.0, phase * BREATH_PIXELS)
+	_figure_poly.offset = Vector2(0.0, phase * BREATH_PIXELS * float(BREATH_DEPTH[level]))
 
 
 func show_customer(customer: Customer) -> void:
+	set_pressure_stage(PatienceClock.STAGE_CALM)
 	_name.text = _t(customer.name_key)
 	_dialogue.text = _dialogue_text(customer)
 	_pressure.text = ""
@@ -191,11 +209,26 @@ func show_customer(customer: Customer) -> void:
 ## 문구는 손님마다 다르지 않다. **이상 손님만 다르게 굴면 플레이어는 관찰 대신
 ## 기다리기로 푼다** — CCTV도 클립보드도 필요 없어진다 (PatienceClock 주석).
 func set_pressure_stage(stage: int) -> void:
+	_stage = stage
+	_set_pulse(stage == PatienceClock.STAGE_DEMANDING)
 	if not PRESSURE_KEYS.has(stage):
 		_pressure.modulate.a = 0.0
 		return
 	_pressure.text = _t(str(PRESSURE_KEYS[stage]))
 	Juice.fade_in(_pressure, PRESSURE_FADE)
+
+
+## 테두리가 천천히 밝아졌다 꺼진다. 손님이 카운터를 두드리는 것과 같은 박자다.
+func _set_pulse(on: bool) -> void:
+	if _pulse != null and _pulse.is_valid():
+		_pulse.kill()
+	_edge.border_color = Palette.PANEL_EDGE
+	if not on:
+		return
+	_pulse = create_tween().set_loops()
+	_pulse.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_pulse.tween_property(_edge, "border_color", PULSE_TINT, PULSE_SECONDS)
+	_pulse.tween_property(_edge, "border_color", Palette.PANEL_EDGE, PULSE_SECONDS)
 
 
 func _dialogue_text(customer: Customer) -> String:
