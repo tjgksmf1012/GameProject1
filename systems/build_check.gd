@@ -126,8 +126,10 @@ func _check_no_dev_files() -> void:
 ## 폭 96으로 측정된다(네모를 같은 폭으로 그린다). 높이는 서체마다 다를 뿐이고.
 ##
 ## **작동하는 빌드를 떨어뜨리는 검사는 없느니만 못하다.** 그래서 측정값만 남긴다.
-## 이 위험을 진짜로 없애려면 폰트를 동봉해야 하는데, 그건 에셋 파일이라
-## CLAUDE.md 1.1을 건드린다 — 내가 혼자 정할 문제가 아니다 (05-prioritization.md 참고).
+##
+## 진짜 해법은 동봉이고, 그건 정해졌다 (`ui/theme_factory.gd`의 `font()` 주석).
+## 파일이 아직 없을 뿐이다. 그래서 여기서는 **동봉 여부를 말한다** — 없으면 이 빌드가
+## 남의 OS 폰트에 기대고 있다는 뜻이고, Proton/Linux에서는 그게 없을 수 있다.
 func _report_font(font: Font) -> void:
 	if font == null:
 		failures.append("폰트를 만들지 못했다")
@@ -135,5 +137,10 @@ func _report_font(font: Font) -> void:
 	var korean := font.get_string_size(FONT_PROBE, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_PROBE_SIZE)
 	lines.append("한글 측정 「%s」 → %.0f x %.0f (0이면 아예 안 그려진다)"
 		% [FONT_PROBE, korean.x, korean.y])
+	if Palette.has_bundled_font():
+		lines.append("폰트: 동봉분을 쓴다")
+	else:
+		lines.append("폰트: **동봉분이 없다** — OS 폰트에 기대고 있다. "
+			+ "Proton/Linux에 CJK가 없으면 전부 두부(□)가 된다. res://fonts/ui.ttf 를 넣을 것")
 	# 폭이 0이면 글자가 하나도 안 나가는 것이다. 그건 확실한 고장이다.
 	_ok(korean.x > 0.0, "한글이 폭 0으로 측정된다 — 화면에 아무것도 안 나온다")
