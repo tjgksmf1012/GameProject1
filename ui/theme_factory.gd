@@ -9,6 +9,10 @@ const PANEL := Color("16191b")
 const PANEL_EDGE := Color("272c2f")
 const TEXT := Color("c8cdd0")
 const TEXT_DIM := Color("6b7275")
+## 계산대 상판. 다른 패널보다 **밝고 따뜻하다** — 벽에 붙은 것과 눈앞에 있는 것은 다르다.
+const COUNTER := Color("1c1f1e")
+const COUNTER_EDGE := Color("323835")
+
 const PAPER := Color("d8d2c4")
 const PAPER_TEXT := Color("23201c")
 const PAPER_EDGE := Color("b3ac9c")

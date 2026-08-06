@@ -67,18 +67,7 @@ func _build() -> void:
 		for i in SHELF_COUNT:
 			_stage.add_child(_make_shelf(i))
 
-	_shadow = Polygon2D.new()
-	_shadow.color = Color(0.0, 0.0, 0.0, 0.82)
-	_stage.add_child(_shadow)
-
-	# 두 번째 그림자. 방향이 어긋나 있어야 "하나가 더 있다"로 읽힌다.
-	_extra_shadow = Polygon2D.new()
-	_extra_shadow.color = Color(0.0, 0.0, 0.0, 0.72)
-	_stage.add_child(_extra_shadow)
-
-	_figure = Polygon2D.new()
-	_figure.color = Color(0.0, 0.0, 0.0, 0.9)
-	_stage.add_child(_figure)
+	_add_actors()
 
 	var tag := Palette.make_label(
 		str(_strings.get(_label_key, _label_key)), Palette.SIZE_SMALL, Palette.TEXT_DIM)
@@ -100,6 +89,22 @@ func _fit_stage() -> void:
 	material.set_shader_parameter("scanline_count", 2.0 * size.y / SCANLINE_PITCH_PX)
 	material.set_shader_parameter("noise_cells", Vector2(
 		size.x / NOISE_CELL_PX, size.y / NOISE_CELL_PX))
+
+
+## 사람과 그림자. **그리는 순서가 곧 겹치는 순서다** — 그림자가 먼저, 사람이 나중.
+func _add_actors() -> void:
+	_shadow = Polygon2D.new()
+	_shadow.color = Color(0.0, 0.0, 0.0, 0.82)
+	_stage.add_child(_shadow)
+
+	# 두 번째 그림자. 방향이 어긋나 있어야 "하나가 더 있다"로 읽힌다.
+	_extra_shadow = Polygon2D.new()
+	_extra_shadow.color = Color(0.0, 0.0, 0.0, 0.72)
+	_stage.add_child(_extra_shadow)
+
+	_figure = Polygon2D.new()
+	_figure.color = Color(0.0, 0.0, 0.0, 0.9)
+	_stage.add_child(_figure)
 
 
 func _make_material() -> ShaderMaterial:

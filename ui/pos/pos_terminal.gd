@@ -10,6 +10,7 @@ extends PanelContainer
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
+const ReceiptSlip := preload("res://ui/pos/receipt_slip.gd")
 
 const PRESS_DURATION := 0.18
 
@@ -21,8 +22,7 @@ var _strings: Dictionary = {}
 var _prices: Dictionary = {}
 
 var _scan_row: HBoxContainer = null
-var _receipt: Label = null
-var _total: Label = null
+var _receipt: ReceiptSlip = null
 var _id_button: Button = null
 var _serve_button: Button = null
 var _refuse_button: Button = null
@@ -35,7 +35,8 @@ var _locked: bool = false
 
 
 func _init() -> void:
-	add_theme_stylebox_override("panel", Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE))
+	# 여기는 벽이 아니라 **계산대 상판**이다. 다른 패널보다 밝게 둬서 손이 닿는 자리로 읽히게 한다.
+	add_theme_stylebox_override("panel", Palette.panel_style(Palette.COUNTER, Palette.COUNTER_EDGE))
 
 
 ## 문자열이 있어야 라벨을 만들 수 있으므로, 화면 구성을 여기서 한다.
@@ -72,16 +73,11 @@ func _build_scan_column() -> VBoxContainer:
 	return column
 
 
-func _build_receipt_column() -> VBoxContainer:
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_child(Palette.make_label(_t("ui.receipt_header"), Palette.SIZE_SMALL, Palette.SECTION))
-	_receipt = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT_DIM)
-	column.add_child(_receipt)
-	_total = Palette.make_label("", Palette.SIZE_HEAD, Palette.TEXT)
-	column.add_child(_total)
-	return column
+## 영수증은 이제 라벨이 아니라 **종이**다 (ui/pos/receipt_slip.gd).
+func _build_receipt_column() -> Control:
+	_receipt = ReceiptSlip.new()
+	_receipt.setup(_strings)
+	return _receipt
 
 
 func _build_verdict_column() -> VBoxContainer:
@@ -143,7 +139,7 @@ func scan(key: String) -> bool:
 		return false
 	_scanned.append(key)
 	item_scanned.emit()
-	_refresh()
+	_refresh(true)
 	return true
 
 
@@ -185,21 +181,18 @@ func can_serve() -> bool:
 	return _id_done or not _needs_id
 
 
-func _refresh() -> void:
-	_receipt.text = _receipt_text()
-	_total.text = _t("ui.total") % _format_won(_total_price())
+func _refresh(grew: bool = false) -> void:
+	_receipt.print_lines(_receipt_items(), _format_won(_total_price()), grew)
 	_id_button.disabled = _locked or _id_done or not _needs_id
 	_serve_button.disabled = _locked or not can_serve()
 	_refuse_button.disabled = _locked
 
 
-func _receipt_text() -> String:
-	if _scanned.is_empty():
-		return _t("ui.receipt_empty")
-	var lines := PackedStringArray()
+func _receipt_items() -> Array:
+	var out := []
 	for key in _scanned:
-		lines.append("%s   %s" % [_t(key), _format_won(_price_of(key))])
-	return "\n".join(lines)
+		out.append({"name": _t(key), "price": _format_won(_price_of(key))})
+	return out
 
 
 func _total_price() -> int:
