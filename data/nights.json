@@ -46,13 +46,13 @@
         "cust_n4_opener",
         "cust_n4_bagman",
         "cust_n4_hooded",
-        "cust_regular_wet",
+        "cust_n4_last",
         "cust_n4_shadowless",
         "cust_n4_twin",
         "cust_regular_drinker",
         "cust_n4_hooded_regular",
         "cust_regular_morning",
-        "cust_n4_last"
+        "cust_regular_wet"
       ]
     },
     {
@@ -62,7 +62,7 @@
         "cust_n5_cap",
         "cust_n5_window",
         "cust_n5_wet_bag",
-        "cust_n5_regular_beer",
+        "cust_late_drinker",
         "cust_n5_turned",
         "cust_n5_counter_starer",
         "cust_n5_dawn_drinker",
