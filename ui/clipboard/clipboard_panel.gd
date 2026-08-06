@@ -190,8 +190,10 @@ func _make_row(rule: Rule, index: int) -> PanelContainer:
 	row.add_theme_stylebox_override("panel", _row_style())
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.gui_input.connect(_on_row_input.bind(rule.id))
+	# 수칙은 **사람이 손으로 쓴 것**이다. 영수증·시계와 같은 목소리로 말하면 안 된다.
 	var label := Palette.make_label(
-		ScreenSnapshot.line_prefix(false) + _t(rule.text_key), Palette.SIZE_BODY, Palette.INK_MANAGER)
+		ScreenSnapshot.line_prefix(false) + _t(rule.text_key), Palette.SIZE_BODY,
+		Palette.INK_MANAGER, Palette.ROLE_RULES)
 	row.add_child(label)
 	_labels[rule.id] = label
 

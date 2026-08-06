@@ -5,9 +5,30 @@
 이 프로젝트가 쓰는 **유일한 외부 에셋 종류 두 가지 중 하나**다 (CLAUDE.md §1.1).
 동봉 파일이 없으면 게임은 OS 폰트로 물러서고, Proton/Linux에서 한글이 두부(□)가 될 수 있다.
 
-| 파일 | 서체 | 라이선스 | 원문 보관 | 상태 |
+**한 서체가 세 목소리를 다 내면 안 된다.** 지금은 점장의 손글씨와 기계의 영수증과
+벽시계가 전부 같은 글씨체로 말한다. 화면에 물건이 셋인데 목소리가 하나다.
+
+| 파일 | 쓰이는 곳 | 성격 | 후보 (전부 OFL 1.1) | 상태 |
 |---|---|---|---|---|
-| `fonts/ui.ttf` | (미정 — 아래 규격 참고) | OFL 1.1 예정 | `docs/licenses/` | ☐ 미투입 |
+| `fonts/rules.ttf` | 클립보드 수칙 | 사람이 손으로 쓴 것 | 나눔손글씨 펜 / 나눔명조 | ☐ 미투입 |
+| `fonts/machine.ttf` | 영수증 · CCTV · 시계 | 기계가 뽑은 것 | D2Coding(등폭) / 갈무리11(비트맵) | ☐ 미투입 |
+| `fonts/ui.ttf` | 나머지 전부 | 읽히기만 하면 된다 | Pretendard / IBM Plex Sans KR | ☐ 미투입 |
+
+**셋 다 없어도 게임은 돈다.** 역할 파일이 없으면 `ui`로, 그것도 없으면 OS 폰트로
+물러선다 (`ui/theme_factory.gd`의 `font(role)`).
+
+> ⚠ **수칙 본문을 손글씨로 바꾸는 것은 신중해야 한다.** 수칙 문구가 곧 퍼즐이고,
+> 획이 얇은 손글씨는 점장 잉크와 나중 잉크의 대비(F-05 단서)를 줄인다.
+> 먼저 **번호만**(「하나.」「둘.」) 손글씨로 바꿔 보고, `tools/paper_probe.gd`로
+> 단서 대비가 3% 아래로 안 떨어지는지 확인한 뒤에 본문으로 넓혀라.
+
+> ⚠ **비트맵 서체(갈무리)는 정확한 배수 크기에서만 깨끗하다.** 11/22/33 같은 값에
+> `antialiasing = NONE`, `subpixel_positioning = DISABLED`로 임포트해야 한다.
+> 어중간한 크기에서는 뭉갠다.
+
+`FontVariation`을 쓰면 파일 하나로 굵기·기울기·자간을 만들어낸다
+(`Palette.machine_font(tracking)`). 동봉 파일을 1~2벌로 유지하면서 위계를 얻는
+유일한 공짜 수단이다.
 
 ### 넣을 때 지켜야 하는 것
 
@@ -15,8 +36,8 @@
 2. 다운로드 **시점의 라이선스 원문**을 `docs/licenses/<서체이름>-OFL.txt`로 그대로 저장한다.
    링크만 적어두면 나중에 페이지가 바뀌었을 때 무엇에 동의했는지 증명할 수 없다.
 3. 이 표에 서체 이름·버전·받은 곳·받은 날짜를 적는다.
-4. 파일 이름은 `fonts/ui.ttf`로 고정한다 — 코드가 이 경로를 찾는다
-   (`ui/theme_factory.gd`의 `BUNDLED_FONT_PATHS`). 이름을 바꾸려면 거기도 바꾼다.
+4. 파일 이름은 위 표대로 고정한다 — 코드가 `res://fonts/<역할>.ttf`(또는 `.otf`)를 찾는다
+   (`ui/theme_factory.gd`의 `ROLE_*`). 이름을 바꾸려면 거기도 바꾼다.
 
 ### 규격
 
@@ -28,7 +49,8 @@
 넣은 뒤 확인:
 
 ```bash
-godot --headless -- --selftest      # 「폰트: 동봉분을 쓴다」가 떠야 한다
+godot --headless -- --selftest      # 「폰트: 동봉분을 쓴다 — 역할 [...]」에 넣은 역할이 다 떠야 한다
+xvfb-run -a godot --script res://tools/paper_probe.gd   # 단서 대비가 3% 아래로 안 떨어지는지
 xvfb-run -a godot --script res://tools/screenshot.gd -- --out=/tmp/s.png
 ```
 

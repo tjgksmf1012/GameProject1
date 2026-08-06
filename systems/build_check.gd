@@ -141,7 +141,7 @@ func _report_font(font: Font) -> void:
 	lines.append("한글 측정 「%s」 → %.0f x %.0f (0이면 아예 안 그려진다)"
 		% [FONT_PROBE, korean.x, korean.y])
 	if Palette.has_bundled_font():
-		lines.append("폰트: 동봉분을 쓴다")
+		lines.append("폰트: 동봉분을 쓴다 — 역할 %s" % str(Palette.bundled_roles()))
 	else:
 		lines.append("폰트: **동봉분이 없다** — OS 폰트에 기대고 있다. "
 			+ "Proton/Linux에 CJK가 없으면 전부 두부(□)가 된다. res://fonts/ui.ttf 를 넣을 것")

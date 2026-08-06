@@ -36,7 +36,22 @@ const FONT_CANDIDATES := [
 ]
 
 ## 동봉한 폰트. 있으면 무조건 이걸 쓴다 — OS가 뭘 갖고 있든 화면이 같아야 한다.
-const BUNDLED_FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui.otf"]
+##
+## **한 서체가 세 목소리를 다 내면 안 된다.** 지금은 점장의 손글씨와 기계의 영수증과
+## 벽시계가 전부 같은 글씨체로 말한다. 화면에 물건이 셋인데 목소리가 하나다.
+##
+##   ROLE_RULES   — 클립보드. 사람이 손으로 쓴 것
+##   ROLE_MACHINE — 영수증·CCTV·시계. 기계가 뽑은 것
+##   ROLE_UI      — 나머지 전부
+##
+## 파일이 없으면 ROLE_UI로, 그것도 없으면 OS 폰트로 물러선다. **셋 다 없어도 게임은 돈다.**
+## 규격과 라이선스 절차는 `credits.md`.
+const ROLE_UI := "ui"
+const ROLE_RULES := "rules"
+const ROLE_MACHINE := "machine"
+
+const BUNDLED_FONT_DIR := "res://fonts"
+const FONT_EXTENSIONS := [".ttf", ".otf"]
 
 ## 그림자. 위에서 비추는 형광등이므로 아래로 떨어진다.
 const SHADOW_SIZE := 14
@@ -65,21 +80,52 @@ const SIZE_CLOCK := 34
 ## 원문 보관, `credits.md`에 즉시 기록. 그 절차가 이 예외의 값이다.
 ##
 ## 파일이 없으면 지금까지대로 OS 폰트로 물러선다 — 폰트를 넣기 전에도 빌드가 돌아간다.
-static func font() -> Font:
-	for path in BUNDLED_FONT_PATHS:
+static func font(role: String = ROLE_UI) -> Font:
+	var found := _bundled(role)
+	if found != null:
+		return found
+	if role != ROLE_UI:
+		# 역할 전용 파일이 없으면 기본 동봉분으로. 목소리는 잃되 글자는 나온다.
+		found = _bundled(ROLE_UI)
+		if found != null:
+			return found
+	var fallback := SystemFont.new()
+	fallback.font_names = PackedStringArray(FONT_CANDIDATES)
+	return fallback
+
+
+static func _bundled(role: String) -> Font:
+	for extension in FONT_EXTENSIONS:
+		var path := "%s/%s%s" % [BUNDLED_FONT_DIR, role, extension]
 		if ResourceLoader.exists(path):
 			return load(path) as Font
-	var f := SystemFont.new()
-	f.font_names = PackedStringArray(FONT_CANDIDATES)
-	return f
+	return null
+
+
+## 기계가 찍은 글자. 자간을 벌려 **레지스터 라벨**처럼 보이게 한다.
+##
+## `FontVariation`은 파일 하나로 굵기·기울기·자간을 만들어낸다. 동봉 파일을 1~2벌로
+## 유지하면서 위계를 얻는 유일한 공짜 수단이다 (credits.md 규격 참고).
+static func machine_font(tracking: int = 2) -> Font:
+	var variation := FontVariation.new()
+	variation.base_font = font(ROLE_MACHINE)
+	variation.spacing_glyph = tracking
+	return variation
 
 
 ## 동봉 폰트를 실제로 쓰고 있는가. 빌드 검사가 이걸 보고 무엇을 보고할지 정한다.
 static func has_bundled_font() -> bool:
-	for path in BUNDLED_FONT_PATHS:
-		if ResourceLoader.exists(path):
-			return true
-	return false
+	return _bundled(ROLE_UI) != null or _bundled(ROLE_RULES) != null \
+		or _bundled(ROLE_MACHINE) != null
+
+
+## 어떤 역할이 동봉분을 쓰고 있는가. 빌드 검사가 사람에게 보여준다.
+static func bundled_roles() -> PackedStringArray:
+	var out := PackedStringArray()
+	for role in [ROLE_UI, ROLE_RULES, ROLE_MACHINE]:
+		if _bundled(role) != null:
+			out.append(role)
+	return out
 
 
 ## 패널 하나. **그림자가 물건과 div 를 가른다.**
@@ -115,11 +161,12 @@ static func style_button(button: Button, tint: Color, text_color: Color) -> void
 	button.add_theme_stylebox_override("disabled", panel_style(PANEL, PANEL_EDGE))
 
 
-static func make_label(text: String, size: int, color: Color) -> Label:
+## `role`을 안 넘기면 기본 목소리다. 기존 호출을 하나도 안 고쳐도 되도록 기본값을 둔다.
+static func make_label(text: String, size: int, color: Color, role: String = ROLE_UI) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_override("font", font())
+	label.add_theme_font_override("font", font(role))
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
 	return label

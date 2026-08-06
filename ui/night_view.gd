@@ -60,7 +60,7 @@ func build(strings: Dictionary, prices: Dictionary, cctv_traits: PackedStringArr
 func _build_header() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
-	_clock = Palette.make_label("", Palette.SIZE_CLOCK, Palette.ACCENT)
+	_clock = Palette.make_label("", Palette.SIZE_CLOCK, Palette.ACCENT, Palette.ROLE_MACHINE)
 	_clock.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_status = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT_DIM)
 	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL

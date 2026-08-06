@@ -133,7 +133,7 @@ func _head() -> void:
 
 
 func _center(text: String, size: int, color: Color) -> void:
-	var label := Palette.make_label(text, size, color)
+	var label := Palette.make_label(text, size, color, Palette.ROLE_MACHINE)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_lines.add_child(label)
 
@@ -141,9 +141,9 @@ func _center(text: String, size: int, color: Color) -> void:
 ## 품목 한 줄. 이름은 왼쪽, 값은 오른쪽 — 영수증은 값이 한 줄로 서 있어야 영수증이다.
 func _row(name: String, value: String, color: Color) -> void:
 	var row := HBoxContainer.new()
-	var left := Palette.make_label(name, Palette.SIZE_SMALL, color)
+	var left := Palette.make_label(name, Palette.SIZE_SMALL, color, Palette.ROLE_MACHINE)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var right := Palette.make_label(value, Palette.SIZE_SMALL, color)
+	var right := Palette.make_label(value, Palette.SIZE_SMALL, color, Palette.ROLE_MACHINE)
 	right.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	# **값은 절대 줄바꿈하지 않는다.** 「₩」와 「0」이 두 줄로 갈라지면 영수증이 아니다.
 	right.autowrap_mode = TextServer.AUTOWRAP_OFF
