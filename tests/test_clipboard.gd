@@ -18,6 +18,7 @@ func run(r: RefCounted) -> void:
 	var panel := _mount()
 	_test_shows_exactly_what_the_engine_applies(r, panel)
 	_test_late_rule_disappears_on_restart(r, panel)
+	_test_snapshot_matches_the_screen(r, panel)
 	panel.queue_free()
 
 
@@ -69,6 +70,59 @@ func _test_late_rule_disappears_on_restart(r: RefCounted, panel: Control) -> voi
 	panel.show_rules(engine.visible_rules(night, 0))
 	r.check(not _shown(panel).has(late.id),
 		"다시 시작하면 아직 안 붙은 줄(%s)이 화면에서 사라진다" % late.id)
+
+
+## 스냅샷이 **화면과 정확히 같은 것**을 말하는가.
+##
+## `ScreenSnapshot`은 블라인드 플레이의 유일한 입력이다. 화면보다 많이 말하면 상대는
+## 사람보다 잘 보게 되고, 적게 말하면 사람보다 못 보게 된다. **양쪽 다 결과를 무의미하게 만든다.**
+##
+## 그런데 `night_screen.gd`는 `ScreenSnapshot`을 한 번도 부르지 않는다 — 화면과 스냅샷은
+## 서로를 모르는 두 코드 경로다. 종이 값과 ✎ 표식은 이제 같은 함수에서 나오지만
+## **줄 목록과 문구는 여전히 따로 만든다.** 그게 어긋나는 순간을 잡는 게 이 검사다.
+func _test_snapshot_matches_the_screen(r: RefCounted, panel: Control) -> void:
+	var engine := RuleEngine.new(GameData.load_rules())
+	var strings := GameData.load_strings()
+	var plan := NightPlan.load()
+	for night in plan.nights():
+		var customers := plan.customers_for(night)
+		for i in customers.size():
+			var ctx := JudgeContext.new(
+				night, NightSession.arrival_minutes(i, customers.size()), customers[i])
+			# ui/night_view.gd 와 **같은 순서로** 부른다. 순서가 다르면 검사가
+			# 실제 화면이 아니라 이 검사만의 화면을 보게 된다.
+			var visible := engine.visible_rules(night, ctx.shift_minutes)
+			panel.show_rules(visible)
+			panel.apply_night(visible, night)
+			var snap := ScreenSnapshot.of(engine, ctx, strings, PackedStringArray(), {})
+			_compare_lines(r, panel, snap["clipboard"] as Array, night, ctx.shift_minutes)
+
+
+## 스냅샷의 줄과 화면의 줄을 **문구까지** 맞춰 본다. 찢긴 자리는 화면에 있지만
+## 수칙이 아니므로 `_shown_ids`에 없다 — 그래서 id 있는 줄만 짝짓는다.
+func _compare_lines(
+	r: RefCounted, panel: Control, lines: Array, night: int, minutes: int
+) -> void:
+	var from_snapshot := PackedStringArray()
+	for line in lines:
+		var row := line as Dictionary
+		if not row.has("id"):
+			continue
+		from_snapshot.append(str(row["id"]))
+		var label: Label = panel._labels.get(str(row["id"]))
+		r.check(label != null,
+			"%d일째 밤 %s: 스냅샷에 있는 %s가 화면에 없다"
+				% [night, ShiftClock.to_display(minutes), row["id"]])
+		if label != null:
+			r.equals(label.text, str(row["text"]),
+				"%d일째 밤 %s: %s의 문구가 화면과 스냅샷에서 다르다"
+					% [night, ShiftClock.to_display(minutes), row["id"]])
+	var on_screen := _shown(panel)
+	on_screen.sort()
+	from_snapshot.sort()
+	r.equals(from_snapshot, on_screen,
+		"%d일째 밤 %s: 화면과 스냅샷의 줄 목록이 다르다"
+			% [night, ShiftClock.to_display(minutes)])
 
 
 func _first_late_rule() -> Rule:

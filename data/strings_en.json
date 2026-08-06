@@ -216,5 +216,9 @@
   "ending.handover": "Six o'clock. The next person opens the door. You hand over the clipboard.",
   "ending.marks": "The %d lines you struck out are still there. He will read those first.",
   "ending.no_marks": "You struck out nothing. He will have to work it out alone, from the beginning.",
-  "ui.ending_close": "Leave the store"
+  "ui.ending_close": "Leave the store",
+  "look.manager": "the manager's hand, on the original paper",
+  "look.later": "a later hand, on paper added afterwards",
+  "look.rewritten": "a rewriting mark (✎), on fresh paper patched over",
+  "look.torn": "where a line was torn away"
 }

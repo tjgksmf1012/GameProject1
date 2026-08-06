@@ -216,5 +216,9 @@
   "ending.handover": "여섯 시. 다음 사람이 문을 열고 들어온다. 당신은 클립보드를 넘긴다.",
   "ending.marks": "당신이 그어둔 줄 %d개가 그대로 남아 있다. 그는 그것부터 읽을 것이다.",
   "ending.no_marks": "아무것도 그어놓지 않았다. 그는 처음부터 혼자 알아내야 한다.",
-  "ui.ending_close": "가게를 나선다"
+  "ui.ending_close": "가게를 나선다",
+  "look.manager": "점장 필체 · 원래 종이",
+  "look.later": "남의 필체 · 나중에 덧쓴 종이",
+  "look.rewritten": "고쳐 쓴 자국(✎) · 덧댄 새 종이",
+  "look.torn": "찢겨 나간 자리"
 }

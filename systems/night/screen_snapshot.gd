@@ -18,6 +18,36 @@ extends RefCounted
 
 const OBSERVATION_PATH := "res://data/observation.json"
 
+## 스냅샷을 읽는 쪽이 **얼마나 잘 보는가.** 이 값 없이 블라인드 플레이 결과를 인용하면 안 된다.
+##
+## `named`는 종이 색조 3.8% 차이와 잉크 번짐을 「남의 필체 · 나중에 덧쓴 종이」라는
+## **문장**으로 바꿔 준다. 화면은 그 문장을 어디에도 쓰지 않는다 — 사람은 종이 두 장을
+## 나란히 놓고 "다른가?"를 스스로 판단해야 한다. 즉 named로 얻은 정답률은 사람의 상한이 아니라
+## **사람보다 잘 보는 관찰자의 정답률**이다. 그걸 사람 수치로 보고하면 거짓말이 된다.
+##
+## `raw`는 셰이더에 실제로 들어가는 숫자를 그대로 준다. 해석은 읽는 쪽 몫이다.
+## 두 수준의 차이가 곧 **"이 단서를 알아보는 것"이 얼마나 어려운가**의 측정치다.
+const PERCEPTION_NAMED := "named"
+const PERCEPTION_RAW := "raw"
+
+## 고쳐 쓴 줄 앞에 붙는 표식. **화면이 라벨 텍스트에 직접 찍는다** — 스냅샷도 같이 찍어야
+## 사람과 같은 것을 본다. `clipboard_panel.gd`와 이 함수가 유일한 출처다.
+static func line_prefix(rewritten: bool) -> String:
+	return "✎ " if rewritten else "· "
+
+
+## 이 줄의 종이가 **실제로 어떤 값으로 그려지는가.** UI와 스냅샷이 같은 함수를 쓴다.
+##
+## 예전에는 UI가 자기 상수를, 스냅샷이 자기 문자열을 따로 들고 있었다. 둘이 어긋나도
+## 아무도 모르고, 어긋난 채로 나온 블라인드 플레이 결과는 통째로 무의미하다.
+static func paper_values(foreign: bool, rewritten: bool, paper: Dictionary) -> Dictionary:
+	var tone: float = float(paper.get("tone_later" if foreign else "tone_manager", 1.0))
+	return {
+		"paper_tone": float(paper.get("tone_rewritten", 1.055)) if rewritten else tone,
+		"ink_bleed": float(paper.get("bleed_later" if foreign else "bleed_manager", 0.0)),
+		"rewritten": 1.0 if rewritten else 0.0,
+	}
+
 ## 판정 **뒤에** 화면에 뜨는 것. 결과 패널이 보여주는 것과 같아야 한다.
 ##
 ## 여기엔 반증 단서(tell)가 들어간다 — **그게 이 게임의 공정성 계약이다** (불변식 3).
@@ -50,24 +80,18 @@ static func _headline(result: JudgeResult, strings: Dictionary) -> String:
 	return _t(strings, "result.wrong")
 
 
-## 클립보드 한 줄이 화면에서 어떻게 보이는가. **진위는 여기 없다.**
-## 종이·잉크·표식은 사람 눈에 보이는 것이므로 그대로 넘긴다 (F-05).
-const LOOK_MANAGER := "점장 필체 · 원래 종이"
-const LOOK_LATER := "남의 필체 · 나중에 덧쓴 종이"
-const LOOK_REWRITTEN := "고쳐 쓴 자국(✎) · 덧댄 새 종이"
-const LOOK_TORN := "찢겨 나간 자리"
-
-
 ## 지금 이 손님을 판정하는 시점에 화면에 있는 것 전부.
 static func of(
 	engine: RuleEngine, ctx: JudgeContext, strings: Dictionary,
-	struck: PackedStringArray, progress: Dictionary
+	struck: PackedStringArray, progress: Dictionary,
+	perception: String = PERCEPTION_NAMED
 ) -> Dictionary:
 	return {
 		"night": ctx.night,
 		"time": ctx.time_display(),
+		"perception": perception,
 		"progress": progress,
-		"clipboard": _clipboard(engine, ctx.night, ctx.shift_minutes, strings, struck),
+		"clipboard": _clipboard(engine, ctx, strings, struck, perception),
 		"counter": _counter(ctx.customer, strings),
 		"cctv": _cctv(ctx.customer, strings),
 	}
@@ -75,32 +99,46 @@ static func of(
 
 ## 클립보드. 지금 이 시점에 실제로 붙어 있는 줄 + 찢겨 나간 자리.
 static func _clipboard(
-	engine: RuleEngine, night: int, minutes: int,
-	strings: Dictionary, struck: PackedStringArray
+	engine: RuleEngine, ctx: JudgeContext,
+	strings: Dictionary, struck: PackedStringArray, perception: String
 ) -> Array:
+	var paper: Dictionary = GameData.load_balance().get("clipboard_paper", {})
 	var out := []
 	for rule in engine.rules():
-		if rule.introduced_night > night:
+		if rule.introduced_night > ctx.night:
 			continue
-		if rule.was_removed_by(night, minutes):
-			out.append({"look": LOOK_TORN, "text": _t(strings, "clipboard.torn")})
+		if rule.was_removed_by(ctx.night, ctx.shift_minutes):
+			out.append({
+				"look": _look(true, false, strings, perception, paper, true),
+				"text": _t(strings, "clipboard.torn"),
+			})
 			continue
-		if not rule.is_active_at(night, minutes):
+		if not rule.is_active_at(ctx.night, ctx.shift_minutes):
 			continue  # 아직 안 붙은 줄 — 화면에 없다
+		var rewritten := rule.has_decayed_by(ctx.night)
 		out.append({
 			"id": rule.id,  # 상대가 "셋째 줄을 그어라"라고 말할 수 있어야 한다
-			"look": _look(rule, night),
-			"text": _t(strings, rule.text_key),
+			"look": _look(rule.hand_at(ctx.night) != Rule.HAND_MANAGER, rewritten,
+				strings, perception, paper, false),
+			"text": line_prefix(rewritten) + _t(strings, rule.text_key),
 			"struck_by_me": struck.has(rule.id),
 		})
 	return out
 
 
 ## 종이가 어떻게 보이는가. 진위가 아니라 **생김새**다.
-static func _look(rule: Rule, night: int) -> String:
-	if rule.has_decayed_by(night):
-		return LOOK_REWRITTEN
-	return LOOK_LATER if rule.hand_at(night) != Rule.HAND_MANAGER else LOOK_MANAGER
+## `named`는 문장으로, `raw`는 셰이더가 받는 숫자 그대로. 왜 나누는지는 PERCEPTION_* 주석에 있다.
+static func _look(
+	foreign: bool, rewritten: bool, strings: Dictionary,
+	perception: String, paper: Dictionary, torn: bool
+) -> Variant:
+	if perception == PERCEPTION_RAW:
+		return {"torn": true} if torn else paper_values(foreign, rewritten, paper)
+	if torn:
+		return _t(strings, "look.torn")
+	if rewritten:
+		return _t(strings, "look.rewritten")
+	return _t(strings, "look.later" if foreign else "look.manager")
 
 
 ## 카운터 앞. 손님 패널이 그리는 것과 같아야 한다 — CCTV 담당 특성은 빼고.

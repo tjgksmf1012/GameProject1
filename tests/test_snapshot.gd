@@ -133,7 +133,7 @@ func _test_shows_torn_gap(r: RefCounted) -> void:
 			continue
 		var snap := _snapshot(torn.removed_night, i)
 		for line in (snap["clipboard"] as Array):
-			if str((line as Dictionary).get("look", "")) == ScreenSnapshot.LOOK_TORN:
+			if str((line as Dictionary).get("look", "")) == _t("look.torn"):
 				seen = true
 	r.check(seen, "찢긴 뒤 스냅샷에 찢긴 자국이 안 보인다")
 

@@ -18,13 +18,6 @@ const RISE_DURATION := 0.34
 const STAGGER := 0.05
 const MIN_LIST_HEIGHT := 120
 
-# 점장의 종이 vs 나중에 덧쓴 종이. 훑으면 모르고 들여다보면 보이는 정도를 노린다.
-const TONE_MANAGER := 1.0
-const TONE_LATER := 0.962
-const BLEED_MANAGER := 0.0
-const BLEED_LATER := 0.75
-# 오늘 고쳐 쓴 줄은 **훑어도 보여야 한다.** 나머지와 반대로 밝다 — 덧댄 새 종이다.
-const TONE_REWRITTEN := 1.055
 const DIM_ALPHA := 0.32
 ## 찢긴 자국은 종이에 남지만 읽을 것은 아니다. 눈에는 띄되 수칙으로는 안 읽혀야 한다.
 const TORN_ALPHA := 0.72
@@ -197,7 +190,8 @@ func _make_row(rule: Rule, index: int) -> PanelContainer:
 	row.add_theme_stylebox_override("panel", _row_style())
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.gui_input.connect(_on_row_input.bind(rule.id))
-	var label := Palette.make_label("· " + _t(rule.text_key), Palette.SIZE_BODY, Palette.INK_MANAGER)
+	var label := Palette.make_label(
+		ScreenSnapshot.line_prefix(false) + _t(rule.text_key), Palette.SIZE_BODY, Palette.INK_MANAGER)
 	row.add_child(label)
 	_labels[rule.id] = label
 
@@ -242,7 +236,7 @@ func apply_night(rules: Array[Rule], night: int) -> void:
 		label.add_theme_color_override(
 			"font_color", Palette.INK_LATER if foreign else Palette.INK_MANAGER)
 		# 고쳐 쓴 줄에는 표식이 남는다. 잉크 색만으로는 눈에 안 들어온다.
-		label.text = ("✎ " if rewritten else "· ") + _t(rule.text_key)
+		label.text = ScreenSnapshot.line_prefix(rewritten) + _t(rule.text_key)
 
 
 static func _row_style() -> StyleBoxFlat:
@@ -258,10 +252,12 @@ static func _row_style() -> StyleBoxFlat:
 func _paper_material(foreign: bool, rewritten: bool, index: int) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = PAPER_SHADER
-	var tone := TONE_LATER if foreign else TONE_MANAGER
-	material.set_shader_parameter("paper_tone", TONE_REWRITTEN if rewritten else tone)
-	material.set_shader_parameter("ink_bleed", BLEED_LATER if foreign else BLEED_MANAGER)
-	material.set_shader_parameter("rewritten", 1.0 if rewritten else 0.0)
+	# 종이 값은 data/balance.json에 있고 **ScreenSnapshot과 같은 함수로** 뽑는다.
+	# 화면과 스냅샷이 어긋나면 블라인드 플레이 결과가 통째로 무의미해진다.
+	var values := ScreenSnapshot.paper_values(
+		foreign, rewritten, GameData.load_balance().get("clipboard_paper", {}))
+	for name in values:
+		material.set_shader_parameter(str(name), values[name])
 	# 줄마다 섬유가 달라야 종이 두 장이 똑같아 보이지 않는다.
 	material.set_shader_parameter("fiber_seed", float(index) * 37.0 + 11.0)
 	return material
