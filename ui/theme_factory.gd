@@ -17,7 +17,12 @@ const PAPER_EDGE := Color("b3ac9c")
 # 차이가 크면 퍼즐이 죽고 작으면 불공정해진다 — 스크린샷으로 조정할 것 (F-05).
 const INK_MANAGER := Color("23201c")
 const INK_LATER := Color("2b2a33")
+## **강조는 드물어야 강조다.** 예전에는 이 색이 여섯 파일 열 곳에 있었고 —
+## 시계·CCTV·보이는 것·품목 스캔·영수증·재촉·결과 — 그러면 그건 강조가 아니라 테마색이다.
+## 지금 남은 자리는 셋뿐이다: 시계, 손님의 재촉, 결과 문구. 늘리지 말 것.
 const ACCENT := Color("e8a33d")
+## 구획 이름표. 읽히되 눈을 끌지 않는다.
+const SECTION := Color("6f7a7d")
 const DANGER := Color("c0392b")
 const OK := Color("7fa650")
 
@@ -28,6 +33,11 @@ const FONT_CANDIDATES := [
 
 ## 동봉한 폰트. 있으면 무조건 이걸 쓴다 — OS가 뭘 갖고 있든 화면이 같아야 한다.
 const BUNDLED_FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui.otf"]
+
+## 그림자. 위에서 비추는 형광등이므로 아래로 떨어진다.
+const SHADOW_SIZE := 14
+const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.55)
+const SHADOW_OFFSET := Vector2(3, 8)
 
 const SIZE_SMALL := 14
 const SIZE_BODY := 17
@@ -68,12 +78,18 @@ static func has_bundled_font() -> bool:
 	return false
 
 
+## 패널 하나. **그림자가 물건과 div 를 가른다.**
+## 그림자 없는 사각형은 화면에 그려진 영역이고, 그림자가 있으면 무언가가 놓여 있는 것이다.
+## 세 줄로 살 수 있는 것 중 이만한 게 없다.
 static func panel_style(fill: Color, edge: Color, radius: int = 2) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill
 	box.border_color = edge
 	box.set_border_width_all(1)
 	box.set_corner_radius_all(radius)
+	box.shadow_size = SHADOW_SIZE
+	box.shadow_color = SHADOW_COLOR
+	box.shadow_offset = SHADOW_OFFSET
 	box.content_margin_left = 18
 	box.content_margin_right = 18
 	box.content_margin_top = 14

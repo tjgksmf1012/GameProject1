@@ -162,6 +162,7 @@ func _refresh_header() -> void:
 func _apply_tension() -> void:
 	var tension := _tension()
 	_effects.set_tension(tension)
+	_view.set_tension(tension)
 	_audio.set_tension(tension)
 
 

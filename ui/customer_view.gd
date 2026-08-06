@@ -53,7 +53,7 @@ func _build() -> void:
 	_pressure = Palette.make_label("", Palette.SIZE_BODY, Palette.ACCENT)
 	_pressure.modulate.a = 0.0
 	_body.add_child(_pressure)
-	_body.add_child(Palette.make_label(_t("ui.observation_header"), Palette.SIZE_SMALL, Palette.ACCENT))
+	_body.add_child(Palette.make_label(_t("ui.observation_header"), Palette.SIZE_SMALL, Palette.SECTION))
 	_traits = VBoxContainer.new()
 	_traits.add_theme_constant_override("separation", 4)
 	_body.add_child(_traits)

@@ -46,7 +46,7 @@ func _build() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	add_child(box)
-	box.add_child(Palette.make_label(_t("ui.cctv_header"), Palette.SIZE_SMALL, Palette.ACCENT))
+	box.add_child(Palette.make_label(_t("ui.cctv_header"), Palette.SIZE_SMALL, Palette.SECTION))
 
 	_grid = GridContainer.new()
 	_grid.columns = GRID_COLUMNS

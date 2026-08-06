@@ -65,7 +65,7 @@ func _build_scan_column() -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_child(Palette.make_label(_t("ui.scan_header"), Palette.SIZE_SMALL, Palette.ACCENT))
+	column.add_child(Palette.make_label(_t("ui.scan_header"), Palette.SIZE_SMALL, Palette.SECTION))
 	_scan_row = HBoxContainer.new()
 	_scan_row.add_theme_constant_override("separation", 8)
 	column.add_child(_scan_row)
@@ -76,7 +76,7 @@ func _build_receipt_column() -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_child(Palette.make_label(_t("ui.receipt_header"), Palette.SIZE_SMALL, Palette.ACCENT))
+	column.add_child(Palette.make_label(_t("ui.receipt_header"), Palette.SIZE_SMALL, Palette.SECTION))
 	_receipt = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT_DIM)
 	column.add_child(_receipt)
 	_total = Palette.make_label("", Palette.SIZE_HEAD, Palette.TEXT)

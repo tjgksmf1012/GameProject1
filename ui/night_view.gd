@@ -11,6 +11,7 @@ const CustomerView := preload("res://ui/customer_view.gd")
 const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 const PosTerminal := preload("res://ui/pos/pos_terminal.gd")
 const ResultPanel := preload("res://ui/result_panel.gd")
+const ROOM_SHADER := preload("res://shaders/room.gdshader")
 
 ## 720p에서 여백 44는 사치다. 밤 4에서 수칙 9줄 + 긴 단서가 들어오자 세로가 모자랐다.
 const MARGIN := 28
@@ -25,6 +26,7 @@ var customer_view: CustomerView = null
 var pos: PosTerminal = null
 var result: ResultPanel = null
 var shake_target: Control = null
+var background: ColorRect = null
 
 var _clock: Label = null
 var _status: Label = null
@@ -34,8 +36,12 @@ func build(strings: Dictionary, prices: Dictionary, cctv_traits: PackedStringArr
 	# 앵커는 **트리에 붙인 뒤에** 건다. 붙기 전에 걸면 부모 크기가 0이라 아무 데도 안 늘어난다.
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	var background := ColorRect.new()
+	# 배경은 단색이 아니라 **광원**이다 (shaders/room.gdshader).
+	# 패널 뒤에만 깔린다 — 종이는 불투명해서 닿지 않고, 닿으면 단서가 위험해진다.
+	background = ColorRect.new()
 	background.color = Palette.BG
+	background.material = ShaderMaterial.new()
+	(background.material as ShaderMaterial).shader = ROOM_SHADER
 	add_child(background)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -99,6 +105,13 @@ func _build_pos(strings: Dictionary, prices: Dictionary) -> Control:
 	pos.custom_minimum_size = Vector2(0, POS_MIN_HEIGHT)
 	pos.set_data(strings, prices)
 	return pos
+
+
+## 방의 조명도 긴장을 탄다. 형광등이 죽어갈수록 실내가 초록으로 간다.
+## `ScreenEffects`가 화면 전체를 맡고, 이건 **패널 뒤**를 맡는다 — 종이에는 닿지 않는다.
+func set_tension(value: float) -> void:
+	if background != null and background.material != null:
+		(background.material as ShaderMaterial).set_shader_parameter("tension", value)
 
 
 func set_header(clock_text: String, status_text: String) -> void:
