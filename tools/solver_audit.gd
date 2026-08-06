@@ -9,7 +9,6 @@ extends SceneTree
 ## 여기서 검증할 수 없는 것: H1(재미인가) · H2(압박인가). 그건 사람이 필요하다.
 
 const SEPARATOR := "─────────────────────────────"
-const SAMPLE_TIMES := [0, 240, 400]
 
 var _rules: Array[Rule] = []
 var _customers: Array[Customer] = []
@@ -18,6 +17,9 @@ var _contexts: Array[JudgeContext] = []
 var _strings: Dictionary = {}
 var _plan: NightPlan = null
 var _night: int = 1
+var _sample_times: PackedInt32Array = []
+## 몸이 사람의 몸이 아니라고 말하는 특성 (data/observation.json).
+var _anomaly_spec: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -25,6 +27,9 @@ func _initialize() -> void:
 	_engine = RuleEngine.new(_rules)
 	_strings = GameData.load_strings()
 	_plan = NightPlan.load()
+	_sample_times = RuleEngine.sample_times(_rules)
+	_anomaly_spec = GameData.read_json("res://data/observation.json").get("anomaly_traits", {})
+	print("시각 표본: %s (수칙의 시간 문턱에서 유도)" % str(_sample_times))
 	for night in _plan.nights():
 		_audit_night(night)
 	quit(0)
@@ -45,12 +50,13 @@ func _audit_night(night: int) -> void:
 	_report_solver("모순된 수칙을 전부 버리는 플레이어", _skeptical_verdict)
 	_report_solver("나중 수칙이 앞 수칙을 덮는다고 보는 플레이어", _override_verdict)
 	_report_solver("이유를 대는 줄은 거짓이라고 보는 플레이어", _voice_verdict)
+	_report_solver("클립보드를 안 읽고 손님만 보는 플레이어", _body_verdict)
 	_report_exhaustive()
 
 
 func _build_contexts() -> void:
 	for customer in _customers:
-		for minutes in SAMPLE_TIMES:
+		for minutes in _sample_times:
 			_contexts.append(JudgeContext.new(_night, minutes, customer))
 
 
@@ -109,15 +115,24 @@ func _report_lie_detectability() -> void:
 		var hand := rule.hand_at(_night)
 		var foreign := hand != Rule.HAND_MANAGER
 		if partners.is_empty():
+			var weak := PackedStringArray()
 			if rule.has_decayed_by(_night):
-				print("  ✓ %s — 이 밤에 전환됐다. 종이·잉크가 바뀌고 ✎ 표식이 붙는다 → 탐지 가능"
-					% rule.id)
+				weak.append("이 밤에 전환됐다 — 종이·잉크가 바뀌고 ✎ 표식이 붙는다")
 			elif foreign:
-				print("  ✓ %s — 모순은 없지만 필체가 다르다 (%s) → 종이와 잉크로 탐지 가능"
-					% [rule.id, hand])
-			else:
+				weak.append("필체가 다르다(%s)" % hand)
+			if rule.gives_reason:
+				weak.append("이유를 댄다")
+			var body := _body_evidence(rule)
+			if body != "":
+				weak.append(body)
+			if weak.is_empty():
 				print("  ✗ %s — 모순도 없고 필체도 점장이다. **실패하기 전에 알아낼 방법이 없다**"
 					% rule.id)
+			else:
+				# 모순이 없으면 어느 채널도 단독으로 결정적이지 않다 (불변식 2c·2e·2f).
+				# 겹쳐야 잡히는 줄이고, 겹칠 것이 몇 개인지가 그 줄의 난이도다.
+				print("  △ %s — 모순 없음. 약한 단서 %d개를 겹쳐야 잡힌다: %s"
+					% [rule.id, weak.size(), " · ".join(weak)])
 		else:
 			var ids := PackedStringArray()
 			for p in partners:
@@ -125,6 +140,27 @@ func _report_lie_detectability() -> void:
 			var hand_note := " · 필체도 다르다(%s)" % hand if foreign else ""
 			print("  ✓ %s — %s 와(과) 모순 → 클립보드만 보고 이상을 감지할 수 있다%s"
 				% [rule.id, ", ".join(ids), hand_note])
+
+
+## 손님의 몸이 이 수칙과 어긋나는가. 어긋나면 그 자체가 단서다.
+##
+## 「돌려보내라」인데 걸리는 사람이 전부 멀쩡하거나, 「응대하라」인데 걸리는 사람 중에
+## 몸이 이상한 자가 있으면 그 줄은 세계관과 싸우고 있는 것이다.
+func _body_evidence(rule: Rule) -> String:
+	var ordinary := 0
+	var strange := 0
+	for ctx in _contexts:
+		if not rule.matches(ctx):
+			continue
+		if ctx.customer.looks_anomalous(_anomaly_spec):
+			strange += 1
+		else:
+			ordinary += 1
+	if rule.verdict().id() == Verdict.REFUSE and strange == 0 and ordinary > 0:
+		return "몸에 아무 이상이 없는 사람만 걸린다"
+	if rule.verdict().id() == Verdict.SERVE and strange > 0:
+		return "몸이 이상한 사람도 응대하라고 한다"
+	return ""
 
 
 ## 필체만 보고 진위를 맞출 수 있는가. 맞출 수 있으면 퍼즐이 죽은 것이다.
@@ -191,6 +227,19 @@ func _voice_verdict(ctx: JudgeContext) -> Verdict:
 			continue  # 변명하는 줄은 거짓이라고 보고 버린다
 		if rule.matches(ctx):
 			return rule.verdict()
+	return Verdict.serve()
+
+
+## **클립보드를 아예 안 읽는 플레이어.** 손님의 몸만 보고, 이상이 있으면 돌려보낸다.
+##
+## 이 게임의 세계관을 그대로 정책으로 만든 것이다 — 사람이 아닌 것은 몸에서 드러난다.
+## 넷째 수칙(가방)처럼 **모순이 없는 거짓**을 잡는 유일한 경로이므로 강할 수밖에 없다.
+## 그래서 감시가 필요하다: 이 솔버가 만점을 내면 수칙을 읽을 이유가 사라진다.
+## 지금 이 점수를 끌어내리는 것은 시간 수칙 둘뿐이다 — 평범한 사람을 돌려보내라는
+## 참 수칙이고, 불변식 2f가 그 줄들이 사라지지 않는지 지킨다.
+func _body_verdict(ctx: JudgeContext) -> Verdict:
+	if ctx.customer.looks_anomalous(_anomaly_spec):
+		return Verdict.refuse()
 	return Verdict.serve()
 
 

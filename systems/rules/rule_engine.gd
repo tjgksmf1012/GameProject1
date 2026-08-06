@@ -27,6 +27,28 @@ func rules() -> Array[Rule]:
 	return _rules
 
 
+## 감사와 테스트가 훑어야 할 **시각 표본.** 수칙이 시간 문턱을 하나 늘리면 여기가 따라간다.
+##
+## 손으로 적어 두면 조용히 낡는다. 실제로 낡았다 — 표본이 `[0, 240, 400]`으로 박혀 있는 동안
+## 밤 6의 「05:00 이후」 수칙(420분)은 어느 표본에도 걸리지 않았고, 그 밤의 핵심인
+## **참 수칙끼리의 충돌**을 모순 검사가 한 번도 보지 못했다. 검사가 통과한 게 아니라
+## 검사한 적이 없었던 것이다.
+##
+## `after`/`before`는 강한 부등호이므로 문턱 자체가 아니라 **직전과 직후**를 본다.
+static func sample_times(all_rules: Array[Rule]) -> PackedInt32Array:
+	var out: PackedInt32Array = [0]
+	for rule in all_rules:
+		for c in rule.conditions:
+			if c.field != JudgeContext.FIELD_TIME or typeof(c.value) != TYPE_STRING:
+				continue
+			var threshold := ShiftClock.parse(str(c.value))
+			for minute in [maxi(threshold - 1, 0), threshold + 1]:
+				if not out.has(minute) and ShiftClock.is_within_shift(minute):
+					out.append(minute)
+	out.sort()
+	return out
+
+
 ## 이 밤에 클립보드에 붙어 있는 수칙 전부 (조건 일치 여부와 무관).
 ## `shift_minutes`를 넘기면 **그 시점에 실제로 붙어 있는 것만** 돌려준다 —
 ## 근무 중에 써넣은 줄은 그 전에 안 보인다.

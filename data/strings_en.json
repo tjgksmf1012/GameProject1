@@ -7,7 +7,7 @@
   "rule.two_shadows": "Five. Refuse at once any customer with two shadows.",
   "rule.regulars_exempt": "Six. You have known their faces for years, so do not apply the other rules to regulars.",
   "tell.always_serve_wet": "The paper is different — this line was added later. But the first line was added later too, and that one is true. The paper only tells you when it was written. The wording is the same: the manager never explains himself, but a later hand giving a reason is not always lying — the first line does exactly that. What actually convicts this line is that it contradicts the first rule outright.",
-  "tell.refuse_bag": "This line was added later as well, and it gives a reason: \"may be hiding something.\" The manager's rules do not give reasons.",
+  "tell.refuse_bag": "This line alone cannot tell you. Later paper, a voice that explains itself — exactly like the first line. And the first line is true. That leaves the customer. The person this line turns away has one shadow and a face. Nothing about the body is wrong. In this store, what isn't a person has always shown it in the body.",
   "tell.regulars_exempt": "Added later, and it pleads: \"you have known their faces for years.\" The manager's rules do not give reasons. And this one tries to void every other rule — the manager would not have written that.",
   "clue.no_rule_applied": "Not one true rule applied to this customer. If nothing stops them, you simply serve them.",
   "customer.office_worker": "A man with his tie loosened",

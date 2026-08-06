@@ -3,6 +3,8 @@ extends RefCounted
 ## 04-functional-spec.md F-01의 **공정성 불변식**을 자동 검증한다.
 ##
 ## 현지화 검사는 `test_strings.gd`로 뗐다 — 공정성이 아니고, 한 파일이 300줄에 닿았다.
+## 채널 불변식(2c·2d·2e·2f)은 `test_fairness_channels.gd`로 뗐다. 여기 남은 것은
+## **단서가 존재하는가**를 묻고, 저기 있는 것은 **한 채널이 혼자 다 풀어버리지 않는가**를 묻는다.
 ##
 ## 이 게임의 생사는 "속았다"와 "알아챌 수 있었는데 놓쳤다"의 차이에 달려 있다.
 ## 그 차이를 지키는 게 이 파일이다. 05-prioritization.md §4에서 **절대 자르지 않는 항목**으로 지정돼 있다.
@@ -24,11 +26,9 @@ func run(r: RefCounted) -> void:
 	_invariant_1_all_clues_observable(r)
 	_invariant_1b_every_trait_is_drawn_somewhere(r)
 	_invariant_1c_late_rules_do_not_judge_the_past(r)
+	_invariant_1d_anomalies_are_visible(r)
 	_invariant_2_lies_leave_a_tell(r)
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
-	_invariant_2c_hand_must_not_solve_it(r)
-	_invariant_2d_manager_hand_must_not_be_free(r)
-	_invariant_2e_voice_must_not_solve_it(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 
@@ -100,6 +100,27 @@ func _invariant_1c_late_rules_do_not_judge_the_past(r: RefCounted) -> void:
 		"불변식1c: 근무 중에 붙는 수칙이 하나도 없다 — 이 검사가 아무것도 검사하지 않았다")
 
 
+## 불변식 1d — **「이상」이라는 이름표는 화면에 그려진 것에서 나와야 한다.**
+##
+## `Customer.anomaly`는 설계자용 이름표다. ScreenSnapshot이 유출을 금지하는 필드이고,
+## 플레이어는 절대 그 문자열을 보지 못한다. 플레이어가 보는 것은 그림자·머릿수·가린 얼굴뿐이다.
+##
+## 둘이 어긋나면 두 방향 모두 무너진다. 이름표만 이상이면 플레이어는 멀쩡해 보이는 사람을
+## 돌려보내야 하고(불변식 1 위반), 몸만 이상이면 이름표 없는 이상이 생겨 이 이상이
+## 어느 수칙에도 걸리지 않는다. 몸 채널(불변식 2f)이 딛고 서는 바닥이 이 검사다.
+func _invariant_1d_anomalies_are_visible(r: RefCounted) -> void:
+	var spec: Dictionary = GameData.read_json("res://data/observation.json").get("anomaly_traits", {})
+	for name in spec:
+		r.check(_customers[0].traits.has(str(name)),
+			"불변식1d: anomaly_traits의 '%s'를 손님이 아예 가지고 있지 않다 — 오타이거나 죽은 항목이다"
+				% name)
+	for customer in _customers:
+		var seen := customer.visible_anomalies(spec)
+		r.equals(customer.is_anomaly(), not seen.is_empty(),
+			"불변식1d: %s는 이름표가 '%s'인데 화면에 보이는 이상은 %s다"
+				% [customer.id, customer.anomaly, str(seen)])
+
+
 ## 불변식 2 — 거짓 수칙은 반드시 사전에 반증 가능한 단서를 남긴다.
 func _invariant_2_lies_leave_a_tell(r: RefCounted) -> void:
 	for rule in _rules:
@@ -134,106 +155,6 @@ func _invariant_2b_a_lie_is_detectable_before_failing(r: RefCounted) -> void:
 	# 모순이 하나도 없으면 시각 단서에만 의존하게 된다. 그건 너무 얇다.
 	r.check(by_contradiction > 0,
 		"불변식2b: 모순으로 감지되는 거짓 수칙이 하나는 있어야 한다 — 시각 단서 하나에만 걸면 위험하다")
-
-
-## 불변식 2c — **필체가 진위를 1:1로 결정하면 안 된다.**
-##
-## 남의 필체가 곧 거짓이면, 플레이어는 한 번 학습한 뒤 종이 색만 보고 전부 푼다.
-## 코어 훅이 추론에서 색깔 맞추기로 전락한다 (F-05가 경고한 "너무 명확하면 퍼즐이 죽는다").
-##
-## 역할 분담을 강제한다: 필체는 **용의자를 좁히고**, 진위는 다른 단서가 정한다.
-## 밤마다 본다. 어떤 밤에서든 "남의 필체 = 거짓"이 성립하면 그 밤은 색깔 맞추기가 된다.
-func _invariant_2c_hand_must_not_solve_it(r: RefCounted) -> void:
-	for night in NightPlan.load().nights():
-		var foreign_truths := 0
-		var foreign_lies := 0
-		for rule in _rules:
-			if not rule.is_active_at(night) or rule.hand_at(night) == Rule.HAND_MANAGER:
-				continue
-			if rule.is_lie_at(night):
-				foreign_lies += 1
-			else:
-				foreign_truths += 1
-		if foreign_lies == 0:
-			continue  # 남의 필체로 쓴 거짓이 없으면 이 위험 자체가 없다
-		r.check(foreign_truths > 0,
-			"불변식2c: %d일째 밤은 남의 필체가 전부 거짓이다 — 종이 색만 보면 다 풀린다" % night)
-
-
-## 2c의 뒷면. **점장 필체가 곧 참이면 그 줄들은 공짜가 된다.**
-##
-## 2c는 "남의 필체 = 거짓"만 막는다. 반대쪽이 뚫려 있으면 플레이어는
-## "점장이 쓴 줄은 그냥 믿는다"는 완벽한 지름길을 얻는다. 클립보드의 절반이 퍼즐에서 빠진다.
-##
-## 밤 3에서 둘째 수칙이 전환돼 남의 필체로 넘어가면서 점장 필체가 1줄만 남았을 때 이게 드러났다.
-## 1~2줄은 패턴으로 학습되지 않으므로 그 아래는 통과시킨다 — 임계는 이 판단이지 밸런싱 값이 아니다.
-## 본편에서 이 구멍을 막는 방법은 정해져 있다: **점장 필체로 쓰인 거짓 수칙** (03-PRD.md 3.4).
-const HAND_PATTERN_THRESHOLD := 3
-
-
-func _invariant_2d_manager_hand_must_not_be_free(r: RefCounted) -> void:
-	var widest := 0
-	for night in NightPlan.load().nights():
-		var truths := 0
-		var lies := 0
-		for rule in _rules:
-			if not rule.is_active_at(night) or rule.hand_at(night) != Rule.HAND_MANAGER:
-				continue
-			if rule.is_lie_at(night):
-				lies += 1
-			else:
-				truths += 1
-		widest = maxi(widest, truths + lies)
-		if truths + lies < HAND_PATTERN_THRESHOLD:
-			continue  # 점장 필체가 1~2줄뿐이면 "전부 참"이 학습 가능한 규칙이 되지 않는다
-		r.check(lies > 0,
-			"불변식2d: %d일째 밤은 점장 필체 %d줄이 전부 참이다 — 그 줄들은 읽지 않고 믿어도 된다"
-				% [night, truths])
-	if widest < HAND_PATTERN_THRESHOLD:
-		r.note("불변식2d: 점장 필체가 가장 많은 밤도 %d줄뿐이라 아직 한 번도 발동하지 않았다 (임계 %d)"
-			% [widest, HAND_PATTERN_THRESHOLD])
-
-
-## 2c를 문체로 옮긴 것. **「이유를 대면 거짓」이 성립하면 이 게임은 정규식으로 풀린다.**
-##
-## 실제로 그랬다. 문체 규약을 `veracity`에서 파생시켰더니 한국어 인과 연결어미
-## 하나(`니[\s,]`)가 수칙 11개의 진위를 **11/11 맞혔다.** 필체 상관은 2c로 끊어놓고
-## 문체 상관은 만들어 놓은 것이고, `tests/test_rule_voice.gd`가 그걸 강제하고 있었다.
-##
-## 2c와 같은 모양으로 감시한다: 이유를 대는 줄 중에 **참이 하나는 있어야** 하고,
-## 이유를 안 대는 줄 중에 **거짓이 하나는 있어야** 한다. 한쪽이라도 순수하면
-## 그 방향으로 완전 분류가 성립한다.
-##
-## 임계는 2d와 같은 이유로 둔다 — 한 부류에 1~2줄뿐이면 그건 학습 가능한 패턴이 아니다.
-## 밤 1은 수칙이 넷뿐이라 어느 쪽으로 나눠도 정보가 거의 없고, 애초에 문체 규약을
-## **가르치는** 밤이다. 규약이 지름길이 되는 것은 줄이 쌓인 뒤부터다.
-const VOICE_PATTERN_THRESHOLD := 3
-
-
-func _invariant_2e_voice_must_not_solve_it(r: RefCounted) -> void:
-	for night in NightPlan.load().nights():
-		var pleading_true := 0
-		var pleading_lie := 0
-		var bare_true := 0
-		var bare_lie := 0
-		for rule in _rules:
-			if not rule.is_active_at(night):
-				continue
-			var lying := rule.is_lie_at(night)
-			if rule.gives_reason:
-				if lying: pleading_lie += 1
-				else: pleading_true += 1
-			else:
-				if lying: bare_lie += 1
-				else: bare_true += 1
-		if pleading_lie > 0 and pleading_lie + pleading_true >= VOICE_PATTERN_THRESHOLD:
-			r.check(pleading_true > 0,
-				"불변식2e: %d일째 밤은 이유를 대는 줄 %d개가 전부 거짓이다 — 문체만 보면 다 풀린다"
-					% [night, pleading_lie])
-		if bare_true > 0 and bare_true + bare_lie >= VOICE_PATTERN_THRESHOLD:
-			r.check(bare_lie > 0,
-				"불변식2e: %d일째 밤은 명령만 하는 줄 %d개가 전부 참이다 — 문체만 보면 다 풀린다"
-					% [night, bare_true])
 
 
 ## 같은 상황에서 서로 다른 판정을 요구하는 수칙들.

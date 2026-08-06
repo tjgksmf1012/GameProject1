@@ -4,22 +4,6 @@
   "_comment_fairness": "점장 필체 거짓은 종이로 탐지할 수 없다. 그래서 **반드시 다른 수칙과 모순돼야 한다** (불변식 2b). 아홉은 일곱과 정면으로 어긋난다. 그리고 문체 규약은 그대로 살아 있다 — 점장은 이유를 대지 않는데 이 줄은 「부끄러워서이니」라고 변명한다. 단서가 종이에서 문체와 논리로 옮겨간 것이지, 사라진 게 아니다.",
   "rules": [
     {
-      "id": "rule_no_sales_after_4am",
-      "text_key": "rule.no_sales_after_4am",
-      "veracity": "true",
-      "hand": "manager",
-      "conditions": [
-        {
-          "field": "time",
-          "op": "after",
-          "value": "04:00"
-        }
-      ],
-      "required_verdict": "refuse",
-      "introduced_night": 4,
-      "gives_reason": false
-    },
-    {
       "id": "rule_face_is_shy",
       "text_key": "rule.face_is_shy",
       "veracity": "false",

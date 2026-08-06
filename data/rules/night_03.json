@@ -17,7 +17,25 @@
       "required_verdict": "refuse",
       "introduced_night": 3,
       "gives_reason": false
+    },
+    {
+      "id": "rule_no_sales_after_4am",
+      "text_key": "rule.no_sales_after_4am",
+      "veracity": "true",
+      "hand": "manager",
+      "conditions": [
+        {
+          "field": "time",
+          "op": "after",
+          "value": "04:00"
+        }
+      ],
+      "required_verdict": "refuse",
+      "introduced_night": 3,
+      "gives_reason": false,
+      "_comment_moved": "**밤 4에서 밤 3으로 옮겼다.** 밤 3은 둘째 수칙(새벽 두 시 이후 술)이 거짓으로 전환되는 밤이다. 그러면 그 밤의 참 수칙이 전부 「몸이 이상한 자를 막는 줄」만 남아, 클립보드를 한 줄도 안 읽고 손님의 몸만 보면 9명 전원을 맞힐 수 있었다 (불변식 2f가 점수로 잡아냈다). 시간 수칙은 평범한 사람을 돌려보내라고 하는 유일한 참 수칙이므로 그 밤에 하나는 있어야 한다. 허구상으로도 이쪽이 맞다 — 두 시 줄이 못 쓰게 된 밤에 점장이 네 시 줄을 새로 적은 것이다."
     }
   ],
-  "_comment_gives_reason": "**문체가 진위를 1:1로 결정하면 안 된다.** 이유절 유무는 authored 속성이며 veracity 에서 파생하지 않는다. 파생시켰더니 정규식 한 줄이 수칙 11개의 진위를 11/11 맞히는 완전 분류기가 됐다 — 필체 상관을 끊어놓고(2c) 문체 상관을 대신 만든 셈이다. 불변식 2e 가 이 상관을 감시하고, tests/test_rule_voice.gd 는 이 필드와 실제 문구가 두 로케일에서 일치하는지만 본다(번역 보호)."
+  "_comment_gives_reason": "**문체가 진위를 1:1로 결정하면 안 된다.** 이유절 유무는 authored 속성이며 veracity 에서 파생하지 않는다. 파생시켰더니 정규식 한 줄이 수칙 11개의 진위를 11/11 맞히는 완전 분류기가 됐다 — 필체 상관을 끊어놓고(2c) 문체 상관을 대신 만든 셈이다. 불변식 2e 가 이 상관을 감시하고, tests/test_rule_voice.gd 는 이 필드와 실제 문구가 두 로케일에서 일치하는지만 본다(번역 보호).",
+  "_comment_replacement": "밤 3은 뺏기고 받는 밤이다. 둘째 수칙이 전환돼 못 믿게 되고(✎ 표식), 그 자리에 점장 필체의 새 시간 수칙이 온다. 플레이어가 시계를 계속 봐야 하는 이유가 끊기지 않는다."
 }

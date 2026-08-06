@@ -8,6 +8,7 @@ extends SceneTree
 const TestSupport := preload("res://tests/test_support.gd")
 const TestRuleEngine := preload("res://tests/test_rule_engine.gd")
 const TestFairness := preload("res://tests/test_fairness.gd")
+const TestFairnessChannels := preload("res://tests/test_fairness_channels.gd")
 const TestNightSession := preload("res://tests/test_night_session.gd")
 const TestSessionLog := preload("res://tests/test_session_log.gd")
 const TestSfxBank := preload("res://tests/test_sfx_bank.gd")
@@ -26,7 +27,8 @@ func _initialize() -> void:
 	print("NIGHTSHIFT 테스트")
 	print("─────────────────────────────")
 	var suites := [
-		TestRuleEngine.new(), TestFairness.new(), TestNightSession.new(),
+		TestRuleEngine.new(), TestFairness.new(), TestFairnessChannels.new(),
+		TestNightSession.new(),
 		TestSessionLog.new(), TestSfxBank.new(), TestPosGate.new(),
 		TestNightPlan.new(), TestPatience.new(), TestRuleVoice.new(),
 		TestStrings.new(), TestClipboard.new(), TestNightReport.new(),

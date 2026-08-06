@@ -55,3 +55,25 @@ func trait_names() -> PackedStringArray:
 
 func is_anomaly() -> bool:
 	return anomaly != ""
+
+
+## 화면에 그려진 특성만으로 읽히는 「몸의 이상」. `anomaly` 라벨과 **별개로** 계산한다.
+##
+## `anomaly`는 설계자용 이름표다 (ScreenSnapshot이 유출을 금지하는 필드이기도 하다).
+## 플레이어가 실제로 보는 것은 그림자 유무·머릿수·가린 얼굴이고, 이 함수는 그쪽만 센다.
+## 둘이 어긋나면 이름표만 이상이고 화면은 멀쩡한 손님이 생긴다 — 불변식 1d가 그걸 막는다.
+##
+## `spec`은 `data/observation.json`의 `anomaly_traits`다. 코드에 박지 않는 이유는
+## 이 목록이 밸런싱 대상이기 때문이다 (CLAUDE.md 1.3).
+func visible_anomalies(spec: Dictionary) -> PackedStringArray:
+	var out := PackedStringArray()
+	for key in spec:
+		var name := str(key)
+		if traits.has(name) and traits[name] == spec[key]:
+			out.append(name)
+	out.sort()
+	return out
+
+
+func looks_anomalous(spec: Dictionary) -> bool:
+	return not visible_anomalies(spec).is_empty()
