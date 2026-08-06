@@ -69,7 +69,7 @@
   "trait.is_regular": "단골",
   "customer.regular_morning": "매일 오는 사람",
   "customer.two_shadows": "혼자 온 남자",
-  "customer.regular_no_shadow": "낯익은 얼굴",
+  "customer.regular_no_shadow": "매일 오는 사람",
   "customer.wet_bag": "가방을 안은 여자",
   "customer.regular_drinker": "매일 오는 취객",
   "customer.two_shadows_regular": "낯익은 두 사람",
@@ -224,5 +224,7 @@
   "receipt.store": "밤샘마트 24시",
   "receipt.biz": "사업자 000-00-00000",
   "receipt.register": "POS-02   야간",
-  "receipt.total": "합계"
+  "receipt.total": "합계",
+  "customer.wet_drinker": "비를 맞고 온 취객",
+  "dialogue.wet_drinker": "비 오는데 딱 한 병만요."
 }

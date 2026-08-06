@@ -18,7 +18,7 @@
   "customer.late_drinker": "A man with a flushed face",
   "customer.regular_morning": "Someone who comes every day",
   "customer.two_shadows": "A man who came alone",
-  "customer.regular_no_shadow": "A familiar face",
+  "customer.regular_no_shadow": "The one who comes every day",
   "customer.wet_bag": "A woman clutching a bag",
   "customer.regular_drinker": "The regular who drinks",
   "customer.two_shadows_regular": "Two familiar people",
@@ -224,5 +224,7 @@
   "receipt.store": "BAMSAEM MART 24H",
   "receipt.biz": "REG. NO. 000-00-00000",
   "receipt.register": "POS-02   NIGHT",
-  "receipt.total": "TOTAL"
+  "receipt.total": "TOTAL",
+  "customer.wet_drinker": "A drinker who came through the rain",
+  "dialogue.wet_drinker": "Just one bottle. It's pouring out there."
 }

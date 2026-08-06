@@ -17,6 +17,8 @@ var _contexts: Array[JudgeContext] = []
 var _strings: Dictionary = {}
 var _plan: NightPlan = null
 var _night: int = 1
+## 어느 밤에서든 만점을 낸 고정 독법. 하나라도 있으면 그 밤은 그 독법으로 우회된다.
+var _perfect: PackedStringArray = []
 var _sample_times: PackedInt32Array = []
 ## 몸이 사람의 몸이 아니라고 말하는 특성 (data/observation.json).
 var _anomaly_spec: Dictionary = {}
@@ -32,7 +34,24 @@ func _initialize() -> void:
 	print("시각 표본: %s (수칙의 시간 문턱에서 유도)" % str(_sample_times))
 	for night in _plan.nights():
 		_audit_night(night)
-	quit(0)
+	quit(_report_perfect())
+
+
+## **어떤 고정 독법도 한 밤을 통째로 맞히면 안 된다.**
+##
+## 불변식 2f가 「몸만 보는 독법」에 대해 이걸 검사하는데, 다른 독법에는 감시가 없었다.
+## 실제로 뚫려 있었다 — 「나중 수칙이 앞을 덮는다」는 오독이 밤 3에서 9/9였다.
+## 그 독법은 밤 2에서 처벌받는 함정인데 밤 3에서는 상을 받고 있었다.
+## 참 수칙이 목록 끝에 몰려 있으면 마지막 일치만 따라도 맞기 때문이고, 그건 설계가 아니라
+## 수칙을 추가한 순서의 부작용이다.
+func _report_perfect() -> int:
+	print("\n%s\n고정 독법 만점 검사\n%s" % [SEPARATOR, SEPARATOR])
+	if _perfect.is_empty():
+		print("  없음 — 어느 밤도 한 가지 독법으로 통과되지 않는다")
+		return 0
+	for line in _perfect:
+		print("  ✗ %s" % line)
+	return 1
 
 
 ## 밤마다 따로 감사한다. 수칙과 손님이 밤마다 다르므로 한 번에 보면 의미가 없다.
@@ -258,6 +277,8 @@ func _report_solver(label: String, strategy: Callable) -> void:
 			print("  ✗ %-22s %s → 정답 %s" % [
 				customer.id, chosen.id(), result.expected_ids()[0]])
 	print("  %d / %d 정답" % [correct, total])
+	if correct == total and total > 0:
+		_perfect.append("%d일째 밤은 「%s」 하나로 %d명 전원 정답" % [_night, label, total])
 
 
 ## 손님이 실제로 도착하는 시각. NightSession과 같은 규칙을 쓴다.
