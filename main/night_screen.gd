@@ -84,9 +84,20 @@ func _build() -> void:
 
 	_effects = ScreenEffects.new()
 	add_child(_effects)
+	# 클립보드 자리를 셰이더에 알려준다. **매끄러운 휘도 효과가 종이 단서와 경쟁하기 때문이다**
+	# (crt.gdshader 주석 참고). 수칙이 붙거나 찢기면 높이가 바뀌므로 그때마다 다시 넘긴다.
+	_view.clipboard.resized.connect(_update_safe_rect)
+	_update_safe_rect.call_deferred()
 	_death = DeathSequence.new()
 	add_child(_death)
 	_death.setup(_strings)
+
+
+## 클립보드가 지금 화면 어디에 있는가. 레이아웃이 정해진 뒤에만 의미가 있다.
+func _update_safe_rect() -> void:
+	if _effects == null or _view == null or _view.clipboard == null:
+		return
+	_effects.protect_rect(_view.clipboard.get_global_rect(), get_viewport_rect().size)
 
 
 func _start_night(night: int) -> void:

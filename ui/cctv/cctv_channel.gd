@@ -17,6 +17,11 @@ const FIGURE_HEIGHT := 34.0
 const SHADOW_WIDTH := 30.0
 const SHADOW_HEIGHT := 9.0
 const EXTRA_SHADOW_OFFSET := 21.0
+## 주사선 하나의 굵기(픽셀)와 잡음 셀 한 변(픽셀).
+## **패널 크기에서 역산한다.** 줄 수를 직접 박으면 패널 크기가 바뀔 때 조용히 깨진다 —
+## 실제로 깨져 있었다. 92px에 120~234줄이면 주기가 1픽셀 미만이라 무늬가 성립하지 않는다.
+const SCANLINE_PITCH_PX := 4.0
+const NOISE_CELL_PX := 4.0
 
 var _index: int = 0
 var _label_key: String = ""
@@ -80,7 +85,12 @@ func _make_material() -> ShaderMaterial:
 	# 채널마다 잡음·주사선·롤링이 달라야 네 화면이 한 화면처럼 안 보인다.
 	material.set_shader_parameter("channel_seed", float(_index) * 0.27)
 	material.set_shader_parameter("noise_amount", 0.10 + float(_index) * 0.022)
-	material.set_shader_parameter("scanline_count", 120.0 + float(_index) * 38.0)
+	# 주사선은 네 채널이 **같아야** 한다. 예전에는 채널마다 줄 수를 달리해 구분했는데,
+	# 그 차이가 전부 앨리어싱이라 화면마다 다른 **밝기 얼룩**으로 나왔다.
+	# 구분은 잡음·롤링 속도로 낸다 — 그쪽은 정말로 채널마다 달라도 되는 것들이다.
+	material.set_shader_parameter("scanline_count", 2.0 * CHANNEL_HEIGHT / SCANLINE_PITCH_PX)
+	material.set_shader_parameter("noise_cells", Vector2(
+		CHANNEL_WIDTH / NOISE_CELL_PX, CHANNEL_HEIGHT / NOISE_CELL_PX))
 	material.set_shader_parameter("roll_speed", 0.08 + float(_index) * 0.05)
 	return material
 
