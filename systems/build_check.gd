@@ -17,6 +17,9 @@ extends RefCounted
 ## 마지막 항목은 **합격/불합격으로 판정하지 않는다.** 아래 `_report_font` 주석 참고 —
 ## Godot이 글리프 유무를 믿을 만하게 알려주지 않는다. 대신 측정값을 찍어서 사람이 본다.
 
+## `class_name`은 systems/ 와 data/ 에서만 선언하므로 UI 쪽은 preload로 쓴다 (CLAUDE.md 4절).
+const Palette := preload("res://ui/theme_factory.gd")
+
 const ARG := "--selftest"
 
 ## 제목과 클립보드에 실제로 쓰는 글자로 잰다.
