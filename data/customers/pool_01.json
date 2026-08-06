@@ -20,7 +20,7 @@
       "dialogue": [
         "dialogue.office_worker_1"
       ],
-      "patience_seconds": 45,
+      "patience_seconds": 35,
       "anomaly": ""
     },
     {
@@ -83,7 +83,7 @@
       "dialogue": [
         "dialogue.no_shadow_1"
       ],
-      "patience_seconds": 60,
+      "patience_seconds": 35,
       "anomaly": "no_shadow"
     },
     {
@@ -104,7 +104,7 @@
       "dialogue": [
         "dialogue.wet_no_shadow_1"
       ],
-      "patience_seconds": 60,
+      "patience_seconds": 40,
       "anomaly": "no_shadow_wet"
     },
     {
@@ -125,8 +125,9 @@
       "dialogue": [
         "dialogue.late_drinker_1"
       ],
-      "patience_seconds": 35,
+      "patience_seconds": 50,
       "anomaly": ""
     }
-  ]
+  ],
+  "_comment_patience": "인내 시간은 **이상 여부와 무관하게** 같은 주머니에서 나눈다. 예전에는 평범한 손님이 평균 42.8초, 이상 손님이 54.3초였고 50초 이상은 91%가 이상이었다 — 「오래 기다리면 이상」이 분류기였다. 관찰 대신 기다리기로 풀리면 CCTV도 클립보드도 필요 없어진다. tests/test_fairness_channels.gd 의 불변식 2g 가 이 상관을 감시한다."
 }

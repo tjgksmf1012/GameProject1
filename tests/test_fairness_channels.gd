@@ -7,6 +7,7 @@ extends RefCounted
 ##   (b) 필체와 종이           — 언제 쓰였는지만 말한다.        2c · 2d
 ##   (c) 문체                  — 이유를 대는가.                  2e
 ##   (d) 손님의 몸             — 이상이 있는가.                  2f
+##   (e) 손님이 기다리는 시간   — 얼마나 참는가.                  2g
 ##
 ## (b)(c)(d)는 전부 **용의자를 좁힐 뿐 진위를 결정하지 못해야 한다.** 하나라도
 ## 1:1이 되는 순간 이 게임은 그 채널 하나로 풀린다 — 추론이 아니라 색깔 맞추기가 된다.
@@ -31,6 +32,7 @@ func run(r: RefCounted) -> void:
 		_invariant_2d_manager_hand_must_not_be_free(r, night)
 		_invariant_2e_voice_must_not_solve_it(r, night)
 	_invariant_2f_body_must_not_solve_it(r)
+	_invariant_2g_patience_must_not_solve_it(r)
 
 
 ## 그 밤에 클립보드에 붙어 있는 수칙.
@@ -144,3 +146,56 @@ func _invariant_2f_body_must_not_solve_it(r: RefCounted) -> void:
 		r.check(wrong > 0,
 			"불변식2f: %d일째 밤은 몸만 보고 %d명 전원을 맞힐 수 있다 — 클립보드를 안 읽어도 되는 밤이다"
 				% [night, customers.size()])
+
+
+## 2g — **손님이 얼마나 참는가가 이상 여부를 흘리면 안 된다.**
+##
+## 이건 클립보드도 몸도 아니고 **시간**에 붙은 채널이다. 그래서 다른 검사가 전부 못 봤다.
+##
+## 실제로 뚫려 있었다. 평범한 손님 평균 42.8초, 이상 손님 54.3초 — 50초 넘게 기다리는
+## 손님 32명 중 29명이 이상이었다. 「오래 기다리면 이상」이 91% 분류기다.
+## `patience_clock.gd`와 `customer_view.gd` 주석이 둘 다 이걸 금지한다고 적어놨는데
+## 데이터가 어기고 있었고 아무도 검사하지 않았다.
+##
+## 이게 특히 위험한 이유: 기다리는 데에는 **아무 관찰도 필요 없다.** 이 채널이 살아 있으면
+## CCTV도 클립보드도 안 보고 초만 세면 된다 — 게임이 통째로 우회된다.
+const PATIENCE_MEAN_TOLERANCE := 3.0
+
+
+func _invariant_2g_patience_must_not_solve_it(r: RefCounted) -> void:
+	var spec: Dictionary = GameData.read_json("res://data/observation.json").get("anomaly_traits", {})
+	var odd := []
+	var plain := []
+	for customer in GameData.load_customers():
+		if customer.looks_anomalous(spec):
+			odd.append(customer.patience_seconds)
+		else:
+			plain.append(customer.patience_seconds)
+	r.check(odd.size() > 0 and plain.size() > 0,
+		"불변식2g: 두 무리가 다 있어야 이 검사가 의미를 가진다")
+	if odd.is_empty() or plain.is_empty():
+		return
+	r.check(absf(_mean(odd) - _mean(plain)) <= PATIENCE_MEAN_TOLERANCE,
+		"불변식2g: 이상 손님은 평균 %.1f초, 평범한 손님은 %.1f초 참는다 — 초만 세면 풀린다"
+			% [_mean(odd), _mean(plain)])
+	# 평균이 같아도 **한쪽 전용 값**이 있으면 그 값이 곧 답이다.
+	_require_shared(r, plain, odd, "평범한 손님에게만 나온다 — 그 초를 세면 이상이 아님을 안다")
+	_require_shared(r, odd, plain, "이상 손님에게만 나온다 — 그 초를 세면 이상임을 안다")
+
+
+func _require_shared(r: RefCounted, mine: Array, theirs: Array, why: String) -> void:
+	var seen := []
+	for value in mine:
+		if seen.has(value):
+			continue
+		seen.append(value)
+		r.check(theirs.has(value), "불변식2g: %d초는 %s" % [value, why])
+
+
+static func _mean(values: Array) -> float:
+	if values.is_empty():
+		return 0.0
+	var total := 0
+	for value in values:
+		total += int(value)
+	return float(total) / float(values.size())

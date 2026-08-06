@@ -20,7 +20,7 @@
       "dialogue": [
         "dialogue.n5_first_1"
       ],
-      "patience_seconds": 45,
+      "patience_seconds": 35,
       "anomaly": ""
     },
     {
@@ -41,7 +41,7 @@
       "dialogue": [
         "dialogue.n5_cap_1"
       ],
-      "patience_seconds": 50,
+      "patience_seconds": 45,
       "anomaly": "hidden_face"
     },
     {
@@ -62,7 +62,7 @@
       "dialogue": [
         "dialogue.n5_window_1"
       ],
-      "patience_seconds": 55,
+      "patience_seconds": 50,
       "anomaly": "no_shadow"
     },
     {
@@ -83,7 +83,7 @@
       "dialogue": [
         "dialogue.n5_wet_bag_1"
       ],
-      "patience_seconds": 45,
+      "patience_seconds": 40,
       "anomaly": ""
     },
     {
@@ -104,7 +104,7 @@
       "dialogue": [
         "dialogue.n5_regular_beer_1"
       ],
-      "patience_seconds": 40,
+      "patience_seconds": 45,
       "anomaly": ""
     },
     {
@@ -125,7 +125,7 @@
       "dialogue": [
         "dialogue.n5_turned_1"
       ],
-      "patience_seconds": 60,
+      "patience_seconds": 55,
       "anomaly": "two_shadows"
     },
     {
@@ -147,7 +147,7 @@
       "dialogue": [
         "dialogue.n5_counter_starer_1"
       ],
-      "patience_seconds": 50,
+      "patience_seconds": 60,
       "anomaly": "no_shadow"
     },
     {
@@ -169,7 +169,7 @@
       "dialogue": [
         "dialogue.n5_dawn_drinker_1"
       ],
-      "patience_seconds": 35,
+      "patience_seconds": 50,
       "anomaly": ""
     },
     {
@@ -191,7 +191,7 @@
       "dialogue": [
         "dialogue.n5_hooded_regular_1"
       ],
-      "patience_seconds": 50,
+      "patience_seconds": 35,
       "anomaly": "hidden_face"
     },
     {
@@ -213,7 +213,7 @@
       "dialogue": [
         "dialogue.n5_dawn_regular_1"
       ],
-      "patience_seconds": 45,
+      "patience_seconds": 55,
       "anomaly": ""
     },
     {
@@ -235,8 +235,9 @@
       "dialogue": [
         "dialogue.n5_last_wet_1"
       ],
-      "patience_seconds": 40,
+      "patience_seconds": 60,
       "anomaly": ""
     }
-  ]
+  ],
+  "_comment_patience": "인내 시간은 **이상 여부와 무관하게** 같은 주머니에서 나눈다. 예전에는 평범한 손님이 평균 42.8초, 이상 손님이 54.3초였고 50초 이상은 91%가 이상이었다 — 「오래 기다리면 이상」이 분류기였다. 관찰 대신 기다리기로 풀리면 CCTV도 클립보드도 필요 없어진다. tests/test_fairness_channels.gd 의 불변식 2g 가 이 상관을 감시한다."
 }
