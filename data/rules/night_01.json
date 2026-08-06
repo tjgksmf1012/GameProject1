@@ -19,7 +19,9 @@
       "hand": "later",
       "removed_night": 7,
       "removed_at_minute": 300,
-      "_comment_removed": "밤 7 새벽 세 시에 **찢겨 나간다.** 플레이어가 가장 먼저 배운 줄이고 일곱 밤 내내 참이었던 줄이다. 그래서 이걸 찢는다 — 마지막 밤의 사건은 새 수칙이 아니라 있던 수칙이 없어지는 것이다. 찢긴 자리에는 자국이 남는다(clipboard.torn). 조용히 사라지면 함정이고, 자국이 보이면 퍼즐이다."
+      "_comment_removed": "밤 7 새벽 세 시에 **찢겨 나간다.** 플레이어가 가장 먼저 배운 줄이고 일곱 밤 내내 참이었던 줄이다. 그래서 이걸 찢는다 — 마지막 밤의 사건은 새 수칙이 아니라 있던 수칙이 없어지는 것이다. 찢긴 자리에는 자국이 남는다(clipboard.torn). 조용히 사라지면 함정이고, 자국이 보이면 퍼즐이다.",
+      "gives_reason": true,
+      "_comment_reason": "**참인데 이유를 댄다.** 문체가 진위를 1:1로 결정하는 것을 끊는 줄이다. 이 줄은 남의 필체이므로(점장이 아니므로) 이유를 대는 것이 허구상으로도 맞다 — 점장은 변명하지 않지만 나중에 덧쓴 사람은 변명한다. 그리고 그 사람이 이번에는 참을 말했다. 첫째 줄에서 「이유를 대면 거짓」 휴리스틱이 깨져야 플레이어가 실제로 추론하게 된다."
     },
     {
       "id": "rule_no_alcohol_after_2am",
@@ -40,7 +42,8 @@
       "required_verdict": "refuse",
       "introduced_night": 1,
       "decays_at_night": 3,
-      "tell_key": "tell.no_alcohol_after_2am"
+      "tell_key": "tell.no_alcohol_after_2am",
+      "gives_reason": false
     },
     {
       "id": "rule_always_serve_wet",
@@ -59,7 +62,8 @@
       "conflicts_with": [
         "rule_no_shadow"
       ],
-      "hand": "later"
+      "hand": "later",
+      "gives_reason": true
     },
     {
       "id": "rule_refuse_bag",
@@ -75,10 +79,12 @@
       ],
       "required_verdict": "refuse",
       "introduced_night": 1,
-      "hand": "later"
+      "hand": "later",
+      "gives_reason": true
     }
   ],
   "_comment_hand": "필체는 진위와 별개다. **일부러 상관을 끊어 놨다.** later 필체 3줄 중 하나(rule_no_shadow)는 참이다. 필체가 진위를 1:1로 결정하면 코어 훅이 색깔 맞추기로 전락한다 — F-05가 경고한 그것이다. 역할 분담: 필체는 '언제 쓰였나'(용의자 좁히기), 문체는 '변명하는가'(진위 판정). tests/test_fairness.gd 의 불변식 2c 가 이 상관을 감시한다.",
   "_comment_decay": "둘째 수칙은 밤 3에 전환된다. 가장 평범하고 점장 필체라 가장 믿음직한 줄이 배신할 때 충격이 가장 크다. 전환된 밤부터 종이와 잉크가 바뀌고 ✎ 표식이 붙는다.",
-  "_comment_torn": "첫째 수칙은 밤 7에 찢겨 나간다. 그 뒤로 그림자 없는 손님을 막는 참 수칙은 하나도 없다."
+  "_comment_torn": "첫째 수칙은 밤 7에 찢겨 나간다. 그 뒤로 그림자 없는 손님을 막는 참 수칙은 하나도 없다.",
+  "_comment_gives_reason": "**문체가 진위를 1:1로 결정하면 안 된다.** 이유절 유무는 authored 속성이며 veracity 에서 파생하지 않는다. 파생시켰더니 정규식 한 줄이 수칙 11개의 진위를 11/11 맞히는 완전 분류기가 됐다 — 필체 상관을 끊어놓고(2c) 문체 상관을 대신 만든 셈이다. 불변식 2e 가 이 상관을 감시하고, tests/test_rule_voice.gd 는 이 필드와 실제 문구가 두 로케일에서 일치하는지만 본다(번역 보호)."
 }

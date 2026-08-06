@@ -28,6 +28,7 @@ func run(r: RefCounted) -> void:
 	_invariant_2b_a_lie_is_detectable_before_failing(r)
 	_invariant_2c_hand_must_not_solve_it(r)
 	_invariant_2d_manager_hand_must_not_be_free(r)
+	_invariant_2e_voice_must_not_solve_it(r)
 	_invariant_3_failure_always_explains(r)
 	_invariant_4_judgement_is_deterministic(r)
 
@@ -191,6 +192,48 @@ func _invariant_2d_manager_hand_must_not_be_free(r: RefCounted) -> void:
 	if widest < HAND_PATTERN_THRESHOLD:
 		r.note("불변식2d: 점장 필체가 가장 많은 밤도 %d줄뿐이라 아직 한 번도 발동하지 않았다 (임계 %d)"
 			% [widest, HAND_PATTERN_THRESHOLD])
+
+
+## 2c를 문체로 옮긴 것. **「이유를 대면 거짓」이 성립하면 이 게임은 정규식으로 풀린다.**
+##
+## 실제로 그랬다. 문체 규약을 `veracity`에서 파생시켰더니 한국어 인과 연결어미
+## 하나(`니[\s,]`)가 수칙 11개의 진위를 **11/11 맞혔다.** 필체 상관은 2c로 끊어놓고
+## 문체 상관은 만들어 놓은 것이고, `tests/test_rule_voice.gd`가 그걸 강제하고 있었다.
+##
+## 2c와 같은 모양으로 감시한다: 이유를 대는 줄 중에 **참이 하나는 있어야** 하고,
+## 이유를 안 대는 줄 중에 **거짓이 하나는 있어야** 한다. 한쪽이라도 순수하면
+## 그 방향으로 완전 분류가 성립한다.
+##
+## 임계는 2d와 같은 이유로 둔다 — 한 부류에 1~2줄뿐이면 그건 학습 가능한 패턴이 아니다.
+## 밤 1은 수칙이 넷뿐이라 어느 쪽으로 나눠도 정보가 거의 없고, 애초에 문체 규약을
+## **가르치는** 밤이다. 규약이 지름길이 되는 것은 줄이 쌓인 뒤부터다.
+const VOICE_PATTERN_THRESHOLD := 3
+
+
+func _invariant_2e_voice_must_not_solve_it(r: RefCounted) -> void:
+	for night in NightPlan.load().nights():
+		var pleading_true := 0
+		var pleading_lie := 0
+		var bare_true := 0
+		var bare_lie := 0
+		for rule in _rules:
+			if not rule.is_active_at(night):
+				continue
+			var lying := rule.is_lie_at(night)
+			if rule.gives_reason:
+				if lying: pleading_lie += 1
+				else: pleading_true += 1
+			else:
+				if lying: bare_lie += 1
+				else: bare_true += 1
+		if pleading_lie > 0 and pleading_lie + pleading_true >= VOICE_PATTERN_THRESHOLD:
+			r.check(pleading_true > 0,
+				"불변식2e: %d일째 밤은 이유를 대는 줄 %d개가 전부 거짓이다 — 문체만 보면 다 풀린다"
+					% [night, pleading_lie])
+		if bare_true > 0 and bare_true + bare_lie >= VOICE_PATTERN_THRESHOLD:
+			r.check(bare_lie > 0,
+				"불변식2e: %d일째 밤은 명령만 하는 줄 %d개가 전부 참이다 — 문체만 보면 다 풀린다"
+					% [night, bare_true])
 
 
 ## 같은 상황에서 서로 다른 판정을 요구하는 수칙들.

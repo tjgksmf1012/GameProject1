@@ -44,6 +44,7 @@ func _audit_night(night: int) -> void:
 	_report_solver("클립보드를 전부 믿는 플레이어", _naive_verdict)
 	_report_solver("모순된 수칙을 전부 버리는 플레이어", _skeptical_verdict)
 	_report_solver("나중 수칙이 앞 수칙을 덮는다고 보는 플레이어", _override_verdict)
+	_report_solver("이유를 대는 줄은 거짓이라고 보는 플레이어", _voice_verdict)
 	_report_exhaustive()
 
 
@@ -177,6 +178,20 @@ func _override_verdict(ctx: JudgeContext) -> Verdict:
 		if rule.matches(ctx):
 			chosen = rule.verdict()
 	return chosen
+
+
+## **문체만 보고 푸는 플레이어.** 「이유를 대면 거짓」이라 믿고 그 줄들을 버린다.
+##
+## 이 솔버가 만점을 내면 게임이 정규식 한 줄로 풀린다는 뜻이다. 실제로 그런 적이 있다 —
+## 문체를 veracity에서 파생시켰더니 수칙 11개를 11/11 분류하는 완전 분류기가 됐다.
+## 불변식 2e가 상관을 감시하고, 이 솔버가 그 결과를 **점수로** 보여준다.
+func _voice_verdict(ctx: JudgeContext) -> Verdict:
+	for rule in _readable(ctx):
+		if rule.gives_reason:
+			continue  # 변명하는 줄은 거짓이라고 보고 버린다
+		if rule.matches(ctx):
+			return rule.verdict()
+	return Verdict.serve()
 
 
 func _report_solver(label: String, strategy: Callable) -> void:

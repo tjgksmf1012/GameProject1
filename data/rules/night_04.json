@@ -16,7 +16,8 @@
         }
       ],
       "required_verdict": "refuse",
-      "introduced_night": 4
+      "introduced_night": 4,
+      "gives_reason": false
     },
     {
       "id": "rule_face_is_shy",
@@ -35,8 +36,10 @@
       "introduced_night": 4,
       "conflicts_with": [
         "rule_no_face"
-      ]
+      ],
+      "gives_reason": true
     }
   ],
-  "_comment_reading": "아홉은 일곱의 **개정 조항처럼** 읽힌다 — 나중에 온 것이 앞을 덮는다는 법조문 독법. 밤 2의 여섯이 그 독법을 처벌했고, 밤 4는 같은 독법을 점장 필체로 다시 낚는다. 이번에는 종이가 도와주지 않는다."
+  "_comment_reading": "아홉은 일곱의 **개정 조항처럼** 읽힌다 — 나중에 온 것이 앞을 덮는다는 법조문 독법. 밤 2의 여섯이 그 독법을 처벌했고, 밤 4는 같은 독법을 점장 필체로 다시 낚는다. 이번에는 종이가 도와주지 않는다.",
+  "_comment_gives_reason": "**문체가 진위를 1:1로 결정하면 안 된다.** 이유절 유무는 authored 속성이며 veracity 에서 파생하지 않는다. 파생시켰더니 정규식 한 줄이 수칙 11개의 진위를 11/11 맞히는 완전 분류기가 됐다 — 필체 상관을 끊어놓고(2c) 문체 상관을 대신 만든 셈이다. 불변식 2e 가 이 상관을 감시하고, tests/test_rule_voice.gd 는 이 필드와 실제 문구가 두 로케일에서 일치하는지만 본다(번역 보호)."
 }

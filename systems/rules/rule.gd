@@ -42,6 +42,12 @@ var decays_at_night: int = NO_DECAY
 var conflicts_with: PackedStringArray = []
 var tell_key: String = ""
 var hand: String = HAND_MANAGER
+## 문구가 **이유를 대는가**(변명하는가). `veracity`에서 파생하지 않는 authored 속성이다.
+##
+## 파생시켰더니 「이유를 대면 거짓」이 수칙 11개를 11/11 맞히는 완전 분류기가 됐다 —
+## 필체 상관을 끊어놓고(불변식 2c) 문체 상관을 대신 만든 셈이다.
+## 불변식 2e 가 이 상관을 감시한다.
+var gives_reason: bool = false
 
 
 static func from_dict(d: Dictionary) -> Rule:
@@ -57,6 +63,7 @@ static func from_dict(d: Dictionary) -> Rule:
 	r.decays_at_night = int(d.get("decays_at_night", NO_DECAY))
 	r.tell_key = str(d.get("tell_key", ""))
 	r.hand = str(d.get("hand", HAND_MANAGER))
+	r.gives_reason = bool(d.get("gives_reason", false))
 	r.conflicts_with = Customer._to_string_array(d.get("conflicts_with", []))
 	for raw in (d.get("conditions", []) as Array):
 		r.conditions.append(Condition.from_dict(raw as Dictionary))
