@@ -11,12 +11,19 @@ const Juice := preload("res://ui/juice.gd")
 
 const RISE_DURATION := 0.26
 const BUTTON_SIZE := Vector2(170, 44)
+## 배치가 돌 때까지 높이 재기를 몇 프레임 따라가는가.
+const FIT_FRAMES := 4
 
 ## 정상 응대는 한 줄이면 끝난다. 실패는 아니다 — **놓친 단서를 끝까지 읽게 하는 것이
 ## 이 패널의 존재 이유다** (공정성 불변식 3). 그래서 설명이 있을 때만 자리를 더 가져간다.
 ## 위쪽 행이 EXPAND_FILL이라 그만큼 줄어든다. 클립보드와 손님은 그대로 보인다.
 ## 정상 응대는 POS와 **같은 높이**로 둔다. 손님 대부분은 정상 응대이고,
 ## 그때마다 화면이 위아래로 튀면 게임이 불안해 보인다. 여백보다 안정이 낫다.
+##
+## 실패는 이 둘 **사이 어디든** 될 수 있다. 예전에는 설명이 있으면 무조건 272였고,
+## 단서가 한 줄뿐인 흔한 실패에서 패널 아래 150px가 통째로 비었다 — 판정 직후는
+## 이 게임의 감정적 정점인데 화면 아래 40%가 빈 상자였다. 그렇다고 자유롭게 늘리면
+## 밤 4에서 그랬듯 버튼이 화면 밖으로 나간다. 그래서 **내용에 맞추되 위아래로 가둔다.**
 const HEIGHT_BRIEF := 182
 const HEIGHT_EXPLAINED := 272
 
@@ -28,6 +35,10 @@ var _detail: Label = null
 var _detail_scroll: ScrollContainer = null
 var _button: Button = null
 var _body: VBoxContainer = null
+## 높이를 재려고 남은 프레임 수 (`_process` 참고).
+var _fit_frames: int = 0
+## 이번 결과에서 잰 높이 중 가장 큰 것.
+var _fit_wanted: float = 0.0
 
 
 func _init() -> void:
@@ -100,11 +111,54 @@ func show_summary(headline: String, detail: String, button_text: String) -> void
 func _reveal(button_text: String) -> void:
 	_button.text = button_text
 	visible = true
+	# 일단 최대로 잡아 **줄바꿈이 잘리지 않은 상태**에서 재게 한다. 좁게 잡아두고 재면
+	# 스크롤이 글을 감춘 채로 "짧다"고 답한다.
 	custom_minimum_size = Vector2(
 		0, HEIGHT_EXPLAINED if _detail.text != "" else HEIGHT_BRIEF)
 	# 새 결과는 항상 맨 위부터 읽는다. 앞 손님에서 내려둔 스크롤이 남아 있으면 안 된다.
 	_detail_scroll.scroll_vertical = 0
+	_fit_wanted = 0.0
+	_fit_frames = FIT_FRAMES if _detail.text != "" else 0
+	set_process(_fit_frames > 0)
 	Juice.fade_in(_body, RISE_DURATION)
+
+
+## 배치가 끝난 뒤에 재려고 몇 프레임 따라간다.
+##
+## 신호로 잡으려다 두 번 틀렸다. `call_deferred`는 너무 일러서 폭이 1px일 때 재고
+## (두 줄짜리 글이 135줄로 나왔다), `_detail.resized`는 **폭이 안 바뀌면 안 온다** —
+## 둘째 손님부터 신호가 없어 첫 손님만 고쳐지고 있었다. 프레임을 세는 쪽이 정직하다.
+func _process(_delta: float) -> void:
+	_fit_frames -= 1
+	_fit_to_content()
+	if _fit_frames <= 0:
+		set_process(false)
+
+
+## 설명 길이에 맞춰 패널을 줄인다.
+##
+## 단서가 여러 줄이면 272를 다 쓰고 넘치면 스크롤한다. 한 줄이면 182로 줄어
+## 아래 90px가 위쪽 행으로 돌아간다 — 빈 상자 대신 클립보드가 그만큼 더 보인다.
+##
+## **폭이 정해진 뒤라야 줄 수를 알 수 있다.** 아직이면 그냥 돌아가고 다음 프레임에 다시 온다.
+##
+## 잰 값 중 **가장 큰 것**을 쓴다. 줄이면 스크롤 막대가 생기고, 막대가 생기면 글이 좁아져
+## 줄 수가 늘고, 그러면 아까 잰 높이로는 마지막 줄이 잘린다. 실제로 잘렸다 —
+## 「일곱. 얼굴을 볼 수 없는 손님에게는」 이 반쯤 잘린 채로 화면에 남았고,
+## **그 줄이 바로 공정성 불변식 3이 지키라는 놓친 단서다.** 남는 자리보다 잘린 단서가 나쁘다.
+func _fit_to_content() -> void:
+	if not visible or _detail.size.x <= 1.0:
+		return
+	var box := get_theme_stylebox("panel") as StyleBoxFlat
+	var padding := box.content_margin_top + box.content_margin_bottom if box != null else 28.0
+	var head := float(_headline.get_line_count()) * float(_headline.get_line_height())
+	# **한 줄 여유를 준다.** 딱 맞게 계산하면 4px가 모자라 마지막 줄이 반쯤 잘렸다.
+	# 상자 모형을 끝까지 파고들 수도 있지만, 여기서 틀렸을 때 잃는 것이 「놓친 단서」다.
+	# 흔한 실패는 어차피 바닥(182)에 걸려 이 여유가 공짜다.
+	var text_height := float(_detail.get_line_count() + 1) * float(_detail.get_line_height())
+	var wanted := head + float(_body.get_theme_constant("separation")) + text_height + padding
+	_fit_wanted = maxf(_fit_wanted, wanted)
+	custom_minimum_size.y = clampf(_fit_wanted, HEIGHT_BRIEF, HEIGHT_EXPLAINED)
 
 
 func hide_panel() -> void:
