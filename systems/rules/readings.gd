@@ -21,6 +21,7 @@ const SKEPTICAL := "모순된 수칙을 전부 버리는 플레이어"
 const OVERRIDE := "나중 수칙이 앞 수칙을 덮는다고 보는 플레이어"
 const VOICE := "이유를 대는 줄은 거짓이라고 보는 플레이어"
 const BODY := "클립보드를 안 읽고 손님만 보는 플레이어"
+const BODY_CLOCK := "몸과 시계만 보는 플레이어"
 
 var _engine: RuleEngine = null
 var _anomaly_spec: Dictionary = {}
@@ -39,6 +40,7 @@ func all() -> Dictionary:
 		OVERRIDE: _override,
 		VOICE: _voice,
 		BODY: _body,
+		BODY_CLOCK: _body_clock,
 	}
 
 
@@ -106,3 +108,25 @@ func _voice(ctx: JudgeContext) -> Verdict:
 ## 그래서 감시가 필요하다: 이 독법이 만점을 내면 수칙을 읽을 이유가 사라진다.
 func _body(ctx: JudgeContext) -> Verdict:
 	return Verdict.refuse() if ctx.customer.looks_anomalous(_anomaly_spec) else Verdict.serve()
+
+
+## **몸 + 시계.** 실제 플레이어가 가장 먼저 찾을 지름길이다.
+##
+## 몸만 보는 독법을 밤 2에서 죽이고 나서 든 의문에서 나왔다: 몸만 보는 사람이 지던
+## 손님이 거의 전부 **시간 수칙**이었다. 「평범한데 거부가 정답」인 이유가 시계 말고는
+## 거의 없다는 뜻이고, 그러면 **시계 두 줄만 더 읽으면** 그 패배가 사라진다.
+##
+## 클립보드 11줄 중 두 줄만 읽는 셈이라 「안 읽는다」와 다를 게 없다.
+## 이게 회차를 통과하면 나머지 아홉 줄이 장식이 된다.
+func _body_clock(ctx: JudgeContext) -> Verdict:
+	if ctx.customer.looks_anomalous(_anomaly_spec):
+		return Verdict.refuse()
+	# 시간 조건이 붙은 참 수칙만 읽는다. 어느 밤에 무엇이 붙어 있는지는 화면에서 온다.
+	for rule in _readable(ctx):
+		if rule.matches(ctx) and _is_clock_rule(rule):
+			return rule.verdict()
+	return Verdict.serve()
+
+
+static func _is_clock_rule(rule: Rule) -> bool:
+	return rule.referenced_fields().has(JudgeContext.FIELD_TIME)
