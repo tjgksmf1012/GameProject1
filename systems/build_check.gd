@@ -32,10 +32,14 @@ const FONT_PROBE_SIZE := 24
 ## 바이너리를 문자열로 뒤져서는 확인할 수 없다. PCK가 압축돼 있어서 같은 파일의
 ## 어떤 문자열은 찾아지고 어떤 문자열은 안 찾아진다. 실제로 그 착시에 두 번 속았다.
 ## **빌드 자신에게 물어야 한다.**
+## `slot_probe.gd`가 목록에서 제일 위험하다. 그건 **손님 전원 × 자리 전원의 정답표**를
+## 그대로 찍는다 — solver_audit이 어느 수칙이 거짓인지 알려준다면 이건 답을 통째로 준다.
 const DEV_ONLY_PATHS := [
 	"res://tests/run_tests.gd", "res://tests/test_fairness.gd",
+	"res://tests/test_playthrough.gd",
 	"res://tools/solver_audit.gd", "res://tools/playthrough.gd",
-	"res://tools/shoot_states.gd",
+	"res://tools/shoot_states.gd", "res://tools/slot_probe.gd",
+	"res://tools/run_audit.gd", "res://tools/hook_density.gd",
 ]
 
 const SHADER_PATHS := [
@@ -47,8 +51,12 @@ var failures: PackedStringArray = []
 var lines: PackedStringArray = []
 
 
+## **두 형태를 다 받는다.** 예전에는 `get_cmdline_user_args()`만 봤는데 그건 `--` 뒤만 읽는다.
+## 그래서 이 파일 맨 위에 적힌 `./nightshift.x86_64 --selftest` 를 그대로 치면
+## 검사가 안 돌고 **게임이 그냥 켜진 채로 영영 기다린다.** 실제로 2분을 날렸다.
+## 문서를 고치는 것보다 둘 다 받는 게 낫다 — 다음 사람도 똑같이 칠 것이기 때문이다.
 static func requested() -> bool:
-	return OS.get_cmdline_user_args().has(ARG)
+	return OS.get_cmdline_user_args().has(ARG) or OS.get_cmdline_args().has(ARG)
 
 
 ## 0이면 정상. 셸에서 바로 쓸 수 있게 종료 코드로 돌려준다.
