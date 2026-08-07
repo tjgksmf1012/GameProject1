@@ -15,6 +15,7 @@ func run(r: RefCounted) -> void:
 	_test_strikes_are_belief_not_truth(r)
 	_test_true_conflict_actually_happens(r)
 	_test_torn_rule_changes_an_answer(r)
+	_test_new_rule_matters_on_its_debut_night(r)
 
 
 func _test_plan_is_complete(r: RefCounted) -> void:
@@ -147,3 +148,82 @@ func _test_torn_rule_changes_an_answer(r: RefCounted) -> void:
 			flipped += 1
 	r.check(flipped > 0,
 		"%s가 찢긴 뒤 답이 바뀌는 손님이 하나도 없다 — 찢는 연출만 있고 사건이 없다" % torn.id)
+
+
+## **클립보드에 한 줄 늘었으면 그 밤에 뭔가는 달라져야 한다.**
+##
+## 밤마다 수칙이 하나둘 붙는데, 붙기만 하고 그 밤에 아무 판정도 안 바꾸는 줄이 생길 수 있다.
+## 플레이어에게는 "읽을 것이 늘었는데 읽을 이유는 없는" 밤이 되고, 다음 밤에 갑자기 문다.
+##
+## 참과 거짓에 요구하는 것이 다르다. 참 수칙은 **결정**해야 한다 — 그 줄을 빼면 정답이
+## 달라지는 손님이 하나는 있어야 한다. 거짓 수칙은 **물어야** 한다 — 따랐을 때 틀리는
+## 손님이 하나는 있어야 한다. 발동만 하는 것으로는 둘 다 부족하다.
+##
+## 전환 수칙은 두 번 걸린다. 도입한 밤에는 참으로서 결정해야 하고, 전환된 밤에는
+## 거짓으로서 물어야 한다. 같은 줄인데 의무가 두 개다.
+func _test_new_rule_matters_on_its_debut_night(r: RefCounted) -> void:
+	var all_rules := GameData.load_rules()
+	var plan := NightPlan.load()
+	for rule in all_rules:
+		if plan.has_night(rule.introduced_night) and rule.veracity != Rule.VERACITY_FALSE:
+			r.check(_decides_something(all_rules, plan, rule, rule.introduced_night),
+				"%s는 도입된 %d일째 밤에 아무 판정도 결정하지 않는다 — 읽을 이유가 없는 줄이다"
+					% [rule.id, rule.introduced_night])
+		var lie_night := _night_it_becomes_a_lie(rule)
+		if lie_night > 0 and plan.has_night(lie_night):
+			r.check(_bites_someone(all_rules, plan, rule, lie_night),
+				"%s는 거짓이 되는 %d일째 밤에 아무도 물지 않는다 — 따라도 안 틀리는 거짓이다"
+					% [rule.id, lie_night])
+
+
+func _night_it_becomes_a_lie(rule: Rule) -> int:
+	if rule.veracity == Rule.VERACITY_FALSE:
+		return rule.introduced_night
+	if rule.veracity == Rule.VERACITY_DECAYING:
+		return rule.decays_at_night
+	return 0
+
+
+## 그 줄을 빼면 정답이 달라지는 손님이 있는가.
+func _decides_something(
+	all_rules: Array[Rule], plan: NightPlan, rule: Rule, night: int
+) -> bool:
+	var without: Array[Rule] = []
+	for other in all_rules:
+		if other.id != rule.id:
+			without.append(other)
+	var full := RuleEngine.new(all_rules)
+	var thinner := RuleEngine.new(without)
+	for ctx in _contexts(plan, night):
+		if not _same_verdicts(full.required_verdicts(ctx), thinner.required_verdicts(ctx)):
+			return true
+	return false
+
+
+## 그 줄을 따르면 틀리는 손님이 있는가.
+func _bites_someone(all_rules: Array[Rule], plan: NightPlan, rule: Rule, night: int) -> bool:
+	var engine := RuleEngine.new(all_rules)
+	for ctx in _contexts(plan, night):
+		if not rule.is_active_at(night, ctx.shift_minutes) or not rule.matches(ctx):
+			continue
+		if not Verdict.contains(engine.required_verdicts(ctx), rule.verdict()):
+			return true
+	return false
+
+
+func _contexts(plan: NightPlan, night: int) -> Array[JudgeContext]:
+	var out: Array[JudgeContext] = []
+	var customers := plan.customers_for(night)
+	for i in customers.size():
+		out.append(JudgeContext.new(
+			night, NightSession.arrival_minutes(i, customers.size()), customers[i]))
+	return out
+
+
+static func _same_verdicts(a: Array[Verdict], b: Array[Verdict]) -> bool:
+	if a.size() != b.size():
+		return false
+	for v in a:
+		if not Verdict.contains(b, v):
+			return false
+	return true

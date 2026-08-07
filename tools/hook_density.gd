@@ -16,6 +16,7 @@ extends SceneTree
 ##   무해 — 거짓 수칙이 발동은 했는데 우연히 정답과 같다. 플레이어는 아무것도 못 느낀다.
 ##   모순 — 참 수칙끼리 서로 다른 판정을 요구한다. 걸러내도 답이 하나로 안 좁혀진다.
 ##   사라짐 — **찢겨 나간 줄이 이 손님을 막던 줄이다.** 거짓은 하나도 개입하지 않는다.
+##   겹침 — 참 수칙 여럿이 **같은 말을 한다.** 화면은 복잡한데 어느 한 줄도 답을 정하지 않는다.
 ##   조회 — 아무 일도 없다. 수칙 한 줄 찾아 대조하면 끝난다.
 ##
 ## 처음엔 「거짓 수칙이 발동했는가」로 셌고 73%가 나왔다. 블라인드 플레이어는 여섯 판 중
@@ -28,6 +29,13 @@ extends SceneTree
 ## 「무해」로 세어지고 있었다. 밤 7이 58%로 가장 조용한 밤처럼 보인 것도 그 때문이다.
 ## **지표가 못 보는 기제는 없는 것 취급된다.** 그래서 지표를 고쳤지 밤을 고치지 않았다.
 ##
+## 「겹침」도 같은 이유로 나중에 붙였다. 밤 3의 04:13 손님은 참 수칙 셋이 전부 「거부」를
+## 외치고 있었는데 이 표에는 「조회」로 찍혔다. 맞는 분류이긴 하다 — 아무 일도 안 일어난다.
+## 그런데 **그 밤에 새로 붙은 수칙이 거기 있었다.** 다른 둘이 이미 거부하니 새 줄은 아무것도
+## 결정하지 못했고, 그러니까 새 수칙이 등장한 밤에 한 번도 판정을 쥐지 못한 셈이다.
+## 조회와 겹침은 플레이어에게 다르게 느껴진다. 조회는 숨 돌릴 곳이고, 겹침은 **바쁜 척하는
+## 빈 자리**다. 한 칸에 묶여 있으면 후자를 영영 못 찾는다.
+##
 ## 조회가 나쁜 것은 아니다. 숨 돌릴 곳이 없으면 함정도 함정으로 안 느껴진다.
 ## 위험한 것은 **비율**이고, 특히 그것이 밤이 갈수록 나빠지는 것이다.
 
@@ -37,23 +45,28 @@ const SEPARATOR := "────────────────────
 func _initialize() -> void:
 	var engine := RuleEngine.new(GameData.load_rules())
 	var plan := NightPlan.load()
-	print("밤   손님   함정   무해   모순   사라짐  조회   훅 비율   손님별")
+	print("밤   손님   함정   무해   모순   사라짐  겹침   조회   훅 비율   손님별")
 	print(SEPARATOR)
-	var totals := {"trap": 0, "inert": 0, "clash": 0, "gone": 0, "plain": 0, "hooked": 0, "all": 0}
+	var totals := {
+		"trap": 0, "inert": 0, "clash": 0, "gone": 0, "redundant": 0, "plain": 0,
+		"hooked": 0, "all": 0,
+	}
 	for night in plan.nights():
 		_report_night(engine, plan, night, totals)
 	print(SEPARATOR)
-	print("합계  %3d   %4d   %4d   %4d   %5d   %4d   %6.0f%%"
+	print("합계  %3d   %4d   %4d   %4d   %5d   %4d   %4d   %6.0f%%"
 		% [totals["all"], totals["trap"], totals["inert"], totals["clash"], totals["gone"],
-			totals["plain"], float(totals["hooked"]) / float(maxi(totals["all"], 1)) * 100.0])
+			totals["redundant"], totals["plain"],
+			float(totals["hooked"]) / float(maxi(totals["all"], 1)) * 100.0])
 	print("\n훅 비율 = (함정 + 모순 + 사라짐) / 손님. 낮으면 손님이 많아도 게임은 조용하다.")
+	print("겹침은 훅이 아니다. 참 수칙이 서로를 가려 **새 수칙이 죽는 자리**를 찾는 데 쓴다.")
 	quit(0)
 
 
 func _report_night(engine: RuleEngine, plan: NightPlan, night: int, totals: Dictionary) -> void:
 	var customers := plan.customers_for(night)
 	var marks := PackedStringArray()
-	var count := {"trap": 0, "inert": 0, "clash": 0, "gone": 0, "plain": 0}
+	var count := {"trap": 0, "inert": 0, "clash": 0, "gone": 0, "redundant": 0, "plain": 0}
 	var hooks := 0
 	for i in customers.size():
 		var ctx := JudgeContext.new(
@@ -67,9 +80,9 @@ func _report_night(engine: RuleEngine, plan: NightPlan, night: int, totals: Dict
 		marks.append(_mark(kinds))
 	totals["hooked"] += hooks
 	totals["all"] += customers.size()
-	print("%2d   %4d   %4d   %4d   %4d   %5d   %4d   %6.0f%%   %s"
+	print("%2d   %4d   %4d   %4d   %4d   %5d   %4d   %4d   %6.0f%%   %s"
 		% [night, customers.size(), count["trap"], count["inert"], count["clash"],
-			count["gone"], count["plain"],
+			count["gone"], count["redundant"], count["plain"],
 			float(hooks) / float(maxi(customers.size(), 1)) * 100.0, " ".join(marks)])
 
 
@@ -82,7 +95,9 @@ func _mark(kinds: PackedStringArray) -> String:
 		return "함"
 	if kinds.has("clash"):
 		return "모"
-	return "무" if kinds.has("inert") else "·"
+	if kinds.has("inert"):
+		return "무"
+	return "겹" if kinds.has("redundant") else "·"
 
 
 ## **찢겨 나간 줄이 이 손님을 막던 줄인가** (밤 7).
@@ -115,6 +130,10 @@ func _classify(engine: RuleEngine, ctx: JudgeContext) -> PackedStringArray:
 		out.append("clash")
 	if _remembers_a_torn_rule(engine, ctx, truth):
 		out.append("gone")
+	# 참 수칙 둘 이상이 발동했는데 요구하는 판정이 하나뿐이면, 그 중 **어느 줄을 빼도**
+	# 답이 안 바뀐다. 화면은 바쁜데 결정하는 줄은 없다.
+	if truth.size() == 1 and engine.truths_in_play(ctx).size() > 1:
+		out.append("redundant")
 	if out.is_empty():
 		out.append("plain")
 	return out
