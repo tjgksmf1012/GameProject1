@@ -195,8 +195,8 @@
       "anomaly": ""
     },
     {
-      "id": "cust_n4_last",
-      "name_key": "customer.n4_last",
+      "id": "cust_n4_midnight",
+      "name_key": "customer.n4_midnight",
       "traits": {
         "has_shadow": true,
         "is_wet": false,
@@ -210,7 +210,7 @@
         "item.cup_ramen"
       ],
       "dialogue": [
-        "dialogue.n4_last_1"
+        "dialogue.n4_midnight_1"
       ],
       "patience_seconds": 60,
       "anomaly": ""
