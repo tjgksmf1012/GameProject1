@@ -102,7 +102,9 @@ func _update_safe_rect() -> void:
 
 func _start_night(night: int) -> void:
 	var engine := RuleEngine.new(GameData.load_rules())
-	_session = NightSession.new(engine, _plan.customers_for(night), _balance, night)
+	# 유예는 세이브가 들고 있다. 밤마다 새로 주면 「다음부터는 아니다」가 거짓말이 된다.
+	_session = NightSession.new(
+		engine, _plan.customers_for(night), _balance, night, _save.grace_used)
 	_night_started_msec = Time.get_ticks_msec()
 	_judging = false
 	_view.swap_to_pos()
@@ -155,7 +157,8 @@ func _refresh_header() -> void:
 		_t("ui.progress") % [
 			_session.index + 1, _session.total_customers(),
 			_session.misjudge_count, _session.misjudge_limit(),
-		])
+		],
+		float(_session.misjudge_count) / maxf(1.0, float(_session.misjudge_limit())))
 	_apply_tension()
 
 
@@ -259,9 +262,11 @@ func _show_summary() -> void:
 	var next_night := _session.night + 1
 	var has_next := _plan.has_night(next_night)
 	var cleared := not _session.is_failed()
+	var grace_spent := _save.spend_grace(_session.grace_used)
 	# **실패한 밤은 진행이 오르지 않는다.** 같은 밤을 다시 한다 (F-06).
 	if cleared:
 		_save.advance_to(next_night if has_next else _session.night)
+	if cleared or grace_spent:
 		_save.store()
 
 	var report := NightReport.new(_strings)

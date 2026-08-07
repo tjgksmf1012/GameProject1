@@ -18,10 +18,17 @@ var _grace_enabled: bool = true
 
 
 
-func _init(p_engine: RuleEngine, p_customers: Array[Customer], balance: Dictionary, p_night: int = 1) -> void:
+## `p_grace_spent`는 **이전 밤에 이미 유예를 썼는가**다. 세이브가 들고 있다가 넘겨준다.
+## 이 값을 안 받던 시절에는 밤마다 유예가 새로 생겨서, 화면이 「다음부터는 아니다」라고
+## 말해놓고 다음 밤에 또 넘어갔다. `systems/`는 세이브를 모르므로 값으로만 받는다.
+func _init(
+	p_engine: RuleEngine, p_customers: Array[Customer], balance: Dictionary,
+	p_night: int = 1, p_grace_spent: bool = false
+) -> void:
 	engine = p_engine
 	customers = p_customers
 	night = p_night
+	grace_used = p_grace_spent
 	_misjudge_limit = int(balance.get("misjudge_limit", 3))
 	_grace_enabled = bool(balance.get("grace_on_first_trap", true))
 

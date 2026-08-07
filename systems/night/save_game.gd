@@ -20,6 +20,19 @@ var cleared_nights: int = 0
 ## 그건 추론이 아니라 사무 작업이다.
 var struck_rule_ids: PackedStringArray = []
 
+## **첫 함정 유예를 이미 썼는가.** 밤이 아니라 회차 단위다.
+##
+## 예전에는 `NightSession`이 밤마다 새로 생기면서 유예도 같이 새로 생겼다. 그래서 화면은
+## 「이번은 넘어간다 — 다음부터는 아니다」라고 말해놓고 다음 밤에 또 넘어갔다.
+## 게임이 플레이어에게 직접 건네는 유일한 약속이 매일 밤 깨지고 있었다.
+##
+## 밤 하나만 도는 검사로는 안 잡힌다. 검사도 감사 도구도 전부 밤 단위였고,
+## **밤을 이어서 해봐야만 보이는 결함**이었다.
+##
+## 유예의 근거는 밸런싱이 아니라 학습이다 (balance.json `_comment_grace`):
+## 「수칙이 거짓말할 수 있다」는 문법을 아직 모르니 봐준다. 그 문법은 한 번 배우면 끝이다.
+var grace_used: bool = false
+
 
 static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
 	var save := SaveGame.new()
@@ -33,6 +46,7 @@ static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
 	save.night = maxi(FIRST_NIGHT, int(data.get("night", FIRST_NIGHT)))
 	save.cleared_nights = int(data.get("cleared_nights", 0))
 	save.struck_rule_ids = Customer._to_string_array(data.get("struck_rule_ids", []))
+	save.grace_used = bool(data.get("grace_used", false))
 	return save
 
 
@@ -45,8 +59,20 @@ func store(path: String = SAVE_PATH) -> bool:
 		"night": night,
 		"cleared_nights": cleared_nights,
 		"struck_rule_ids": struck_rule_ids,
+		"grace_used": grace_used,
 	}, "  "))
 	file.close()
+	return true
+
+
+## 이번 밤에 유예를 썼다면 회차 기록에 남긴다. **실제로 새로 쓴 것이면** true.
+##
+## 밤을 실패해도 돌려주지 않는다. 유예의 근거는 밸런싱이 아니라 학습이고,
+## 다시 하는 밤에도 「수칙이 거짓말한다」는 문법은 이미 배운 상태이기 때문이다.
+func spend_grace(used_tonight: bool) -> bool:
+	if not used_tonight or grace_used:
+		return false
+	grace_used = true
 	return true
 
 

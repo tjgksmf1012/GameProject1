@@ -114,9 +114,18 @@ func set_tension(value: float) -> void:
 		(background.material as ShaderMaterial).set_shader_parameter("tension", value)
 
 
-func set_header(clock_text: String, status_text: String) -> void:
+## `pressure`는 0(여유)~1(다음 오판이면 끝). **화면에서 이 숫자만 색이 안 변했다.**
+##
+## 셰이더 긴장도는 이미 남은 여유에서 계산돼 화면 전체를 조인다(screen_effects.gd).
+## 그런데 정작 플레이어가 눈으로 세는 「오판 2 / 3」은 0회일 때와 똑같은 회색이었다.
+## 배경은 조여드는데 숫자는 태연한 셈이고, 둘 중 숫자가 구체적인 쪽이다.
+func set_header(clock_text: String, status_text: String, pressure: float = 0.0) -> void:
 	_clock.text = clock_text
 	_status.text = status_text
+	# 선형이면 오판 한 번에 벌써 빨개진다. 마지막 한 칸에서 확 오도록 곡선을 준다.
+	var heat := clampf(pressure, 0.0, 1.0)
+	_status.add_theme_color_override(
+		"font_color", Palette.TEXT_DIM.lerp(Palette.DANGER, heat * heat))
 
 
 ## 클립보드를 지금 시점 상태로 맞춘다.

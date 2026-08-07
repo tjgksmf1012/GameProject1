@@ -10,6 +10,8 @@ func run(r: RefCounted) -> void:
 	_test_grace_absorbs_first_trap(r)
 	_test_second_trap_is_not_graced(r)
 	_test_grace_disabled(r)
+	_test_grace_does_not_come_back_next_night(r)
+	_test_save_carries_the_spent_grace(r)
 
 
 func _make(balance_overrides: Dictionary = {}) -> NightSession:
@@ -88,3 +90,39 @@ func _test_grace_disabled(r: RefCounted) -> void:
 	session.advance()
 	session.judge(Verdict.refuse())
 	r.equals(session.misjudge_count, 1, "유예를 끄면 첫 함정도 오판이다")
+
+
+## **유예는 밤을 넘어 돌아오지 않는다.**
+##
+## 이 결함은 밤 두 개를 이어서 해봐야만 보였다. `NightSession`이 밤마다 새로 생기니
+## 유예도 같이 새로 생겼고, 화면은 「이번은 넘어간다 — 다음부터는 아니다」라고 말해놓고
+## 다음 밤에 또 넘어갔다. **게임이 플레이어에게 건네는 유일한 약속이 매일 밤 깨졌다.**
+##
+## 위의 검사들이 전부 통과하면서 이걸 놓친 이유는 하나다 — 전부 밤 하나만 본다.
+## 검사도 감사 도구도 밤 단위였고, 그래서 밤 사이에 있는 것은 아무도 안 봤다.
+func _test_grace_does_not_come_back_next_night(r: RefCounted) -> void:
+	var balance := GameData.load_balance()
+	balance["grace_on_first_trap"] = true
+	var engine := RuleEngine.new(GameData.load_rules())
+	var later := NightSession.new(engine, GameData.load_customers(), balance, 1, true)
+	r.check(later.grace_used, "이전 밤에서 유예를 썼다는 사실을 들고 시작한다")
+	later.judge(Verdict.serve())
+	later.advance()
+	var trapped := later.judge(Verdict.refuse())
+	r.check(trapped.is_trap_death(), "같은 함정이 맞다")
+	r.check(not trapped.graced, "이미 쓴 유예는 다시 오지 않는다")
+	r.equals(later.misjudge_count, 1, "두 번째 밤의 첫 함정은 오판으로 잡힌다")
+
+
+## 넘겨주는 쪽. 세이브가 안 들고 있으면 위 검사는 통과해도 실제로는 아무 일도 안 일어난다.
+func _test_save_carries_the_spent_grace(r: RefCounted) -> void:
+	var path := "user://test_grace.json"
+	SaveGame.erase(path)
+	var fresh := SaveGame.load_or_new(path)
+	r.check(not fresh.grace_used, "처음에는 유예가 남아 있다")
+	r.check(not fresh.spend_grace(false), "안 쓴 밤은 아무것도 바꾸지 않는다")
+	r.check(fresh.spend_grace(true), "처음 쓰면 기록이 바뀐다")
+	r.check(not fresh.spend_grace(true), "이미 쓴 뒤에는 다시 바뀌지 않는다 — 저장을 두 번 하지 않는다")
+	r.check(fresh.store(path), "저장된다")
+	r.check(SaveGame.load_or_new(path).grace_used, "유예를 썼다는 사실이 밤을 넘어 남는다")
+	SaveGame.erase(path)

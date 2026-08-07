@@ -26,8 +26,11 @@ func _initialize() -> void:
 		quit(1)
 		return
 	var strings := GameData.load_strings(GameData.resolve_locale())
+	# **밤을 이어서 하면 유예는 이미 썼다.** 밤 하나만 띄워놓고 보면 매번 새 유예가
+	# 생기는 것처럼 보이고, 실제 회차에서 일어나지 않는 일을 재게 된다.
 	var session := NightSession.new(RuleEngine.new(GameData.load_rules()),
-		plan.customers_for(night), GameData.load_balance(), night)
+		plan.customers_for(night), GameData.load_balance(), night,
+		_arg("--grace-spent=", "0") == "1")
 	var out := _replay(session, strings)
 	print(JSON.stringify(out, "  "))
 	quit(0)
@@ -75,12 +78,18 @@ func _night_over(session: NightSession, strings: Dictionary) -> Variant:
 	if not session.is_finished():
 		return null
 	var key := "night.failed" if session.is_failed() else "night.cleared"
+	# **실제 화면이 말하는 것을 전부 담는다.** 예전에는 `taken_in`이 빠져 있었고,
+	# 그래서 유예로 넘어간 함정이 이 요약에서 통째로 사라졌다 — 밤 1을 「오판 0」으로
+	# 읽고 아무 일도 없었다고 결론 내게 된다. 화면은 「수칙에 속은 횟수 1」이라고 쓴다.
+	# 읽는 쪽에 화면보다 적게 주면 여기서 나온 결론은 전부 게임이 아니라 도구를 잰 것이다.
 	return {
 		"failed": session.is_failed(),
 		"headline": str(strings.get(key, key)) % session.misjudge_count \
 			if session.is_failed() else str(strings.get(key, key)),
 		"correct": session.correct_count,
 		"misjudge": session.misjudge_count,
+		"taken_in": session.trap_count,
+		"grace_spent": session.grace_used,
 	}
 
 
