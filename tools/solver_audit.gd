@@ -22,6 +22,7 @@ var _perfect: PackedStringArray = []
 var _sample_times: PackedInt32Array = []
 ## 몸이 사람의 몸이 아니라고 말하는 특성 (data/observation.json).
 var _anomaly_spec: Dictionary = {}
+var _readings: Readings = null
 
 
 func _initialize() -> void:
@@ -31,6 +32,7 @@ func _initialize() -> void:
 	_plan = NightPlan.load()
 	_sample_times = RuleEngine.sample_times(_rules)
 	_anomaly_spec = GameData.read_json("res://data/observation.json").get("anomaly_traits", {})
+	_readings = Readings.new(_engine, _anomaly_spec)
 	print("시각 표본: %s (수칙의 시간 문턱에서 유도)" % str(_sample_times))
 	for night in _plan.nights():
 		_audit_night(night)
@@ -65,11 +67,10 @@ func _audit_night(night: int) -> void:
 	_report_conflicts()
 	_report_lie_detectability()
 	_report_hand_correlation()
-	_report_solver("클립보드를 전부 믿는 플레이어", _naive_verdict)
-	_report_solver("모순된 수칙을 전부 버리는 플레이어", _skeptical_verdict)
-	_report_solver("나중 수칙이 앞 수칙을 덮는다고 보는 플레이어", _override_verdict)
-	_report_solver("이유를 대는 줄은 거짓이라고 보는 플레이어", _voice_verdict)
-	_report_solver("클립보드를 안 읽고 손님만 보는 플레이어", _body_verdict)
+	# 독법은 `systems/rules/readings.gd` 가 소유한다. 회차 감사가 **같은 독법**을 써야
+	# 하는데 복사하면 반드시 갈라진다.
+	for label in _readings.all():
+		_report_solver(label, _readings.all()[label])
 	_report_exhaustive()
 
 
@@ -203,63 +204,6 @@ func _report_hand_correlation() -> void:
 		print("  ✗ 남의 필체가 전부 거짓이다. 종이 색만 보면 다 풀린다")
 	else:
 		print("  ✓ 필체만으로는 진위를 결정할 수 없다 — 용의자를 좁힐 뿐이다")
-
-
-## 클립보드를 전부 참으로 믿고, 모순이 나면 위에 적힌 수칙을 따른다.
-func _naive_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _readable(ctx):
-		if rule.matches(ctx):
-			return rule.verdict()
-	return Verdict.serve()
-
-
-## 모순에 연루된 수칙은 믿을 수 없다고 보고 전부 버린다.
-func _skeptical_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _readable(ctx):
-		if not rule.matches(ctx):
-			continue
-		if _conflicting_partners(rule).is_empty():
-			return rule.verdict()
-	return Verdict.serve()
-
-
-## 가장 자연스러운 오독. "단골에게는 다른 수칙을 적용하지 마시오" 같은 예외 조항은
-## 법조문처럼 **뒤에 온 것이 앞을 덮는다**고 읽힌다. 그게 이 게임의 진짜 함정이다.
-## 첫 매칭만 따르는 플레이어는 참 수칙이 앞에 나열돼 있어서 우연히 잘 맞는다 —
-## 이 솔버가 그 착시를 걷어낸다.
-func _override_verdict(ctx: JudgeContext) -> Verdict:
-	var chosen: Verdict = Verdict.serve()
-	for rule in _readable(ctx):
-		if rule.matches(ctx):
-			chosen = rule.verdict()
-	return chosen
-
-
-## **문체만 보고 푸는 플레이어.** 「이유를 대면 거짓」이라 믿고 그 줄들을 버린다.
-##
-## 이 솔버가 만점을 내면 게임이 정규식 한 줄로 풀린다는 뜻이다. 실제로 그런 적이 있다 —
-## 문체를 veracity에서 파생시켰더니 수칙 11개를 11/11 분류하는 완전 분류기가 됐다.
-## 불변식 2e가 상관을 감시하고, 이 솔버가 그 결과를 **점수로** 보여준다.
-func _voice_verdict(ctx: JudgeContext) -> Verdict:
-	for rule in _readable(ctx):
-		if rule.gives_reason:
-			continue  # 변명하는 줄은 거짓이라고 보고 버린다
-		if rule.matches(ctx):
-			return rule.verdict()
-	return Verdict.serve()
-
-
-## **클립보드를 아예 안 읽는 플레이어.** 손님의 몸만 보고, 이상이 있으면 돌려보낸다.
-##
-## 이 게임의 세계관을 그대로 정책으로 만든 것이다 — 사람이 아닌 것은 몸에서 드러난다.
-## 넷째 수칙(가방)처럼 **모순이 없는 거짓**을 잡는 유일한 경로이므로 강할 수밖에 없다.
-## 그래서 감시가 필요하다: 이 솔버가 만점을 내면 수칙을 읽을 이유가 사라진다.
-## 지금 이 점수를 끌어내리는 것은 시간 수칙 둘뿐이다 — 평범한 사람을 돌려보내라는
-## 참 수칙이고, 불변식 2f가 그 줄들이 사라지지 않는지 지킨다.
-func _body_verdict(ctx: JudgeContext) -> Verdict:
-	if ctx.customer.looks_anomalous(_anomaly_spec):
-		return Verdict.refuse()
-	return Verdict.serve()
 
 
 func _report_solver(label: String, strategy: Callable) -> void:
