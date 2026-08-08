@@ -263,6 +263,10 @@ func _show_summary() -> void:
 	# 못 했을 때만 소리가 나는 게임이었다. 실패한 밤은 이미 사망 연출이 소리를 가져갔다.
 	if not _session.is_failed():
 		_audio.play("shift_end")
+	# **시계가 05:20인데 엔딩은 「여섯 시」라고 쓴다.** 머리글은 마지막 손님이 온 시각에
+	# 멈춰 있었다. 근무는 06:00에 끝나고 요약 화면은 그 뒤의 화면이다.
+	# 손님 수와 오판 수도 지운다 — 바로 아래 요약이 같은 것을 더 정확히 말한다.
+	_view.set_header(ShiftClock.to_display(ShiftClock.SHIFT_LENGTH_MINUTES), "")
 	_log.record_night_end(_session, (Time.get_ticks_msec() - _night_started_msec) / 1000.0)
 	var next_night := _session.night + 1
 	var has_next := _plan.has_night(next_night)
