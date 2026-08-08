@@ -15,6 +15,8 @@ const StrikeMark := preload("res://ui/clipboard/strike_mark.gd")
 
 const RULE_SEPARATION := 7
 const RISE_DURATION := 0.34
+## 놓친 줄이 화면 밖일 때 굴러가는 시간. 3초 리플레이 안에 끝나야 한다.
+const SCROLL_DURATION := 0.28
 const STAGGER := 0.05
 const MIN_LIST_HEIGHT := 120
 
@@ -93,7 +95,7 @@ func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
 		if _shown_ids.has(rule.id):
 			continue
 		_shown_ids.append(rule.id)
-		var row := _make_row(rule, _shown_ids.size() - 1)
+		var row := _make_row(rule)
 		_list.add_child(row)
 		_rows[rule.id] = row
 		Juice.fade_in(row, RISE_DURATION, added * STAGGER)
@@ -145,18 +147,18 @@ func reorder(canonical_ids: PackedStringArray) -> void:
 		at += 1
 
 
-## **더는 붙어 있지 않은 줄은 걷어낸다.**
-##
-## 이게 없으면 클립보드가 한 번 붙은 줄을 영영 들고 있는다. 밤 5의 열째 수칙은
-## 02:00에 붙는데, 그 밤을 실패하고 다시 시작하면 22:00 화면에 이미 붙어 있다 —
-## **아직 쓰이지도 않은 줄을 보고 판정하게 된다.** 엔진은 그 줄을 적용하지 않으므로
-## 화면과 판정이 어긋난다. 밤 6으로 넘어갈 때도 같은 일이 난다.
+## 찢긴 자국을 치운다. 밤이 바뀌면 자국도 같이 사라져야 한다.
 func clear_torn() -> void:
 	for id in _torn:
 		(_torn[id] as Node).queue_free()
 	_torn.clear()
 
 
+## **더는 붙어 있지 않은 줄은 걷어낸다.**
+##
+## 이게 없으면 클립보드가 한 번 붙은 줄을 영영 들고 있는다. 밤 5의 열째 수칙은
+## 02:00에 붙는데, 그 밤을 실패하고 다시 시작하면 22:00 화면에 이미 붙어 있다 —
+## **아직 쓰이지도 않은 줄을 보고 판정하게 된다.**
 func _remove_absent(rules: Array[Rule]) -> void:
 	var keep := PackedStringArray()
 	for rule in rules:
@@ -186,7 +188,7 @@ func _scroll_to_new_rule() -> void:
 	_scroll.scroll_vertical = int(bar.max_value)
 
 
-func _make_row(rule: Rule, index: int) -> PanelContainer:
+func _make_row(rule: Rule) -> PanelContainer:
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", _row_style())
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -267,10 +269,30 @@ func _paper_material(foreign: bool, rewritten: bool, index: int) -> ShaderMateri
 
 
 ## 특정 수칙만 남기고 나머지를 흐린다. 3초 리플레이(F-07)에서 놓친 줄을 짚어줄 때 쓴다.
+##
+## **짚는 줄이 화면 밖이면 짚은 게 아니다.** 밤 3부터 수칙이 보이는 높이를 넘어가는데
+## 예전에는 색만 바꾸고 스크롤은 안 건드렸다 — 놓친 줄이 아래에 있으면 플레이어는
+## **전부 흐려지고 아무것도 밝아지지 않는 화면**을 3초 본다 (공정성 불변식 3).
+## `_scroll_to_new_rule`의 함정은 여기 없다. 손님이 몇 초째 서 있어 배치가 이미 끝나 있다.
 func highlight(rule_ids: PackedStringArray) -> void:
+	var deepest: Control = null
 	for id in _rows:
 		var row: PanelContainer = _rows[id]
-		row.modulate = Color.WHITE if rule_ids.has(id) else Color(1.0, 1.0, 1.0, DIM_ALPHA)
+		var lit := rule_ids.has(id)
+		row.modulate = Color.WHITE if lit else Color(1.0, 1.0, 1.0, DIM_ALPHA)
+		if lit:
+			deepest = row  # 화면 밖으로 밀리는 것은 언제나 아래쪽이다
+	if deepest == null:
+		return
+	var before := _scroll.scroll_vertical
+	_scroll.ensure_control_visible(deepest)
+	var target := _scroll.scroll_vertical
+	if target == before:
+		return
+	_scroll.scroll_vertical = before
+	var tween := _scroll.create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(_scroll, "scroll_vertical", target, SCROLL_DURATION)
 
 
 func clear_highlight() -> void:
