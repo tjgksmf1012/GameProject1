@@ -32,7 +32,7 @@ var _twist: Label = null
 var _prompt: Label = null
 
 
-func build(strings: Dictionary, save_night: int) -> void:
+func build(strings: Dictionary, save_night: int, finished: bool = false) -> void:
 	_strings = strings
 	var bg := ColorRect.new()
 	bg.color = Palette.BG
@@ -51,7 +51,7 @@ func build(strings: Dictionary, save_night: int) -> void:
 	_twist = _add_centered(column, "title.twist", Palette.SIZE_BODY, Palette.ACCENT)
 	_twist.modulate.a = 0.0
 	column.add_child(_spacer(34))
-	_add_progress(column, save_night)
+	_add_progress(column, save_night, finished)
 	_prompt = _add_centered(column, "title.start", Palette.SIZE_BODY, Palette.TEXT_DIM)
 	_prompt.modulate.a = 0.0
 	_stretch_to_screen()
@@ -82,7 +82,11 @@ func _add_sign(column: VBoxContainer) -> void:
 
 
 ## 이어서 하는 밤이 몇 번째인지 알려준다. 세이브가 첫 밤이면 아무 말도 하지 않는다.
-func _add_progress(column: VBoxContainer, save_night: int) -> void:
+func _add_progress(column: VBoxContainer, save_night: int, finished: bool) -> void:
+	if finished:
+		column.add_child(_center(Palette.make_label(
+			_t("title.finished"), Palette.SIZE_SMALL, Palette.ACCENT)))
+		return
 	if save_night <= SaveGame.FIRST_NIGHT:
 		return
 	column.add_child(_center(Palette.make_label(

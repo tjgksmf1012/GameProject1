@@ -16,6 +16,7 @@ func run(r: RefCounted) -> void:
 	_test_true_conflict_actually_happens(r)
 	_test_torn_rule_changes_an_answer(r)
 	_test_new_rule_matters_on_its_debut_night(r)
+	_test_finishing_opens_a_new_run(r)
 
 
 func _test_plan_is_complete(r: RefCounted) -> void:
@@ -227,3 +228,35 @@ static func _same_verdicts(a: Array[Verdict], b: Array[Verdict]) -> bool:
 		if not Verdict.contains(b, v):
 			return false
 	return true
+
+
+## **일곱 밤을 끝낸 사람과 마지막 밤을 하다 만 사람은 달라야 한다.**
+##
+## 세이브는 마지막 밤을 넘겨도 그 자리에 머문다(`advance_to(_session.night)`).
+## 그래서 `night`만 보면 둘이 똑같고, 제목 화면이 완주한 사람에게도
+## 「7일째 밤부터」라고 말했다. 엔딩까지 보고 나온 사람에게.
+##
+## 다시 시작하면 **그어둔 줄만 남는다.** 엔딩이 그렇게 약속했다 —
+## 「당신이 그어둔 줄이 그대로 남아 있다. 그는 그것부터 읽을 것이다.」
+func _test_finishing_opens_a_new_run(r: RefCounted) -> void:
+	var last := NightPlan.load().last_night()
+	var save := SaveGame.new()
+	r.check(not save.has_finished(last), "처음 켠 세이브는 완주가 아니다")
+
+	for night in range(SaveGame.FIRST_NIGHT + 1, last + 1):
+		save.advance_to(night)
+	r.check(not save.has_finished(last),
+		"마지막 밤에 **도달**한 것은 완주가 아니다 — 아직 그 밤을 안 넘겼다")
+
+	save.advance_to(last)  # 마지막 밤을 넘겨도 진행은 제자리다
+	r.equals(save.night, last, "마지막 밤을 넘겨도 밤 번호는 그대로다")
+	r.check(save.has_finished(last), "그래도 완주는 완주로 구분된다")
+
+	save.toggle_strike("rule_refuse_bag")
+	save.grace_used = true
+	save.begin_new_run()
+	r.equals(save.night, SaveGame.FIRST_NIGHT, "새 회차는 첫 밤부터")
+	r.check(not save.grace_used, "유예가 돌아온다 — 새 사람이니까")
+	r.check(not save.has_finished(last), "새 회차는 완주 상태가 아니다")
+	r.check(save.struck_rule_ids.has("rule_refuse_bag"),
+		"**그어둔 줄은 남는다** — 다음 사람이 처음 읽게 될 클립보드다")

@@ -113,6 +113,7 @@
   "title.twist": "Not all of the rules are true.",
   "title.start": "Press any key to begin",
   "title.continue_night": "Resuming night %d",
+  "title.finished": "Seven nights done. The store opens again — your marks are still there.",
   "rule.no_sales_after_4am": "Eight. After four o'clock, sell to no one.",
   "rule.face_is_shy": "Nine. A hidden face is only shyness, so serve them without asking.",
   "tell.face_is_shy": "This line is in the manager's hand. The paper and the ink are his — the paper tells you nothing anymore. But the manager does not explain himself. This line pleads: \"only shyness.\" And it contradicts the seventh rule outright.",

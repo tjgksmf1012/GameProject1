@@ -21,6 +21,8 @@ const TITLE_TENSION := 0.18
 var _view: TitleView = null
 var _audio: AudioDeck = null
 var _entered: bool = false
+## 일곱 밤을 끝낸 세이브인가. 시작을 누르면 새 회차를 연다.
+var _finished: bool = false
 
 
 func _ready() -> void:
@@ -41,7 +43,11 @@ func _ready() -> void:
 
 	_view = TitleView.new()
 	add_child(_view)
-	_view.build(strings, SaveGame.load_or_new().night)
+	# **완주한 사람은 다른 화면을 봐야 한다.** 세이브는 마지막 밤에 머무르므로
+	# night 만 보면 일곱 밤을 끝낸 사람과 마지막 밤을 하다 만 사람이 구분되지 않는다.
+	var save := SaveGame.load_or_new()
+	_finished = save.has_finished(NightPlan.load().last_night())
+	_view.build(strings, save.night, _finished)
 	_view.play_intro()
 
 	var effects := ScreenEffects.new()
@@ -59,6 +65,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	_entered = true
 	_audio.play("click")
+	# 일곱 밤을 끝낸 뒤에 시작하면 **다음 사람이 된다** — 밤은 처음으로, 그어둔 줄은 그대로.
+	if _finished:
+		var save := SaveGame.load_or_new()
+		save.begin_new_run()
+		save.store()
 	get_tree().change_scene_to_file(NIGHT_SCENE)
 
 

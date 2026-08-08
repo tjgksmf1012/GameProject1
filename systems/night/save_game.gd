@@ -76,6 +76,23 @@ func spend_grace(used_tonight: bool) -> bool:
 	return true
 
 
+## **일곱 밤을 다 넘겼는가.** `night`만으로는 알 수 없다 — 마지막 밤을 넘겨도
+## 진행은 그 자리에 머문다. 그래서 완주한 사람과 마지막 밤을 하다 만 사람이 구분되지 않았고,
+## 제목 화면이 둘에게 똑같이 「7일째 밤부터」라고 말했다.
+func has_finished(last_night: int) -> bool:
+	return cleared_nights >= last_night
+
+
+## **다음 사람이 된다.** 밤과 유예는 처음으로 돌리되 **그어둔 줄은 남긴다.**
+##
+## 엔딩이 이미 그렇게 약속했다 — 「당신이 그어둔 줄이 그대로 남아 있다.
+## 그는 그것부터 읽을 것이다.」 다시 시작하는 사람이 바로 그 사람이다.
+func begin_new_run() -> void:
+	night = FIRST_NIGHT
+	cleared_nights = 0
+	grace_used = false
+
+
 ## 그었다 / 지웠다. 그은 상태를 돌려준다.
 func toggle_strike(rule_id: String) -> bool:
 	var at := struck_rule_ids.find(rule_id)
