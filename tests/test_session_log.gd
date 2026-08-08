@@ -77,7 +77,7 @@ func _test_no_tester_writes_nothing(r: RefCounted) -> void:
 
 	# **두 층을 다 막아야 한다.** SessionLog 만 막으면 화면 쪽에서 아이디를 지어내는 순간
 	# 다시 새어나온다. 값으로는 증명할 수 없어 구조를 본다 (test_night_plan 의 취소선 검사와 같은 수법).
-	var source := FileAccess.get_file_as_string("res://main/night_screen.gd")
-	r.check(source != "", "night_screen.gd 를 읽을 수 있다")
+	var source := FileAccess.get_file_as_string("res://systems/night/session_log.gd")
+	r.check(source != "", "session_log.gd 를 읽을 수 있다")
 	r.check(not source.contains("tester_%d"),
-		"night_screen 이 테스터 아이디를 스스로 지어낸다 — 모든 플레이어의 기록이 남는다")
+		"기록기가 테스터 아이디를 스스로 지어낸다 — 모든 플레이어의 기록이 남는다")

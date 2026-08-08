@@ -10,6 +10,7 @@ extends RefCounted
 ##   · 총 세션 시간 → H4(8~12분이 적절한가)
 
 const LOG_DIR := "user://playtest"
+const TESTER_ARG := "--tester="
 
 var tester_id: String = ""
 var grace_enabled: bool = true
@@ -67,6 +68,21 @@ func to_dictionary() -> Dictionary:
 
 
 ## 저장하고 사람이 열어볼 수 있는 절대 경로를 돌려준다.
+## **`--tester=` 를 준 사람만 기록을 남긴다.**
+##
+## 예전에는 인자가 없으면 타임스탬프로 아이디를 지어냈다. 그래서 **모든 플레이어**의
+## 기록이 남고, 밤 종료 화면이 그 파일의 **절대 경로**를 찍었다 — 사용자 이름이 들어간
+## 홈 디렉터리 경로가 매일 밤 화면에 떴다. 방송이나 스크린샷에 그대로 나간다.
+##
+## 화면이 아니라 기록기가 알 일이라 여기 있다. `main/night_screen.gd`에 있을 때는
+## 「누가 기록되는가」가 오케스트레이터에 흩어져 있었다.
+static func tester_id_from_cmdline() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with(TESTER_ARG):
+			return arg.substr(TESTER_ARG.length())
+	return ""
+
+
 ## 계측기를 켠 사람만 기록한다. 아이디가 없으면 파일도 안 쓰고 경로도 안 돌려준다 —
 ## `night_report.night_detail` 이 빈 경로면 그 줄을 통째로 뺀다.
 func save() -> String:

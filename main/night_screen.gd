@@ -12,7 +12,6 @@ const DeathSequence := preload("res://ui/death_sequence.gd")
 
 const ITEMS_PATH := "res://data/items.json"
 const OBSERVATION_PATH := "res://data/observation.json"
-const TESTER_ARG := "--tester="
 const TITLE_SCENE := "res://main/title_screen.tscn"
 
 var _strings: Dictionary = {}
@@ -39,7 +38,7 @@ func _ready() -> void:
 	_strings = GameData.load_strings()
 	_balance = GameData.load_balance()
 	_juice = _balance.get("juice", {}) as Dictionary
-	_log = SessionLog.new(_tester_id(), bool(_balance.get("grace_on_first_trap", true)))
+	_log = SessionLog.new(SessionLog.tester_id_from_cmdline(), bool(_balance.get("grace_on_first_trap", true)))
 	_plan = NightPlan.load()
 	_patience = PatienceClock.from_balance(_balance)
 	_save = SaveGame.load_or_new()
@@ -53,19 +52,6 @@ func _t(key: String) -> String:
 
 func _j(key: String, fallback: float) -> float:
 	return float(_juice.get(key, fallback))
-
-
-## **`--tester=` 를 준 사람만 기록을 남긴다.**
-##
-## 예전에는 인자가 없으면 타임스탬프로 아이디를 지어냈다. 그래서 **모든 플레이어**의
-## 기록이 남고, 밤 종료 화면이 그 파일의 **절대 경로**를 찍었다 — 사용자 이름이 들어간
-## 홈 디렉터리 경로가 매일 밤 화면에 떴다. 방송이나 스크린샷에 그대로 나간다.
-## 플레이테스트 기록은 H1·H2 를 재는 계측기지 출시 기능이 아니다.
-static func _tester_id() -> String:
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with(TESTER_ARG):
-			return arg.substr(TESTER_ARG.length())
-	return ""
 
 
 func _build() -> void:
@@ -246,7 +232,13 @@ func _on_continue() -> void:
 
 func _finish_night() -> void:
 	if _session.is_failed():
+		# **연출이 도는 3~7초 동안 화면을 넘길 수 없어야 한다.** 결과 패널의 「다음 손님」이
+		# 그대로 살아 있어서 조급한 클릭 한 번에 연출이 처음으로 되감기고 밤 종료가 두 번 돌았다.
+		# `_judging`은 판정 흐름이 도는 중이라는 뜻이고, 사망 연출도 그 흐름의 일부다.
+		_judging = true
+		_view.result.hide_panel()
 		await _play_death()
+		_judging = false
 	_show_summary()
 
 
