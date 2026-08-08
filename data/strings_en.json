@@ -57,6 +57,7 @@
   "ui.serve": "SELL",
   "ui.refuse": "REFUSE",
   "ui.next": "Next customer",
+  "ui.shift_over": "End the shift",
   "ui.restart": "Start over",
   "ui.yes": "Yes",
   "ui.no": "No",

@@ -202,7 +202,10 @@ func _on_verdict(kind: String) -> void:
 	if not result.correct and result.missed_rule_ids.size() > 0:
 		await _replay_missed_clues(result)
 	_view.swap_to_result()
-	_view.result.show_result(result, _t("ui.next"))
+	# **마지막 손님 뒤에는 다음 손님이 없다.** 밤마다 마지막 판정에서 「다음 손님」이
+	# 떴고, 누르면 나오는 것은 손님이 아니라 밤 종료 화면이었다. 버튼이 거짓말을 했다.
+	var last := _session.index >= _session.total_customers() - 1
+	_view.result.show_result(result, _t("ui.shift_over" if last else "ui.next"))
 	_judging = false
 
 
