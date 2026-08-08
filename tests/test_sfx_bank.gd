@@ -5,7 +5,7 @@ extends RefCounted
 
 const SOUND_MAKERS := [
 	"click", "scan", "correct", "wrong", "paper",
-	"counter_tap", "pen_stroke", "door_bell", "death",
+	"counter_tap", "pen_stroke", "door_bell", "death", "shift_end",
 ]
 
 
@@ -16,6 +16,7 @@ func run(r: RefCounted) -> void:
 	_test_length_matches_duration(r)
 	_test_not_silent(r)
 	_test_ambience_loops_seamlessly(r)
+	_test_no_sound_escapes_the_list(r)
 
 
 func _all() -> Array[AudioStreamWAV]:
@@ -24,7 +25,7 @@ func _all() -> Array[AudioStreamWAV]:
 	return [
 		SfxBank.click(), SfxBank.scan(), SfxBank.correct(), SfxBank.wrong(),
 		SfxBank.paper(), SfxBank.counter_tap(), SfxBank.pen_stroke(),
-		SfxBank.door_bell(), SfxBank.death(),
+		SfxBank.door_bell(), SfxBank.death(), SfxBank.shift_end(),
 	]
 
 
@@ -72,3 +73,25 @@ func _test_ambience_loops_seamlessly(r: RefCounted) -> void:
 	var last := hum.decode_s16(hum.size() - 2)
 	r.check(absi(first - last) < 3000,
 		"루프 이음매의 진폭 차가 작다 (처음 %d, 끝 %d)" % [first, last])
+
+
+## **목록이 방어선이면 목록 자체를 지켜야 한다.**
+##
+## 위 검사들은 전부 `SOUND_MAKERS` 를 기준으로 돈다. 그래서 뱅크에 소리를 하나 더
+## 만들어놓고 목록에 안 넣으면 **그 소리는 아무 검사도 안 받는다** — 무음이어도,
+## 형식이 틀려도 통과한다. 나는 소리를 들을 수 없으므로 그걸 알아챌 방법이 없다.
+## 실제로 `shift_end` 를 추가하면서 이 구멍을 지나갈 뻔했다.
+##
+## 그래서 소스를 읽어 인자 없이 AudioStreamWAV 를 돌려주는 함수를 전부 찾아 대조한다.
+func _test_no_sound_escapes_the_list(r: RefCounted) -> void:
+	var source := FileAccess.get_file_as_string("res://systems/audio/sfx_bank.gd")
+	r.check(source != "", "sfx_bank.gd 를 읽을 수 있다")
+	for line in source.split("\n"):
+		if not line.begins_with("static func ") or not line.ends_with("() -> AudioStreamWAV:"):
+			continue
+		var name := line.substr("static func ".length())
+		name = name.substr(0, name.find("("))
+		if name.begins_with("_"):
+			continue
+		r.check(SOUND_MAKERS.has(name),
+			"SfxBank.%s() 가 검사 목록에 없다 — 무음이어도 아무도 모른다" % name)

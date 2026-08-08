@@ -256,6 +256,10 @@ func _play_death() -> void:
 
 
 func _show_summary() -> void:
+	# **넘긴 밤에도 소리가 나야 한다.** 예전에는 실패에만 사망음이 있고 성공은 무음이라,
+	# 못 했을 때만 소리가 나는 게임이었다. 실패한 밤은 이미 사망 연출이 소리를 가져갔다.
+	if not _session.is_failed():
+		_audio.play("shift_end")
 	_log.record_night_end(_session, (Time.get_ticks_msec() - _night_started_msec) / 1000.0)
 	var next_night := _session.night + 1
 	var has_next := _plan.has_night(next_night)

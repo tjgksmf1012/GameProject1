@@ -60,6 +60,17 @@ static func door_bell() -> AudioStreamWAV:
 		tone(2637.0, 0.42, 9.0, 0.0, false, 0.14))
 
 
+## **밤이 끝났다.** 문 종소리를 뒤집은 소리 — 같은 두 음인데 위가 아니라 아래로 간다.
+##
+## 성공 경로에 소리가 하나도 없었다. 실패하면 정적 뒤에 사망음이 오는데, 밤을 넘기면
+## 아무 일도 안 일어났다. **못 했을 때만 소리가 나는 게임**이었다.
+##
+## 손님마다 울리던 그 종을 낮게 되울린다. 같은 악기로 닫아야 「이 밤의 끝」으로 들린다.
+static func shift_end() -> AudioStreamWAV:
+	return _mix(tone(1046.0, 1.1, 3.2, 0.0, false, 0.20),
+		tone(784.0, 1.4, 2.6, 0.0, false, 0.16))
+
+
 ## 두 파형을 겹친다. 짧은 쪽은 끝나면 무음으로 둔다.
 static func _mix(a: AudioStreamWAV, b: AudioStreamWAV) -> AudioStreamWAV:
 	var data := a.data
