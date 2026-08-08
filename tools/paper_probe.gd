@@ -25,6 +25,9 @@ extends SceneTree
 ## 처음에 그렇게 짜서 13%가 나왔고 그건 버그가 아니라 정상이었다.
 ## 그래서 **같은 색 견본을 클립보드 자리에 덮어놓고** 잰다 — 자리는 진짜, 내용은 통제.
 
+
+## 도구 전용 세이브. 플레이 중인 회차와 같은 파일을 쓰면 스크린샷 한 장에 진행이 날아간다.
+const TOOL_SAVE_PATH := "user://tool_shots.save.json"
 const SCENE := "res://main/night_screen.tscn"
 ## 견본을 덮는 층. UI(0)보다 위, CRT(100)·그레인(101)보다 **아래**여야
 ## 재려는 효과가 견본 위에 그대로 얹힌다.
@@ -47,6 +50,8 @@ var _started: bool = false
 
 
 func _initialize() -> void:
+	# **진짜 세이브를 밟지 않는다.** 도구가 찍겠다고 회차를 날리면 안 된다.
+	SaveGame.use_path(TOOL_SAVE_PATH)
 	var save := SaveGame.new()
 	save.night = int(_arg("--night=", "7"))
 	save.store()

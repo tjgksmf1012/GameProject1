@@ -9,6 +9,25 @@ extends RefCounted
 ## 세이브 슬롯 다중화는 명시적으로 범위 밖이다 (03-PRD.md 5절). 하나면 충분하다.
 
 const SAVE_PATH := "user://nightshift.save.json"
+
+## **도구가 진짜 세이브를 밟지 않게 하는 우회로.**
+##
+## 촬영 도구는 특정 밤 화면을 찍으려고 세이브를 써야 한다 — 게임이 세이브가 가리키는
+## 밤부터 시작하기 때문이다. 그런데 그게 **진짜 세이브**였다. 스크린샷 한 장 찍을 때마다
+## 플레이 중인 회차가 날아갔다. 감사 에이전트들이 실제로 이걸 당했다 — 도구를 몇 번
+## 돌린 뒤 night 이 1에서 5로 바뀌어 있었다.
+##
+## 도구와 게임 장면이 **같은 프로세스**에서 도므로 정적 값 하나면 둘 다 따라온다.
+static var _override_path: String = ""
+
+
+## 도구가 자기 전용 세이브를 쓰겠다고 선언한다. 게임 코드는 아무것도 안 바꿔도 된다.
+static func use_path(new_path: String) -> void:
+	_override_path = new_path
+
+
+static func path() -> String:
+	return _override_path if not _override_path.is_empty() else SAVE_PATH
 const FIRST_NIGHT := 1
 
 var night: int = FIRST_NIGHT
@@ -34,7 +53,8 @@ var struck_rule_ids: PackedStringArray = []
 var grace_used: bool = false
 
 
-static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
+static func load_or_new(from: String = "") -> SaveGame:
+	var path := from if not from.is_empty() else SaveGame.path()
 	var save := SaveGame.new()
 	if not FileAccess.file_exists(path):
 		return save
@@ -50,7 +70,8 @@ static func load_or_new(path: String = SAVE_PATH) -> SaveGame:
 	return save
 
 
-func store(path: String = SAVE_PATH) -> bool:
+func store(to: String = "") -> bool:
+	var path := to if not to.is_empty() else SaveGame.path()
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("세이브를 쓸 수 없다: %s" % path)
@@ -109,6 +130,7 @@ func advance_to(next_night: int) -> void:
 	night = next_night
 
 
-static func erase(path: String = SAVE_PATH) -> void:
+static func erase(target: String = "") -> void:
+	var path := target if not target.is_empty() else SaveGame.path()
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
