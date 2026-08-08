@@ -68,6 +68,13 @@ func _ready() -> void:
 
 
 ## 무엇이 죽였는지로 연출을 고른다.
+## 판정 결과에서 바로. 결과가 없으면(첫 손님 전 등) 다가오는 쪽으로 둔다.
+static func kind_for_result(result: JudgeResult) -> String:
+	if result == null:
+		return KIND_APPROACH
+	return kind_for(result.trap_triggered, result.decisive_fields)
+
+
 static func kind_for(trapped: bool, decisive_fields: PackedStringArray) -> String:
 	if trapped:
 		return KIND_RULES

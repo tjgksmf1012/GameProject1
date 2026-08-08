@@ -9,13 +9,20 @@ const TRANS := Tween.TRANS_CUBIC
 
 ## 컨테이너가 위치를 관리하는 자식용. **position을 건드리면 레이아웃과 싸운다.**
 ## VBox/HBox 안의 노드는 반드시 이걸 쓴다 — rise_in을 쓰면 전부 같은 자리에 겹쳐 그려진다.
-static func fade_in(node: CanvasItem, duration: float, delay: float = 0.0) -> void:
+##
+## `to`가 있는 이유: 도착점이 1.0으로 박혀 있어서 **흐리게 남겨야 할 것까지 진하게 만들었다.**
+## 밤 7의 찢긴 자국이 그랬다 — `modulate.a = TORN_ALPHA`로 0.72를 넣어놓고 바로 이 함수를
+## 불렀고, 트윈이 1.0까지 올려버려 자국이 멀쩡한 수칙과 똑같은 농도로 그려졌다.
+## **일곱 밤 내내 참이던 줄이 뜯겨 나간 사건이 줄 하나 조용히 추가된 것과 구분되지 않았다.**
+static func fade_in(
+	node: CanvasItem, duration: float, delay: float = 0.0, to: float = 1.0
+) -> void:
 	node.modulate.a = 0.0
 	var tween := node.create_tween()
 	tween.set_ease(EASE).set_trans(TRANS)
 	if delay > 0.0:
 		tween.tween_interval(delay)
-	tween.tween_property(node, "modulate:a", 1.0, duration)
+	tween.tween_property(node, "modulate:a", to, duration)
 
 
 ## 아래에서 밀려 올라오며 나타난다. 컨테이너 밖에 있는 노드에만 쓴다.

@@ -67,7 +67,11 @@ func to_dictionary() -> Dictionary:
 
 
 ## 저장하고 사람이 열어볼 수 있는 절대 경로를 돌려준다.
+## 계측기를 켠 사람만 기록한다. 아이디가 없으면 파일도 안 쓰고 경로도 안 돌려준다 —
+## `night_report.night_detail` 이 빈 경로면 그 줄을 통째로 뺀다.
 func save() -> String:
+	if tester_id.is_empty():
+		return ""
 	DirAccess.make_dir_recursive_absolute(LOG_DIR)
 	var path := "%s/%s.json" % [LOG_DIR, tester_id]
 	var file := FileAccess.open(path, FileAccess.WRITE)

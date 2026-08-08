@@ -10,6 +10,7 @@ func run(r: RefCounted) -> void:
 	_test_judgment_entry(r)
 	_test_attempts(r)
 	_test_save_roundtrip(r)
+	_test_no_tester_writes_nothing(r)
 
 
 func _make_session() -> NightSession:
@@ -57,3 +58,26 @@ func _test_save_roundtrip(r: RefCounted) -> void:
 		r.equals((parsed as Dictionary)["tester_id"], TESTER, "테스터 id가 보존된다")
 		r.equals(((parsed as Dictionary)["entries"] as Array).size(), 2, "기록 두 건이 보존된다")
 	DirAccess.remove_absolute(stored)
+
+
+## **계측기를 안 켰으면 아무것도 안 남긴다.**
+##
+## 예전에는 `--tester=` 가 없으면 타임스탬프로 아이디를 지어냈다. 그래서 모든 플레이어의
+## 기록이 남았고, 더 나쁘게는 밤 종료 화면이 그 파일의 **절대 경로**를 찍었다 —
+## 사용자 이름이 들어간 홈 디렉터리 경로가 매일 밤 화면에 떴다. 방송에 그대로 나간다.
+func _test_no_tester_writes_nothing(r: RefCounted) -> void:
+	var log := SessionLog.new("", true)
+	r.equals(log.save(), "", "테스터 아이디가 없으면 기록을 쓰지 않고 빈 경로를 돌려준다")
+	# 그리고 빈 경로면 밤 종료 화면에서 그 줄이 통째로 빠진다.
+	var report := NightReport.new(GameData.load_strings())
+	var quiet := report.night_detail(5, 1, 2, "")
+	var loud := report.night_detail(5, 1, 2, "/home/somebody/playtest/x.json")
+	r.check(not quiet.contains("\n"), "경로가 없으면 요약이 한 줄이다")
+	r.check(loud.contains("/home/somebody"), "경로를 주면 그때만 찍힌다")
+
+	# **두 층을 다 막아야 한다.** SessionLog 만 막으면 화면 쪽에서 아이디를 지어내는 순간
+	# 다시 새어나온다. 값으로는 증명할 수 없어 구조를 본다 (test_night_plan 의 취소선 검사와 같은 수법).
+	var source := FileAccess.get_file_as_string("res://main/night_screen.gd")
+	r.check(source != "", "night_screen.gd 를 읽을 수 있다")
+	r.check(not source.contains("tester_%d"),
+		"night_screen 이 테스터 아이디를 스스로 지어낸다 — 모든 플레이어의 기록이 남는다")

@@ -69,3 +69,20 @@ func ending_detail(struck_count: int) -> String:
 		_t(KEY_ENDING_HANDOVER),
 		_t(KEY_ENDING_MARKS) % struck_count if struck_count > 0 else _t(KEY_ENDING_NO_MARKS),
 	]))
+
+
+## 밤 종료 화면에 들어갈 세 조각을 한 번에 만든다.
+##
+## 오케스트레이터에 흩어져 있었다. **이건 흐름이 아니라 판단이다** — 끝난 밤인가,
+## 마지막 밤인가, 몇 줄을 그어놨나. 노드가 필요 없으므로 여기서 헤드리스로 검증된다.
+## (`main/night_screen.gd`가 300줄 상한에 닿은 것도 이유다. CLAUDE.md 1.4)
+func summary(session: NightSession, has_next: bool, struck: int, log_path: String) -> Dictionary:
+	var cleared := not session.is_failed()
+	var ending := is_ending(cleared, has_next)
+	return {
+		"ending": ending,
+		"headline": headline(cleared, has_next, session.misjudge_count),
+		"detail": ending_detail(struck) if ending else night_detail(
+			session.correct_count, session.misjudge_count, session.trap_count, log_path),
+		"button": continue_label(cleared, has_next),
+	}

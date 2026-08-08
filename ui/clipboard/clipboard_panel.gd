@@ -126,7 +126,8 @@ func show_torn(rules: Array[Rule]) -> void:
 		row.add_child(label)
 		_list.add_child(row)
 		_torn[rule.id] = row
-		Juice.fade_in(row, RISE_DURATION)
+		# **TORN_ALPHA 로 도착해야 한다.** 1.0으로 올리면 위에서 준 0.72가 지워진다.
+		Juice.fade_in(row, RISE_DURATION, 0.0, TORN_ALPHA)
 
 
 ## 줄 순서를 원래 수칙 순서로 되돌린다.

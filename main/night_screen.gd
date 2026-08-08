@@ -55,11 +55,17 @@ func _j(key: String, fallback: float) -> float:
 	return float(_juice.get(key, fallback))
 
 
+## **`--tester=` 를 준 사람만 기록을 남긴다.**
+##
+## 예전에는 인자가 없으면 타임스탬프로 아이디를 지어냈다. 그래서 **모든 플레이어**의
+## 기록이 남고, 밤 종료 화면이 그 파일의 **절대 경로**를 찍었다 — 사용자 이름이 들어간
+## 홈 디렉터리 경로가 매일 밤 화면에 떴다. 방송이나 스크린샷에 그대로 나간다.
+## 플레이테스트 기록은 H1·H2 를 재는 계측기지 출시 기능이 아니다.
 static func _tester_id() -> String:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with(TESTER_ARG):
 			return arg.substr(TESTER_ARG.length())
-	return "tester_%d" % int(Time.get_unix_time_from_system())
+	return ""
 
 
 func _build() -> void:
@@ -102,6 +108,8 @@ func _update_safe_rect() -> void:
 
 func _start_night(night: int) -> void:
 	var engine := RuleEngine.new(GameData.load_rules())
+	# 사망 연출이 끈 환경음을 여기서 되살린다. 실패한 밤을 다시 할 때 무음이면 안 된다.
+	_audio.resume_ambience()
 	# 유예는 세이브가 들고 있다. 밤마다 새로 주면 「다음부터는 아니다」가 거짓말이 된다.
 	_session = NightSession.new(
 		engine, _plan.customers_for(night), _balance, night, _save.grace_used)
@@ -192,6 +200,10 @@ func _on_verdict(kind: String) -> void:
 	var result := _session.judge(Verdict.from_id(kind))
 	_last_result = result
 	_log.record_judgment(ctx, result, (Time.get_ticks_msec() - _shown_at_msec) / 1000.0)
+	# **유예는 쓰는 즉시 적는다.** 밤 끝까지 미뤘더니 그 사이에 창을 닫으면 되돌아왔고,
+	# 진행은 어차피 안 오르니 「다시 시작」보다 창을 닫는 쪽이 항상 이득이었다.
+	if _save.spend_grace(_session.grace_used):
+		_save.store()
 	_view.pos.lock()
 	_audio.play("correct" if result.correct else "wrong")
 	if not result.correct:
@@ -244,17 +256,11 @@ func _play_death() -> void:
 	_effects.set_tension(1.0)
 	_view.pos.visible = false
 	# 무엇이 죽였는지에 따라 다른 연출이 나온다. 같은 화면이 세 번 나오면 안 무섭다.
-	_death.play(_death_kind(), size)
+	_death.play(DeathSequence.kind_for_result(_last_result), size)
 	await get_tree().create_timer(DeathSequence.SILENCE_SECONDS).timeout
 	_audio.play("death")
 	await _death.finished
 	_death.clear()
-
-
-func _death_kind() -> String:
-	if _last_result == null:
-		return DeathSequence.KIND_APPROACH
-	return DeathSequence.kind_for(_last_result.trap_triggered, _last_result.decisive_fields)
 
 
 func _show_summary() -> void:
@@ -262,27 +268,18 @@ func _show_summary() -> void:
 	var next_night := _session.night + 1
 	var has_next := _plan.has_night(next_night)
 	var cleared := not _session.is_failed()
-	var grace_spent := _save.spend_grace(_session.grace_used)
 	# **실패한 밤은 진행이 오르지 않는다.** 같은 밤을 다시 한다 (F-06).
 	if cleared:
 		_save.advance_to(next_night if has_next else _session.night)
-	if cleared or grace_spent:
 		_save.store()
 
-	var report := NightReport.new(_strings)
-	var detail := report.ending_detail(_save.struck_rule_ids.size()) \
-		if NightReport.is_ending(cleared, has_next) \
-		else report.night_detail(
-			_session.correct_count, _session.misjudge_count,
-			_session.trap_count, _log.save())
+	var shown := NightReport.new(_strings).summary(
+		_session, has_next, _save.struck_rule_ids.size(), _log.save())
 	_view.swap_to_result()
-	_view.result.show_summary(
-		report.headline(cleared, has_next, _session.misjudge_count),
-		detail,
-		report.continue_label(cleared, has_next))
+	_view.result.show_summary(shown["headline"], shown["detail"], shown["button"])
 	_view.result.continued.disconnect(_on_continue)
 	_view.result.continued.connect(
-		_on_leave_store if NightReport.is_ending(cleared, has_next) else _on_restart)
+		_on_leave_store if bool(shown["ending"]) else _on_restart)
 
 
 ## 엔딩에서 「가게를 나선다」. **같은 밤을 다시 시작하면 끝난 게 아니게 된다.**

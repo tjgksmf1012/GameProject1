@@ -85,3 +85,16 @@ func set_tension(tension: float) -> void:
 func silence_ambience() -> void:
 	for name in _ambience:
 		(_ambience[name] as AudioStreamPlayer).stop()
+
+
+## **끈 것은 누군가 다시 켜야 한다.**
+##
+## 사망 연출이 환경음을 끄고 아무도 안 켰다. 밤을 실패하고 「다시 시작」을 누르면
+## 냉장고도 형광등도 빗소리도 없는 채로 그 밤을 통째로 다시 했고, 밤 화면에서
+## 제목으로 나가는 길이 없어 게임을 껐다 켜기 전에는 소리가 영영 안 돌아왔다.
+## **못 하는 플레이어일수록 오래 무음으로 논다** — 정확히 거꾸로다.
+func resume_ambience() -> void:
+	for name in _ambience:
+		var player := _ambience[name] as AudioStreamPlayer
+		if not player.playing:
+			player.play()
