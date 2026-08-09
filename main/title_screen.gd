@@ -10,6 +10,7 @@ extends Control
 ## 진행 상황이 남아 있으면 다음 사람은 3일째 밤부터 시작하게 된다.
 
 const ScreenEffects := preload("res://ui/screen_effects.gd")
+const WindowKeys := preload("res://main/window_keys.gd")
 const TitleView := preload("res://ui/title_view.gd")
 const AudioDeck := preload("res://ui/audio_deck.gd")
 const Palette := preload("res://ui/theme_factory.gd")
@@ -76,6 +77,11 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 아무 키나, 아무 버튼이나. 뗄 때가 아니라 누를 때 반응한다.
 static func _is_start_input(event: InputEvent) -> bool:
 	if event is InputEventKey:
+		# **F11·Alt+Enter·ESC는 밤을 시작하지 않는다.** 「아무 키나 눌러 시작」이라
+		# 전체화면을 켜려던 손가락이 게임을 시작해버린다. 자동 로드가 먼저 먹어주지도
+		# 않는다 — `_unhandled_input`은 트리 아래에서 위로 도는데 장면이 자동 로드보다 아래다.
+		if WindowKeys.decide(event, DisplayServer.window_get_mode()) != WindowKeys.STAY:
+			return false
 		return (event as InputEventKey).pressed and not (event as InputEventKey).echo
 	if event is InputEventMouseButton:
 		return (event as InputEventMouseButton).pressed

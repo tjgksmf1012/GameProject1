@@ -12,6 +12,7 @@ func run(r: RefCounted) -> void:
 	_test_grace_disabled(r)
 	_test_grace_does_not_come_back_next_night(r)
 	_test_save_carries_the_spent_grace(r)
+	_test_window_keys(r)
 
 
 func _make(balance_overrides: Dictionary = {}) -> NightSession:
@@ -126,3 +127,43 @@ func _test_save_carries_the_spent_grace(r: RefCounted) -> void:
 	r.check(fresh.store(path), "저장된다")
 	r.check(SaveGame.load_or_new(path).grace_used, "유예를 썼다는 사실이 밤을 넘어 남는다")
 	SaveGame.erase(path)
+
+
+## **전체화면은 스크린샷으로 확인할 수 없다.** xvfb 안에서는 창 모드가 바뀌어도
+## 찍히는 그림이 같다. 그래서 판단을 순수 함수로 빼두고 여기서 검증한다.
+##
+## 이 게임에는 옵션 화면이 없으므로 키가 곧 설정이고, 키를 잘못 묶으면 되돌릴 UI가 없다.
+func _test_window_keys(r: RefCounted) -> void:
+	const Keys := preload("res://main/window_keys.gd")
+	var windowed := DisplayServer.WINDOW_MODE_WINDOWED
+	var full := DisplayServer.WINDOW_MODE_FULLSCREEN
+
+	r.equals(Keys.decide(_key(KEY_F11), windowed), Keys.GO_FULLSCREEN, "F11로 전체화면")
+	r.equals(Keys.decide(_key(KEY_F11), full), Keys.GO_WINDOWED, "F11로 다시 창")
+	r.equals(Keys.decide(_key(KEY_ENTER, true), windowed), Keys.GO_FULLSCREEN, "Alt+Enter로 전체화면")
+	r.equals(Keys.decide(_key(KEY_ENTER), windowed), Keys.STAY, "Alt 없는 Enter는 창을 안 건드린다")
+	r.equals(Keys.decide(_key(KEY_ESCAPE), full), Keys.GO_WINDOWED, "ESC는 전체화면에서 빠져나온다")
+	# **밤 하나가 한 키에 날아가면 안 된다.** 이 게임은 중간 저장이 없다.
+	r.equals(Keys.decide(_key(KEY_ESCAPE), windowed), Keys.STAY,
+		"창 모드의 ESC는 아무 일도 하지 않는다 — 여기서 게임을 끄면 그 밤이 통째로 사라진다")
+
+	var released := _key(KEY_F11)
+	released.pressed = false
+	r.equals(Keys.decide(released, windowed), Keys.STAY, "뗄 때가 아니라 누를 때 반응한다")
+
+	# **제목 화면은 「아무 키나 눌러 시작」이다.** 그래서 창 키가 밤을 시작해버릴 수 있다.
+	# 자동 로드가 먼저 먹어주지 않는다 — `_unhandled_input`은 트리 아래에서 위로 도는데
+	# 장면이 자동 로드보다 아래에 있다. 제목이 직접 걸러야 한다.
+	const Title := preload("res://main/title_screen.gd")
+	r.check(Title._is_start_input(_key(KEY_SPACE)), "스페이스는 밤을 시작한다")
+	r.check(not Title._is_start_input(_key(KEY_F11)), "F11은 밤을 시작하지 않는다")
+	r.check(not Title._is_start_input(_key(KEY_ENTER, true)), "Alt+Enter도 시작하지 않는다")
+	r.check(Title._is_start_input(_key(KEY_ENTER)), "Alt 없는 Enter는 시작한다")
+
+
+static func _key(code: Key, alt: bool = false) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.pressed = true
+	event.alt_pressed = alt
+	return event

@@ -9,6 +9,12 @@ config/name="NIGHTSHIFT"
 run/main_scene="res://main/title_screen.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
+[autoload]
+
+; 창 키(F11 · Alt+Enter · ESC). 모든 장면에서 같이 동작해야 하므로 자동 로드다.
+; 텍스트 설정이라 에디터 없이 고칠 수 있다 (CLAUDE.md 1.2).
+WindowKeys="*res://main/window_keys.gd"
+
 [display]
 
 window/size/viewport_width=1280
