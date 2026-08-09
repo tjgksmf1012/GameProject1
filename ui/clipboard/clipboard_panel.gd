@@ -174,11 +174,9 @@ func _remove_absent(rules: Array[Rule]) -> void:
 		_shown_ids.remove_at(_shown_ids.find(id))
 
 
-## 새 줄은 항상 목록 맨 아래에 붙으므로 **끝까지 내린다.**
-##
-## `ensure_control_visible`을 먼저 썼는데 움직이지 않았다. 줄바꿈이 있는 라벨은
-## 한 프레임으로는 최종 높이가 안 나오고, 그 상태로 계산하면 이미 보이는 것으로 친다.
-## 두 프레임 기다린 뒤 스크롤 최대치로 보내는 쪽이 단순하고 확실하다.
+## 새 줄은 항상 목록 맨 아래에 붙으므로 **끝까지 내린다.** `ensure_control_visible`은
+## 여기서 안 움직인다 — 줄이 막 붙어 라벨 높이가 아직 안 나왔고, 그 상태로 계산하면
+## 이미 보이는 것으로 친다. 두 프레임 기다린 뒤 스크롤 최대치로 보내는 쪽이 확실하다.
 func _scroll_to_new_rule() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -192,6 +190,9 @@ func _make_row(rule: Rule) -> PanelContainer:
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", _row_style())
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
+	# 패드로도 그을 수 있어야 한다. 그리기는 밤 4(수칙 아홉 줄)부터 사실상 필수다.
+	row.focus_mode = Control.FOCUS_ALL
+	row.add_theme_stylebox_override("focus", Palette.focus_style(Palette.PAPER))
 	row.gui_input.connect(_on_row_input.bind(rule.id))
 	# 수칙은 **사람이 손으로 쓴 것**이다. 영수증·시계와 같은 목소리로 말하면 안 된다.
 	var label := Palette.make_label(
@@ -208,12 +209,10 @@ func _make_row(rule: Rule) -> PanelContainer:
 ## 밤 4에서 수칙이 아홉 줄이 된다. 어느 줄을 거짓으로 결론 냈는지 머리로 들고 있으라고 하면
 ## 그건 추론 게임이 아니라 기억력 게임이다.
 func _on_row_input(event: InputEvent, rule_id: String) -> void:
-	if not (event is InputEventMouseButton):
-		return
 	var click := event as InputEventMouseButton
-	if not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
-		return
-	strike_toggled.emit(rule_id)
+	var clicked := click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT
+	if clicked or event.is_action_pressed("ui_accept"):
+		strike_toggled.emit(rule_id)
 
 
 ## 밤을 새로 열 때는 이미 그어져 있던 줄을 **애니메이션 없이** 되살린다.

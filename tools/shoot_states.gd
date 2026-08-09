@@ -19,6 +19,8 @@ const SETTLE_FRAMES := 30
 const AFTER_FRAMES := 45
 ## 판정 → 리플레이 → 결과가 한 사이클이다. 한 프레임에 몰아 쏘면 흐름이 겹친다.
 const STEP_FRAMES := 250
+## `--verdict=none` — 판정을 쏘지 않고 계산대 화면 그대로 찍는다.
+const NO_VERDICT := "none"
 
 var _after_frames: int = AFTER_FRAMES
 
@@ -125,6 +127,14 @@ func _fire() -> void:
 		_fired = true
 		_fire_frame = _frames
 		print("압박 단계 %d 를 그린다" % _pressure_stage)
+		return
+	# **판정 전 화면을 찍는 길.** 이 도구는 늘 판정을 쏘고 나서야 찍었는데, 그러면
+	# POS 는 잠기고 버튼은 비활성이라 **계산대 자체를 볼 수가 없다.** 포커스 테두리처럼
+	# 판정 전에만 존재하는 것은 확인할 방법이 없었다.
+	if _verdict == NO_VERDICT:
+		_fired = true
+		_fire_frame = _frames
+		print("손님 %d 를 판정 없이 찍는다" % _target_index)
 		return
 	pos.verdict_chosen.emit(_verdict)
 	_fired = true

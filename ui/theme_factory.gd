@@ -148,6 +148,16 @@ static func panel_style(fill: Color, edge: Color, radius: int = 2) -> StyleBoxFl
 
 
 ## 버튼 하나를 통째로 스타일링한다. 상태별 스타일박스를 전부 넣어야 눌린 느낌이 산다.
+## 포커스 테두리. 상태 스타일 **위에** 겹쳐 그려지므로 배경은 투명하게 두고 선만 그린다.
+static func focus_style(tint: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.draw_center = false
+	box.border_color = ACCENT
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(2)
+	return box
+
+
 static func style_button(button: Button, tint: Color, text_color: Color) -> void:
 	button.add_theme_font_override("font", font())
 	button.add_theme_font_size_override("font_size", SIZE_BODY)
@@ -159,6 +169,10 @@ static func style_button(button: Button, tint: Color, text_color: Color) -> void
 	button.add_theme_stylebox_override("hover", panel_style(tint.lightened(0.12), tint.lightened(0.35)))
 	button.add_theme_stylebox_override("pressed", panel_style(tint.darkened(0.25), tint))
 	button.add_theme_stylebox_override("disabled", panel_style(PANEL, PANEL_EDGE))
+	# **포커스는 유일하게 스타일이 없던 상태였다.** 나머지를 전부 덮어써 놓아서 기본 테마의
+	# 포커스 테두리가 이 어두운 패널 위에서 보이지 않았다 — 키보드나 패드로 옮겨 다니면
+	# **지금 어디에 있는지 화면에 안 나온다.** 스팀덱은 패드가 기본 입력이다.
+	button.add_theme_stylebox_override("focus", focus_style(tint))
 
 
 ## `role`을 안 넘기면 기본 목소리다. 기존 호출을 하나도 안 고쳐도 되도록 기본값을 둔다.

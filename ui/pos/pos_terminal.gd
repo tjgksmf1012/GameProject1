@@ -112,6 +112,16 @@ func present(customer: Customer) -> void:
 	_locked = false
 	_rebuild_scan_buttons()
 	_refresh()
+	# **패드·키보드에는 출발점이 필요하다.** 아무것도 포커스를 안 잡고 있으면 방향키를
+	# 눌러도 아무 일이 없고, 플레이어는 조작이 안 되는 줄 안다. 마우스는 영향 없다.
+	_first_focus().grab_focus()
+
+
+## 이 손님에게 처음 손이 갈 곳. 찍을 것이 있으면 첫 품목, 없으면 거부(항상 누를 수 있다).
+func _first_focus() -> Button:
+	if _scan_row.get_child_count() > 0:
+		return _scan_row.get_child(0) as Button
+	return _refuse_button
 
 
 func lock() -> void:
@@ -125,6 +135,10 @@ func is_locked() -> bool:
 
 func _rebuild_scan_buttons() -> void:
 	for child in _scan_row.get_children():
+		# **트리에서 먼저 빼야 한다.** `queue_free()`만 하면 이번 프레임 끝까지 자식으로 남아
+		# 바로 뒤의 `get_child(0)`이 **곧 사라질 버튼**을 돌려준다. 거기에 포커스를 줘봐야
+		# 그 버튼과 함께 사라져서, 패드로는 출발점이 아예 안 잡혔다.
+		_scan_row.remove_child(child)
 		child.queue_free()
 	for key in _pending:
 		var button := _make_button(_t(key), Palette.PANEL_EDGE, Palette.TEXT)
