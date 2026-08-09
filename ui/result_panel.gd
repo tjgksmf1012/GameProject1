@@ -117,6 +117,10 @@ func _reveal(button_text: String) -> void:
 		0, HEIGHT_EXPLAINED if _detail.text != "" else HEIGHT_BRIEF)
 	# 새 결과는 항상 맨 위부터 읽는다. 앞 손님에서 내려둔 스크롤이 남아 있으면 안 된다.
 	_detail_scroll.scroll_vertical = 0
+	# **패드 루프를 닫는다.** 판정하면 POS가 숨겨지고 그 위에 있던 포커스도 같이 사라진다.
+	# 여기서 안 잡아주면 화면에 누를 수 있는 것이 이 버튼 하나뿐인데 아무것도 선택돼 있지
+	# 않아, 패드 플레이어는 첫 판정에서 멈춘다.
+	_button.grab_focus()
 	_fit_wanted = 0.0
 	_fit_frames = FIT_FRAMES if _detail.text != "" else 0
 	set_process(_fit_frames > 0)
