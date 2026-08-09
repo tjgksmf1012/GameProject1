@@ -192,11 +192,16 @@ func _assert_layout() -> int:
 		print("배치 상자를 못 찾았다 — 화면 구조가 바뀌었다")
 		return 1
 	var bottom := box.global_position.y + box.size.y
-	if bottom <= root.size.y:
-		print("배치 정상 — 바닥 %.0f ≤ 화면 %d" % [bottom, root.size.y])
+	# **캔버스 높이와 비교해야 한다.** `root.size.y`는 실제 창 크기라 stretch가 걸리면
+	# 배치 좌표와 다른 공간의 값이다. 1080 창에서 재보면 root.size.y=1080, 캔버스=720 —
+	# 그 상태로는 692 ≤ 1080 이 되어 **어떤 넘침도 통과한다.** 720에서만 우연히 맞았다.
+	# 검사가 조용히 일을 그만두는 것이 이 프로젝트에서 반복해서 나온 실패 방식이다.
+	var screen := root.get_visible_rect().size.y
+	if bottom <= screen:
+		print("배치 정상 — 바닥 %.0f ≤ 화면 %.0f" % [bottom, screen])
 		return 0
-	print("배치 넘침 — 바닥 %.0f > 화면 %d (%.0fpx 잘렸다). 버튼을 누를 수 없다"
-		% [bottom, root.size.y, bottom - root.size.y])
+	print("배치 넘침 — 바닥 %.0f > 화면 %.0f (%.0fpx 잘렸다). 버튼을 누를 수 없다"
+		% [bottom, screen, bottom - screen])
 	return 1
 
 
