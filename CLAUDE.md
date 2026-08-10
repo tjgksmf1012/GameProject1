@@ -96,6 +96,29 @@ res://
 3. **시각 변경은 반드시 찍어서 확인한 뒤에 완료라고 말한다.** 추측 금지.
    레이아웃은 특히 위험하다 — M1에서 컨테이너 자식에 position 트윈을 걸어 수칙 4줄이
    한 자리에 겹쳐 그려진 적이 있다. 테스트로는 절대 안 잡힌다.
+   ```bash
+   xvfb-run -a godot --script res://tools/shoot_states.gd -- --out=/tmp/r.png \
+     --verdict=none --night=4 --index=1 --assert-layout=1   # 판정 전 계산대
+   ```
+   `--verdict=none`이 없으면 늘 판정 뒤만 찍힌다. 그때 POS는 잠겨 있어 **계산대 자체를
+   못 본다** — 포커스 테두리처럼 판정 전에만 있는 것은 확인할 방법이 없다.
+4. **화면이 아니라 엔진에 물어야 하는 것이 있다.** 전체화면·포커스는 xvfb 스크린샷에
+   안 나오거나 거짓으로 나온다. 포커스를 붙였는데 테두리가 안 보였을 때 「xvfb라서
+   그렇겠지」로 넘겼으면 **포커스가 아예 안 잡히는 채로** 남았을 것이다.
+   `gui_get_focus_owner()`가 null이었고 원인은 `queue_free()` 경쟁이었다.
+   **안 보이는 것을 「환경 탓」으로 넘기기 전에 엔진에 직접 물어라.**
+5. **밤 하나만 보는 검사는 밤 사이의 결함을 못 본다.** 이걸로 세 번 당했다.
+   ```bash
+   godot --headless --script res://tools/run_audit.gd     # 7박을 이어서 (회차 불변식)
+   godot --headless --script res://tools/solver_audit.gd  # 밤 단위 (고정 독법 만점)
+   godot --headless --script res://tools/hook_density.gd  # 손님이 판단인가 조회인가
+   godot --headless --script res://tools/slot_probe.gd -- --night=N  # 자리별 후보 전개
+   ```
+   유예가 밤마다 새로 생기던 것도, 클립보드를 한 줄도 안 읽고 7박을 통과하던 것도
+   **회차로 봐야만 보였다.** 밤 단위 검사 12,000개가 그 동안 전부 통과하고 있었다.
+6. **임계를 100%에 두지 마라.** 이 프로젝트에서 세 번 같은 실수를 했다 —
+   훅 밀도 정의, 고정 독법 「만점」 검사, 불변식 2f. **만점이 아니어도 이긴다.**
+   물어야 할 것은 「완벽한가」가 아니라 **「이걸로 통과하는가」**다.
 
 ---
 
