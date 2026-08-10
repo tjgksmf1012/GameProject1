@@ -25,6 +25,8 @@ const DIM_ALPHA := 0.32
 const TORN_ALPHA := 0.72
 
 signal rule_added
+## 찢긴 자국이 **새로** 생겼다. 밤 7의 사건이고, 소리가 붙어야 사건으로 읽힌다.
+signal rule_torn
 ## 플레이어가 수칙 하나를 그었다/지웠다. **믿음일 뿐이고 판정에는 영향이 없다.**
 signal strike_toggled(rule_id: String)
 
@@ -107,10 +109,8 @@ func show_rules(rules: Array[Rule], reveal: bool = false) -> void:
 		_scroll_to_new_rule()
 
 
-## 찢겨 나간 줄 자리에 **자국을 남긴다** (밤 7).
-##
-## 그냥 사라지게 두면 플레이어는 아무것도 못 본다. 처음 배운 수칙이 조용히 없어지고
-## 그걸 모른 채 판정하면 그건 퍼즐이 아니라 함정이다. 찢긴 자리가 보여야 공정하다.
+## 찢겨 나간 줄 자리에 **자국을 남긴다** (밤 7). 그냥 사라지게 두면 처음 배운 수칙이
+## 조용히 없어지고, 그걸 모른 채 판정하면 퍼즐이 아니라 함정이다.
 ##
 ## 자국은 `_shown_ids`에 넣지 않는다 — 그건 **지금 유효한 수칙** 목록이고,
 ## 화면과 엔진이 같은 것을 본다는 검사(tests/test_clipboard.gd)의 기준이기 때문이다.
@@ -130,6 +130,7 @@ func show_torn(rules: Array[Rule]) -> void:
 		_torn[rule.id] = row
 		# **TORN_ALPHA 로 도착해야 한다.** 1.0으로 올리면 위에서 준 0.72가 지워진다.
 		Juice.fade_in(row, RISE_DURATION, 0.0, TORN_ALPHA)
+		rule_torn.emit()
 
 
 ## 줄 순서를 원래 수칙 순서로 되돌린다.
@@ -205,9 +206,8 @@ func _make_row(rule: Rule) -> PanelContainer:
 	return row
 
 
-## 클릭하면 긋고, 다시 클릭하면 지운다. **표시일 뿐 판정은 바뀌지 않는다.**
-## 밤 4에서 수칙이 아홉 줄이 된다. 어느 줄을 거짓으로 결론 냈는지 머리로 들고 있으라고 하면
-## 그건 추론 게임이 아니라 기억력 게임이다.
+## 클릭·ui_accept 로 긋고 다시 눌러 지운다. **표시일 뿐 판정은 바뀌지 않는다.**
+## 없으면 밤 4(수칙 아홉 줄)부터 추론이 아니라 기억력 게임이 된다.
 func _on_row_input(event: InputEvent, rule_id: String) -> void:
 	var click := event as InputEventMouseButton
 	var clicked := click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT

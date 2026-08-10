@@ -71,6 +71,7 @@ func _build() -> void:
 	_view.pos.item_scanned.connect(_audio.play.bind("scan"))
 	_view.pos.id_checked.connect(_audio.play.bind("click"))
 	_view.clipboard.rule_added.connect(_audio.play.bind("paper"))
+	_view.clipboard.rule_torn.connect(_audio.play.bind("tear"))
 	_view.clipboard.strike_toggled.connect(_on_strike_toggled)
 	_view.result.continued.connect(_on_continue)
 
@@ -202,8 +203,7 @@ func _on_verdict(kind: String) -> void:
 	if not result.correct and result.missed_rule_ids.size() > 0:
 		await _replay_missed_clues(result)
 	_view.swap_to_result()
-	# **마지막 손님 뒤에는 다음 손님이 없다.** 밤마다 마지막 판정에서 「다음 손님」이
-	# 떴고, 누르면 나오는 것은 손님이 아니라 밤 종료 화면이었다. 버튼이 거짓말을 했다.
+	# **마지막 손님 뒤에는 다음 손님이 없다.** 누르면 나오는 것은 밤 종료 화면이다.
 	var last := _session.index >= _session.total_customers() - 1
 	_view.result.show_result(result, _t("ui.shift_over" if last else "ui.next"))
 	_judging = false

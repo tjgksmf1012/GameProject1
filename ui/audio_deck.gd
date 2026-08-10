@@ -40,6 +40,7 @@ func _build_sfx() -> void:
 		"pen": SfxBank.pen_stroke,
 		"death": SfxBank.death,
 		"shift_end": SfxBank.shift_end,
+		"tear": SfxBank.tear,
 	}
 	for name in makers:
 		_sfx[name] = _make_player((makers[name] as Callable).call(), 0.0, false)

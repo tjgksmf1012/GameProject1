@@ -5,7 +5,7 @@ extends RefCounted
 
 const SOUND_MAKERS := [
 	"click", "scan", "correct", "wrong", "paper",
-	"counter_tap", "pen_stroke", "door_bell", "death", "shift_end",
+	"counter_tap", "pen_stroke", "door_bell", "death", "shift_end", "tear",
 ]
 
 
@@ -25,7 +25,7 @@ func _all() -> Array[AudioStreamWAV]:
 	return [
 		SfxBank.click(), SfxBank.scan(), SfxBank.correct(), SfxBank.wrong(),
 		SfxBank.paper(), SfxBank.counter_tap(), SfxBank.pen_stroke(),
-		SfxBank.door_bell(), SfxBank.death(), SfxBank.shift_end(),
+		SfxBank.door_bell(), SfxBank.death(), SfxBank.shift_end(), SfxBank.tear(),
 	]
 
 
