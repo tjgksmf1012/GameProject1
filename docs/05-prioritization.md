@@ -33,12 +33,20 @@
 
 | 층 | 명령 | 무엇을 보는가 |
 |---|---|---|
-| 단위 검사 | `godot --headless --script res://tests/run_tests.gd` | 논리·불변식 (12,442개) |
+| 단위 검사 | `godot --headless --script res://tests/run_tests.gd` | 논리·불변식 (13,898개) |
 | 밤 감사 | `tools/solver_audit.gd` | 한 밤이 한 독법으로 만점이 나는가 |
 | 회차 감사 | `tools/run_audit.gd` | **밤 사이**의 상태, 독법이 7박을 통과하는가 |
 | 훅 밀도 | `tools/hook_density.gd` | 손님이 판단인가 조회인가 |
 | 종이 대비 | `tools/paper_probe.gd` | 실제 프레임버퍼에서 단서가 살아 있는가 |
 | 배치 | `tools/shoot_states.gd --assert-layout=1` | 화면 밖으로 넘치는가 |
+| 읽기 부담 | `tools/reading_load.gd` | 인내 안에 다 읽히는가 (익힘 줄이 1.0 미만인가) |
+
+**클립보드 메모** (`data/rules/notes.json`, `kind: "note"`) — 이야기를 나르는 일곱 줄이
+수칙과 **같은 종이**에 붙는다. 판정에는 한 표도 행사하지 않는다: `RuleEngine`이 들어오는
+문에서 목록을 갈라 놓아, 판정 경로 어디에서도 메모를 볼 수 없다. 조건이 빈 줄은
+`matches()`가 공허참이라 **모든 손님에게 발동하므로** 「빼는 것을 잊는」 실패가 조용하고
+치명적이다 — `tests/test_notes.gd`가 물어뜯는 메모를 일부러 만들어 먹여서 확인한다
+(갈림을 끊으면 검사 479개가 떨어진다. 확인함).
 
 **남은 것은 전부 사람이나 돈이 필요하다** — H1·H2 5인 플레이테스트, M2 30초 이해 테스트,
 폰트 파일(라이선스 확인 후 `res://fonts/`), Steam Direct $100 + W-8BEN, 스토어 페이지·트레일러.

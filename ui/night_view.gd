@@ -139,6 +139,7 @@ func refresh_clipboard(
 ) -> void:
 	var visible := engine.visible_rules(night, minutes)
 	clipboard.show_rules(visible, reveal_new)
+	clipboard.show_notes(engine.visible_notes(night, minutes), night, reveal_new)
 	clipboard.show_torn(_torn_rules(engine, night, minutes))
 	clipboard.apply_night(visible, night)
 	clipboard.set_struck(struck)
@@ -146,17 +147,18 @@ func refresh_clipboard(
 
 
 ## 수칙이 정의된 순서. 클립보드는 늘 이 순서로 읽혀야 한다 — 찢긴 자국까지 포함해서.
+## **메모는 수칙 전부 뒤에 온다.** 사이에 끼면 지켜야 할 줄로 읽힌다.
 static func _canonical_order(engine: RuleEngine) -> PackedStringArray:
 	var out := PackedStringArray()
-	for rule in engine.rules():
+	for rule in engine.rules() + engine.notes():
 		out.append(rule.id)
 	return out
 
 
-## 이 시점에 이미 찢겨 나간 수칙들. 클립보드가 그 자리에 자국을 남긴다 (밤 7).
+## 이 시점에 이미 찢겨 나간 줄들. 클립보드가 그 자리에 자국을 남긴다 (밤 6·7).
 static func _torn_rules(engine: RuleEngine, night: int, minutes: int) -> Array[Rule]:
 	var out: Array[Rule] = []
-	for rule in engine.rules():
+	for rule in engine.rules() + engine.notes():
 		if rule.introduced_night <= night and rule.was_removed_by(night, minutes):
 			out.append(rule)
 	return out

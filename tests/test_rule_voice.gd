@@ -34,6 +34,9 @@ func run(r: RefCounted) -> void:
 func _check_locale(r: RefCounted, locale: String) -> void:
 	var strings := GameData.load_strings(locale)
 	for rule in GameData.load_rules():
+		# 메모는 문체 규약 밖이다. 이유를 대는가는 **진위의 단서**인데 메모에는 진위가 없다.
+		if rule.is_note():
+			continue
 		var text := str(strings.get(rule.text_key, ""))
 		r.check(text != "", "[%s] 수칙 %s의 문구가 있다" % [locale, rule.id])
 		if text == "":

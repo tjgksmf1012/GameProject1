@@ -17,14 +17,39 @@ const DEFAULT_VERDICT := Verdict.SERVE
 const CLUE_NO_RULE_APPLIED := "clue.no_rule_applied"
 
 var _rules: Array[Rule] = []
+var _notes: Array[Rule] = []
 
 
+## **메모는 들어오는 문에서 갈라진다.**
+##
+## 「판정할 때 메모를 빼자」로 만들면 빼는 것을 잊은 경로가 하나만 있어도 메모가
+## 손님을 죽인다. 조건이 빈 메모는 `matches()`가 공허참이라 **모든 손님에게 발동한다** —
+## 가장 조용하고 가장 나쁜 실패다. 그래서 목록 자체를 나눈다. 아래 어떤 함수도
+## 메모를 볼 수 없고, 나중에 판정 경로를 하나 더 만들어도 마찬가지다.
 func _init(p_rules: Array[Rule] = []) -> void:
-	_rules = p_rules
+	for rule in p_rules:
+		if rule.is_note():
+			_notes.append(rule)
+		else:
+			_rules.append(rule)
 
 
 func rules() -> Array[Rule]:
 	return _rules
+
+
+func notes() -> Array[Rule]:
+	return _notes
+
+
+## 지금 클립보드에 붙어 있는 메모. 수칙과 **같은 도착·찢김 규칙**을 탄다 —
+## 밤 5의 메모는 근무 중에 붙고, 밤 6에는 하나가 찢겨 나간다.
+func visible_notes(night: int, shift_minutes: int = Rule.ANY_TIME) -> Array[Rule]:
+	var out: Array[Rule] = []
+	for note in _notes:
+		if note.is_active_at(night, shift_minutes):
+			out.append(note)
+	return out
 
 
 ## 감사와 테스트가 훑어야 할 **시각 표본.** 수칙이 시간 문턱을 하나 늘리면 여기가 따라간다.

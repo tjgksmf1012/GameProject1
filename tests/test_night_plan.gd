@@ -166,6 +166,9 @@ func _test_new_rule_matters_on_its_debut_night(r: RefCounted) -> void:
 	var all_rules := GameData.load_rules()
 	var plan := NightPlan.load()
 	for rule in all_rules:
+		# 메모는 아무것도 결정하지 않는 것이 **설계**다. 여기 걸리면 안 된다.
+		if rule.is_note():
+			continue
 		if plan.has_night(rule.introduced_night) and rule.veracity != Rule.VERACITY_FALSE:
 			r.check(_decides_something(all_rules, plan, rule, rule.introduced_night),
 				"%s는 도입된 %d일째 밤에 아무 판정도 결정하지 않는다 — 읽을 이유가 없는 줄이다"

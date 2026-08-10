@@ -97,7 +97,8 @@ func _test_shows_everything_on_screen(r: RefCounted) -> void:
 func _test_hides_rules_not_yet_posted(r: RefCounted) -> void:
 	var late: Rule = null
 	for rule in GameData.load_rules():
-		if rule.arrives_mid_shift():
+		# 메모는 스냅샷에 id가 없으므로 `contains(id)`가 공짜로 통과한다. 검사가 아니게 된다.
+		if rule.arrives_mid_shift() and not rule.is_note():
 			late = rule
 			break
 	r.check(late != null, "근무 중에 붙는 수칙이 있어야 이 검사가 의미를 가진다")
@@ -119,7 +120,7 @@ func _test_hides_rules_not_yet_posted(r: RefCounted) -> void:
 func _test_shows_torn_gap(r: RefCounted) -> void:
 	var torn: Rule = null
 	for rule in GameData.load_rules():
-		if rule.removed_night != Rule.NO_REMOVAL:
+		if rule.removed_night != Rule.NO_REMOVAL and not rule.is_note():
 			torn = rule
 			break
 	r.check(torn != null, "찢겨 나가는 수칙이 있어야 이 검사가 의미를 가진다")

@@ -1,0 +1,67 @@
+{
+  "_comment": "클립보드 메모. **판정에 참여하지 않는 줄이다** (kind: note). RuleEngine이 아예 다른 목록에 넣으므로 정답에 한 표도 행사하지 않는다.",
+  "_comment_why": "이야기를 나르려고 새 화면이나 컷신을 만들지 않는다. 종이는 이미 필체·전환·도착·찢김을 말할 줄 안다 — 이야기도 같은 문법으로 말하면 기제와 이야기가 한 몸이 된다. 파일 이름이 night_* 뒤로 정렬되므로 클립보드에서도 수칙 아래에 온다.",
+  "_comment_voice": "메모는 **명령하지 않는다.** 조건도 지시도 없고 사실만 적는다. 명령형이 하나라도 섞이면 플레이어는 그걸 지키려 들고, 지킬 수 없는 줄을 지키려는 순간 종이가 거짓말을 한 셈이 된다. tests/test_notes.gd가 이걸 검사한다.",
+  "_comment_arc": "회수하는 사실은 하나다 — **나중 수칙을 누가 쓰는가.** 밤 1~3은 점장 필체, 밤 4부터 남의 필체. 밤 3의 메모(내 글씨가 아닌 줄이 늘었다)가 밤 6 03:00에 찢겨 나가고, 밤 7 03:00에 첫 수칙이 찢길 때 마지막 메모가 같은 자리에 붙는다. 같은 시각에 한 밤 차이로 두 번 — 앞의 것이 뒤의 것을 예고한다.",
+  "rules": [
+    {
+      "id": "note_handover",
+      "kind": "note",
+      "text_key": "note.handover",
+      "introduced_night": 1,
+      "hand": "manager"
+    },
+    {
+      "id": "note_eleven_years",
+      "kind": "note",
+      "text_key": "note.eleven_years",
+      "introduced_night": 2,
+      "hand": "manager"
+    },
+    {
+      "id": "note_not_my_hand",
+      "kind": "note",
+      "text_key": "note.not_my_hand",
+      "introduced_night": 3,
+      "arrives_at_minute": 360,
+      "_comment_arrives": "04:00에 붙는다. **읽기 부담 때문이다** — 밤 3은 수칙이 둘 늘어 익힌 플레이어의 읽기량이 이미 그 밤 최대이고(tools/reading_load.gd), 여기에 메모를 밤 내내 얹었더니 익힘 줄이 인내 대비 0.91에서 1.08로 올라갔다. 다 읽기 전에 손님이 떠난다는 뜻이다. 늦게 붙이면 마지막 손님 둘만 읽으므로 평균이 내려간다. 그리고 허구상으로도 이쪽이 맞다 — 남의 글씨를 알아차리는 것은 밤이 깊은 뒤다.",
+      "hand": "manager",
+      "removed_night": 6,
+      "removed_at_minute": 360,
+      "_comment_removed": "점장이 침입을 이름 붙인 유일한 줄이고, 그래서 이 줄이 없어진다. 시각을 도착과 **똑같은 04:00**으로 맞췄다 — 밤 6에는 이 줄이 써질 자리에 써지는 대신 찢긴 자국이 생긴다. 03:00으로 뒀더니 그 밤에 한 번도 보인 적 없는 줄의 자국이 먼저 뜨는 꼴이었다. 밤 7의 첫 수칙 찢김을 한 밤 먼저 예고한다 — 마지막 밤의 사건이 처음 일어나는 일이 아니게 만든다."
+    },
+    {
+      "id": "note_he_stopped_coming",
+      "kind": "note",
+      "text_key": "note.he_stopped_coming",
+      "introduced_night": 4,
+      "hand": "later",
+      "_comment_hand": "필체가 여기서 넘어간다. 밤 4는 수칙이 아홉 줄이 되는 밤이라 플레이어가 이미 종이를 세밀히 보고 있다 — 그때 메모의 종이가 바뀐다."
+    },
+    {
+      "id": "note_writing_now",
+      "kind": "note",
+      "text_key": "note.writing_now",
+      "introduced_night": 5,
+      "arrives_at_minute": 240,
+      "hand": "later",
+      "_comment_arrives": "밤 5의 수칙이 붙는 것과 **같은 02:00**에 붙는다. 근무 중에 수칙이 늘어나는 이 게임의 기제를 메모가 그 순간 설명한다 — 설명이 사건과 동시에 일어나야 설명이 아니라 사건이 된다."
+    },
+    {
+      "id": "note_before_you",
+      "kind": "note",
+      "text_key": "note.before_you",
+      "introduced_night": 6,
+      "hand": "later"
+    },
+    {
+      "id": "note_i_took_it",
+      "kind": "note",
+      "text_key": "note.i_took_it",
+      "introduced_night": 7,
+      "arrives_at_minute": 300,
+      "hand": "later",
+      "_comment_arrives": "밤 7 03:00 — **첫 수칙이 찢겨 나가는 바로 그 시각.** 찢긴 자국 옆에 붙는다. 기제상으로는 아무것도 안 하지만, 그 밤의 사건에 목소리를 붙인다."
+    }
+  ]
+}

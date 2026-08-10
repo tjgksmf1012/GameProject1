@@ -35,11 +35,16 @@ func run(r: RefCounted) -> void:
 	_invariant_2g_patience_must_not_solve_it(r)
 
 
-## 그 밤에 클립보드에 붙어 있는 수칙.
+## 그 밤에 클립보드에 붙어 있는 수칙. **메모는 뺀다.**
+##
+## 메모에는 진위가 없다. 채널 불변식이 세는 것은 「이 채널로 참·거짓이 갈리는가」인데,
+## 갈릴 진위가 없는 줄을 참 쪽에 세우면 채널이 실제보다 결정적으로 보인다.
+## 실제로 그렇게 됐다 — 메모를 넣자마자 2d·2e가 「점장 필체는 전부 참」으로 떨어졌다.
+## 화면에서는 메모도 같은 종이지만, **플레이어가 그 줄로 판정할 수는 없다.**
 func _active(night: int) -> Array[Rule]:
 	var out: Array[Rule] = []
 	for rule in _rules:
-		if rule.is_active_at(night):
+		if rule.is_active_at(night) and not rule.is_note():
 			out.append(rule)
 	return out
 

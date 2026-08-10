@@ -13,6 +13,18 @@ const VERACITY_TRUE := "true"
 const VERACITY_FALSE := "false"
 const VERACITY_DECAYING := "decaying"
 
+## 클립보드에 붙지만 **판정에 참여하지 않는 줄.**
+##
+## 이야기를 나르려고 새 화면이나 새 시스템을 만들지 않는다. 종이가 이미
+## 필체·전환·도착·찢김을 전부 말할 줄 알기 때문에, 이야기도 같은 문법으로 말한다.
+## 메모는 `veracity`가 없으므로 채널 불변식(2c·2d·2e)에서 자동으로 빠지고,
+## 정답에는 한 표도 행사하지 않는다 — `RuleEngine`이 아예 다른 목록에 넣는다.
+##
+## **메모는 명령하지 않는다.** 조건도 지시도 없는 문장만 쓴다. 명령형이 하나라도
+## 섞이면 플레이어는 그걸 지키려 들고, 지킬 수 없는 줄을 지키려는 순간 게임이 불공정해진다.
+const KIND_RULE := "rule"
+const KIND_NOTE := "note"
+
 const NO_DECAY := -1
 const NO_REMOVAL := -1
 ## `is_active_at`에 시각을 안 넘겼다는 표시. "밤 전체" 관점을 뜻한다.
@@ -26,6 +38,7 @@ const HAND_LATER := "later"
 
 var id: String = ""
 var text_key: String = ""
+var kind: String = KIND_RULE
 var veracity: String = VERACITY_TRUE
 var conditions: Array[Condition] = []
 var required_verdict: String = Verdict.SERVE
@@ -54,6 +67,7 @@ static func from_dict(d: Dictionary) -> Rule:
 	var r := Rule.new()
 	r.id = str(d.get("id", ""))
 	r.text_key = str(d.get("text_key", ""))
+	r.kind = str(d.get("kind", KIND_RULE))
 	r.veracity = str(d.get("veracity", VERACITY_TRUE))
 	r.required_verdict = str(d.get("required_verdict", Verdict.SERVE))
 	r.introduced_night = int(d.get("introduced_night", 1))
@@ -118,6 +132,11 @@ func matches(ctx: JudgeContext) -> bool:
 		if not c.evaluate(ctx):
 			return false
 	return true
+
+
+## 판정에 참여하지 않는 메모인가.
+func is_note() -> bool:
+	return kind == KIND_NOTE
 
 
 ## 점장이 아닌 누군가가 덧쓴 줄인가. 종이와 잉크가 다르다 (F-05).

@@ -10,17 +10,17 @@ extends PanelContainer
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
-const PAPER_SHADER := preload("res://shaders/paper.gdshader")
 const StrikeMark := preload("res://ui/clipboard/strike_mark.gd")
+const PaperRow := preload("res://ui/clipboard/paper_row.gd")
+const ReplaySpotlight := preload("res://ui/clipboard/replay_spotlight.gd")
 
 const RULE_SEPARATION := 7
 const RISE_DURATION := 0.34
-## 놓친 줄이 화면 밖일 때 굴러가는 시간. 3초 리플레이 안에 끝나야 한다.
-const SCROLL_DURATION := 0.28
 const STAGGER := 0.05
 const MIN_LIST_HEIGHT := 120
 
-const DIM_ALPHA := 0.32
+## 메모는 읽히되 **수칙만큼 크지 않다.** 같은 크기면 지켜야 할 줄로 읽힌다.
+const NOTE_ALPHA := 0.86
 ## 찢긴 자국은 종이에 남지만 읽을 것은 아니다. 눈에는 띄되 수칙으로는 안 읽혀야 한다.
 const TORN_ALPHA := 0.72
 
@@ -38,6 +38,7 @@ var _rows: Dictionary = {}
 var _labels: Dictionary = {}
 var _strikes: Dictionary = {}
 var _torn: Dictionary = {}
+var _notes: Dictionary = {}
 
 
 func _init() -> void:
@@ -119,13 +120,9 @@ func show_torn(rules: Array[Rule]) -> void:
 	for rule in rules:
 		if _torn.has(rule.id):
 			continue
-		var row := PanelContainer.new()
-		row.add_theme_stylebox_override("panel", _row_style())
-		row.material = _paper_material(true, false, _torn.size() + 90)
+		var row := PaperRow.make("✂ " + _t("clipboard.torn"), Palette.SIZE_BODY,
+			Palette.INK_LATER, true, false, _torn.size() + 90)
 		row.modulate.a = TORN_ALPHA
-		var label := Palette.make_label(
-			"✂ " + _t("clipboard.torn"), Palette.SIZE_BODY, Palette.INK_LATER)
-		row.add_child(label)
 		_list.add_child(row)
 		_torn[rule.id] = row
 		# **TORN_ALPHA 로 도착해야 한다.** 1.0으로 올리면 위에서 준 0.72가 지워진다.
@@ -141,7 +138,7 @@ func show_torn(rules: Array[Rule]) -> void:
 func reorder(canonical_ids: PackedStringArray) -> void:
 	var at := 0
 	for id in canonical_ids:
-		var row: Node = _rows.get(id, _torn.get(id))
+		var row: Node = _rows.get(id, _notes.get(id, _torn.get(id)))
 		if row == null:
 			continue
 		_list.move_child(row, at)
@@ -188,22 +185,54 @@ func _scroll_to_new_rule() -> void:
 
 
 func _make_row(rule: Rule) -> PanelContainer:
-	var row := PanelContainer.new()
-	row.add_theme_stylebox_override("panel", _row_style())
+	var row := PaperRow.make(
+		ScreenSnapshot.line_prefix(false) + _t(rule.text_key),
+		Palette.SIZE_BODY, Palette.INK_MANAGER, false, false, 0)
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	# 패드로도 그을 수 있어야 한다. 그리기는 밤 4(수칙 아홉 줄)부터 사실상 필수다.
 	row.focus_mode = Control.FOCUS_ALL
 	row.add_theme_stylebox_override("focus", Palette.focus_style(Palette.PAPER))
 	row.gui_input.connect(_on_row_input.bind(rule.id))
-	# 수칙은 **사람이 손으로 쓴 것**이다. 영수증·시계와 같은 목소리로 말하면 안 된다.
-	var label := Palette.make_label(
-		ScreenSnapshot.line_prefix(false) + _t(rule.text_key), Palette.SIZE_BODY,
-		Palette.INK_MANAGER, Palette.ROLE_RULES)
-	row.add_child(label)
+	var label := PaperRow.label_of(row)
 	_labels[rule.id] = label
-
 	_strikes[rule.id] = StrikeMark.attach(label)
 	return row
+
+
+## 메모를 붙인다. **판정에 참여하지 않는 줄이다** — 그을 수도 없고 포커스도 안 잡힌다.
+##
+## `_shown_ids`에 넣지 않는 것은 찢긴 자국과 같은 이유다. 그 목록은 **지금 유효한 수칙**이고,
+## 화면과 엔진이 같은 것을 본다는 검사(tests/test_clipboard.gd)의 기준이기 때문이다.
+## 메모를 거기 넣으면 그 검사가 조용히 무의미해진다.
+func show_notes(notes: Array[Rule], night: int, reveal: bool = false) -> void:
+	var keep := PackedStringArray()
+	for note in notes:
+		keep.append(note.id)
+	for id in _notes.keys():
+		if not keep.has(str(id)):
+			(_notes[id] as Node).queue_free()
+			_notes.erase(id)
+	var added := 0
+	for note in notes:
+		if _notes.has(note.id):
+			continue
+		var foreign := note.hand_at(night) != Rule.HAND_MANAGER
+		var row := PaperRow.make(
+			ScreenSnapshot.note_prefix() + _t(note.text_key), Palette.SIZE_SMALL,
+			Palette.INK_LATER if foreign else Palette.INK_MANAGER,
+			foreign, false, _notes.size() + 40)
+		_list.add_child(row)
+		_notes[note.id] = row
+		Juice.fade_in(row, RISE_DURATION, added * STAGGER, NOTE_ALPHA)
+		added += 1
+	if added == 0:
+		return
+	# **소리 없이 종이가 늘어나면 안 된다.** 밤 3의 메모는 04:00에 혼자 붙는다 —
+	# 같이 붙는 수칙이 없으므로 `show_rules`의 종이 소리가 안 난다. 화면만 바뀌고
+	# 소리가 없으면 그건 연출이 아니라 버그로 읽힌다 (밤 7의 찢김에서 같은 실수를 했다).
+	rule_added.emit()
+	if reveal:
+		_scroll_to_new_rule()
 
 
 ## 클릭·ui_accept 로 긋고 다시 눌러 지운다. **표시일 뿐 판정은 바뀌지 않는다.**
@@ -235,7 +264,7 @@ func apply_night(rules: Array[Rule], night: int) -> void:
 			continue
 		var foreign := rule.hand_at(night) != Rule.HAND_MANAGER
 		var rewritten := rule.has_decayed_by(night)
-		(_rows[rule.id] as PanelContainer).material = _paper_material(foreign, rewritten, i)
+		(_rows[rule.id] as PanelContainer).material = PaperRow.material(foreign, rewritten, i)
 		var label: Label = _labels[rule.id]
 		label.add_theme_color_override(
 			"font_color", Palette.INK_LATER if foreign else Palette.INK_MANAGER)
@@ -243,57 +272,10 @@ func apply_night(rules: Array[Rule], night: int) -> void:
 		label.text = ScreenSnapshot.line_prefix(rewritten) + _t(rule.text_key)
 
 
-static func _row_style() -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = Palette.PAPER
-	box.content_margin_left = 6
-	box.content_margin_right = 6
-	box.content_margin_top = 4
-	box.content_margin_bottom = 4
-	return box
-
-
-func _paper_material(foreign: bool, rewritten: bool, index: int) -> ShaderMaterial:
-	var material := ShaderMaterial.new()
-	material.shader = PAPER_SHADER
-	# 종이 값은 data/balance.json에 있고 **ScreenSnapshot과 같은 함수로** 뽑는다.
-	# 화면과 스냅샷이 어긋나면 블라인드 플레이 결과가 통째로 무의미해진다.
-	var values := ScreenSnapshot.paper_values(
-		foreign, rewritten, GameData.load_balance().get("clipboard_paper", {}))
-	for name in values:
-		material.set_shader_parameter(str(name), values[name])
-	# 줄마다 섬유가 달라야 종이 두 장이 똑같아 보이지 않는다.
-	material.set_shader_parameter("fiber_seed", float(index) * 37.0 + 11.0)
-	return material
-
-
-## 특정 수칙만 남기고 나머지를 흐린다. 3초 리플레이(F-07)에서 놓친 줄을 짚어줄 때 쓴다.
-##
-## **짚는 줄이 화면 밖이면 짚은 게 아니다.** 밤 3부터 수칙이 보이는 높이를 넘어가는데
-## 예전에는 색만 바꾸고 스크롤은 안 건드렸다 — 놓친 줄이 아래에 있으면 플레이어는
-## **전부 흐려지고 아무것도 밝아지지 않는 화면**을 3초 본다 (공정성 불변식 3).
-## `_scroll_to_new_rule`의 함정은 여기 없다. 손님이 몇 초째 서 있어 배치가 이미 끝나 있다.
+## 3초 리플레이가 놓친 줄을 짚는다. 연출 자체는 `replay_spotlight.gd`가 소유한다.
 func highlight(rule_ids: PackedStringArray) -> void:
-	var deepest: Control = null
-	for id in _rows:
-		var row: PanelContainer = _rows[id]
-		var lit := rule_ids.has(id)
-		row.modulate = Color.WHITE if lit else Color(1.0, 1.0, 1.0, DIM_ALPHA)
-		if lit:
-			deepest = row  # 화면 밖으로 밀리는 것은 언제나 아래쪽이다
-	if deepest == null:
-		return
-	var before := _scroll.scroll_vertical
-	_scroll.ensure_control_visible(deepest)
-	var target := _scroll.scroll_vertical
-	if target == before:
-		return
-	_scroll.scroll_vertical = before
-	var tween := _scroll.create_tween()
-	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(_scroll, "scroll_vertical", target, SCROLL_DURATION)
+	ReplaySpotlight.light(_scroll, _rows, rule_ids)
 
 
 func clear_highlight() -> void:
-	for id in _rows:
-		(_rows[id] as PanelContainer).modulate = Color.WHITE
+	ReplaySpotlight.clear(_rows)

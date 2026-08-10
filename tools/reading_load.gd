@@ -57,7 +57,9 @@ func _measure_night(
 	var patience := 0
 	for i in customers.size():
 		var minutes := NightSession.arrival_minutes(i, customers.size())
-		for rule in engine.visible_rules(night, minutes):
+		# 메모도 클립보드에 있고 눈은 그것도 읽는다. **빼면 부하를 실제보다 낮게 잰다.**
+		# 다만 `checks`는 안 는다 — 메모는 화면과 대조할 것이 없다. 읽고 끝이다.
+		for rule in engine.visible_rules(night, minutes) + engine.visible_notes(night, minutes):
 			if learned and not _is_new_tonight(rule, night):
 				continue  # 어젯밤에 읽었고 종이도 그대로다
 			syllables += _t(rule.text_key).length()
@@ -71,7 +73,7 @@ func _measure_night(
 		patience += customers[i].patience_seconds
 	var n := maxi(customers.size(), 1)
 	return {
-		"rules": engine.visible_rules(night).size(),
+		"rules": engine.visible_rules(night).size() + engine.visible_notes(night).size(),
 		"syllables": syllables / n,
 		"checks": checks / n,
 		"patience": float(patience) / float(n),

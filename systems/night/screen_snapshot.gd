@@ -36,6 +36,12 @@ static func line_prefix(rewritten: bool) -> String:
 	return "✎ " if rewritten else "· "
 
 
+## 메모 앞에 붙는 표식. **수칙과 한눈에 갈라져야 한다** — 메모를 수칙으로 읽으면
+## 지킬 수 없는 줄을 지키려 들게 되고, 그 순간 종이가 거짓말을 한 셈이 된다.
+static func note_prefix() -> String:
+	return "※ "
+
+
 ## 이 줄의 종이가 **실제로 어떤 값으로 그려지는가.** UI와 스냅샷이 같은 함수를 쓴다.
 ##
 ## 예전에는 UI가 자기 상수를, 스냅샷이 자기 문자열을 따로 들고 있었다. 둘이 어긋나도
@@ -104,26 +110,44 @@ static func _clipboard(
 ) -> Array:
 	var paper: Dictionary = GameData.load_balance().get("clipboard_paper", {})
 	var out := []
-	for rule in engine.rules():
-		if rule.introduced_night > ctx.night:
-			continue
-		if rule.was_removed_by(ctx.night, ctx.shift_minutes):
-			out.append({
-				"look": _look(true, false, strings, perception, paper, true),
-				"text": _t(strings, "clipboard.torn"),
-			})
-			continue
-		if not rule.is_active_at(ctx.night, ctx.shift_minutes):
-			continue  # 아직 안 붙은 줄 — 화면에 없다
-		var rewritten := rule.has_decayed_by(ctx.night)
-		out.append({
-			"id": rule.id,  # 상대가 "셋째 줄을 그어라"라고 말할 수 있어야 한다
-			"look": _look(rule.hand_at(ctx.night) != Rule.HAND_MANAGER, rewritten,
-				strings, perception, paper, false),
-			"text": line_prefix(rewritten) + _t(strings, rule.text_key),
-			"struck_by_me": struck.has(rule.id),
-		})
+	# 메모는 수칙 **아래**에 붙는다. 화면이 그 순서로 그리므로 스냅샷도 같아야 한다.
+	for rule in engine.rules() + engine.notes():
+		var line := _line(rule, ctx, strings, struck, perception, paper)
+		if not line.is_empty():
+			out.append(line)
 	return out
+
+
+## 클립보드 한 줄. 안 보이는 줄은 빈 사전으로 돌려준다.
+##
+## 메모에는 `id`도 `struck_by_me`도 없다. 메모는 그을 수 없기 때문이다 —
+## 긋는다는 것은 「이 줄은 거짓이라고 본다」는 표시인데, 메모에는 진위가 없다.
+static func _line(
+	rule: Rule, ctx: JudgeContext, strings: Dictionary,
+	struck: PackedStringArray, perception: String, paper: Dictionary
+) -> Dictionary:
+	if rule.introduced_night > ctx.night:
+		return {}
+	if rule.was_removed_by(ctx.night, ctx.shift_minutes):
+		return {
+			"look": _look(true, false, strings, perception, paper, true),
+			"text": _t(strings, "clipboard.torn"),
+		}
+	if not rule.is_active_at(ctx.night, ctx.shift_minutes):
+		return {}  # 아직 안 붙은 줄 — 화면에 없다
+	var foreign := rule.hand_at(ctx.night) != Rule.HAND_MANAGER
+	if rule.is_note():
+		return {
+			"look": _look(foreign, false, strings, perception, paper, false),
+			"text": note_prefix() + _t(strings, rule.text_key),
+		}
+	var rewritten := rule.has_decayed_by(ctx.night)
+	return {
+		"id": rule.id,  # 상대가 "셋째 줄을 그어라"라고 말할 수 있어야 한다
+		"look": _look(foreign, rewritten, strings, perception, paper, false),
+		"text": line_prefix(rewritten) + _t(strings, rule.text_key),
+		"struck_by_me": struck.has(rule.id),
+	}
 
 
 ## 종이가 어떻게 보이는가. 진위가 아니라 **생김새**다.
