@@ -141,3 +141,83 @@ Darken the center so text placed over it stays readable.
    **넣기 전에 Steamworks 최신 문서를 확인하고 `docs/licenses/`에 판단 근거를 남길 것.**
 4. **게임 안으로 들여오지 않는다.** `CLAUDE.md` 1.1. 이 파일들은 스토어 전용이고
    `res://` 아래로 들어가면 안 된다.
+
+---
+
+# 2차 — 1차 결과를 보고 고친 것
+
+1차에서 배운 것 셋:
+- **그림자는 비교 대상이 있어야 읽힌다.** 실루엣에만 그림자를 없애면 「그림자가 없다」가
+  아니라 「어두워서 안 보인다」가 된다. 선반과 계산대의 그림자를 **먼저 뚜렷하게** 만들어야
+  그 옆의 빈 바닥이 이상해진다.
+- **굵은 검은 막대는 먹칠로 읽힌다.** 이 게임은 정보를 가리지 않는다 — 다 보이는데 일부가
+  거짓말을 한다. 손글씨는 **가늘고 흘려 쓴 선**이어야 한다.
+- **다 따뜻하면 종이가 안 특별하다.** 차가운 빛과 따뜻한 종이의 대비가 이미지의 전부다.
+
+## 1-2차. 메인 캡슐 (1232 × 706) — 그림자와 밝기
+
+```
+Same scene as before: a Korean convenience store at 4 AM seen from behind the
+checkout counter. Clipboard with cream paper in the lower-left foreground, a
+taped-on slip of slightly different paper among the handwritten lines. A
+featureless matte-black human silhouette stands in the aisle. Rain-streaked
+glass door with one amber sodium streetlamp outside.
+
+CHANGE 1 — shadows must be legible. The overhead fluorescent panel casts CLEAR,
+visible shadows: the shelving units throw hard dark shadows across the floor,
+the counter throws a shadow, the floor tiles show the light pattern. But the
+standing human figure casts NO shadow at all — the floor beneath and behind it
+is unbroken. Everything else anchors to the floor; the figure does not. Make the
+surrounding shadows strong enough that the missing one is noticeable on a second
+look.
+
+CHANGE 2 — lift the midtones. The image is currently too dark to read as a
+thumbnail. Keep it night-time and desaturated, but raise the fluorescent light
+on the shelves and floor so the space is legible at small size. The paper should
+still be the brightest thing in frame.
+
+Palette: cool teal-black, green-white fluorescent, one amber streetlamp, warm
+cream paper. Analog horror: film grain, faint scanlines, vignette.
+NO readable text, no logos, no faces, no blood. Keep the upper-right third dark
+and simple for a title.
+```
+
+## 2-2차. 헤더 캡슐 (460 × 215) — 대비와 실루엣
+
+```
+Extreme close-up of a clipboard on a dark counter under COLD green-white
+fluorescent light. Cream paper (#d8d2c4) fills the left two-thirds — it is the
+only warm-toned object in the frame and it should look noticeably warmer than
+everything around it. Fine, thin, cursive handwritten lines run across it,
+unreadable. One line sits on a separate slip of slightly whiter paper taped over
+the original, written in cooler bluish-black ink by a different hand.
+
+The right third is dark, out of focus, and COLD — and a featureless black human
+silhouette stands there, rim-lit just enough by the fluorescent light to be
+clearly separable from the background. It must survive being scaled to 460x215.
+
+Critical: cold light everywhere, warm paper only. Do not warm the overall image.
+Shallow depth of field, paper sharp. Film grain, faint scanlines, vignette.
+NO readable text, no logos, no faces. Keep the right third simple for a logo.
+```
+
+## 3-2차. 소형 캡슐 (231 × 87) — 먹칠이 아니라 손글씨
+
+```
+Tiny horizontal banner. A single sheet of warm cream paper (#d8d2c4) fills most
+of the frame at a slight angle on near-black (#0d0f10).
+
+The writing must look like a human wrote it with a ballpoint pen: THIN, cursive,
+slightly uneven lines with varying pressure — NOT thick uniform bars, NOT
+redaction blocks, NOT censorship marks. The words are unreadable because the
+script is small and loose, not because anything is covering them.
+
+One of the lines has a single thin pen stroke drawn through it — a strike-through
+by the same hand, clearly a person crossing something out. That struck line is
+the focal point.
+
+Faint film grain, soft vignette. Must read as "a handwritten list with one line
+crossed out" at 231x87 pixels. No text, no logo, no figures.
+```
+
+**체크**: 먹칠처럼 보이는가 손글씨처럼 보이는가. 굵은 막대가 하나라도 있으면 다시.
