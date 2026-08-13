@@ -70,7 +70,9 @@ func _build() -> void:
 	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.add_child(_detail_scroll)
-	_detail = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT_DIM)
+	# 오답의 근거는 장식 문구가 아니라 다음 판정을 위한 핵심 피드백이다.
+	# 어두운 결과 패널에서도 본문 대비를 유지한다.
+	_detail = Palette.make_label("", Palette.SIZE_BODY, Palette.TEXT)
 	_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_scroll.add_child(_detail)
 

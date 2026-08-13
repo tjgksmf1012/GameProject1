@@ -1,5 +1,8 @@
 extends RefCounted
 
+const ResultPanel := preload("res://ui/result_panel.gd")
+const Palette := preload("res://ui/theme_factory.gd")
+
 ## 스냅샷이 **정답을 흘리지 않는가.** 이 파일이 블라인드 플레이의 유일한 담보다.
 ##
 ## 수칙 데이터를 못 본 상대에게 화면만 주고 판정을 시키는 게 목적인데,
@@ -31,6 +34,7 @@ func run(r: RefCounted) -> void:
 	_test_hides_rules_not_yet_posted(r)
 	_test_shows_torn_gap(r)
 	_test_result_shows_the_tell_but_only_after(r)
+	_test_result_detail_is_readable(r)
 
 
 func _strings() -> Dictionary:
@@ -173,3 +177,11 @@ func _test_result_shows_the_tell_but_only_after(r: RefCounted) -> void:
 						"단서 문자열 키를 못 찾았다: %s" % clue)
 				explained += 1
 	r.check(explained > 0, "실패 경우를 하나도 안 봤다 — 이 검사가 아무것도 안 했다")
+
+
+func _test_result_detail_is_readable(r: RefCounted) -> void:
+	var panel := ResultPanel.new()
+	panel.set_strings(_strings())
+	r.equals(panel._detail.get_theme_color("font_color"), Palette.TEXT,
+		"오답 근거는 어두운 패널에서도 본문 색으로 읽혀야 한다")
+	panel.free()

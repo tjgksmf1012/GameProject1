@@ -33,7 +33,7 @@
 
 | 층 | 명령 | 무엇을 보는가 |
 |---|---|---|
-| 단위 검사 | `godot --headless --script res://tests/run_tests.gd` | 논리·불변식 (13,810개) |
+| 단위 검사 | `godot --headless --script res://tests/run_tests.gd` | 논리·불변식 (13,811개) |
 | 밤 감사 | `tools/solver_audit.gd` | 한 밤이 한 독법으로 만점이 나는가 |
 | 회차 감사 | `tools/run_audit.gd` | **밤 사이**의 상태, 독법이 7박을 통과하는가 |
 | 훅 밀도 | `tools/hook_density.gd` | 손님이 판단인가 조회인가 |
