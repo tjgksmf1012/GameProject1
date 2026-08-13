@@ -3,19 +3,25 @@
 ## 폰트
 
 이 프로젝트가 쓰는 **유일한 외부 에셋 종류 두 가지 중 하나**다 (CLAUDE.md §1.1).
-동봉 파일이 없으면 게임은 OS 폰트로 물러서고, Proton/Linux에서 한글이 두부(□)가 될 수 있다.
+세 역할 파일을 동봉해 Proton/Linux에서도 OS 글꼴에 기대지 않고 한글을 표시한다.
 
-**한 서체가 세 목소리를 다 내면 안 된다.** 지금은 점장의 손글씨와 기계의 영수증과
-벽시계가 전부 같은 글씨체로 말한다. 화면에 물건이 셋인데 목소리가 하나다.
+**한 서체가 세 목소리를 다 내면 안 된다.** 점장의 수칙은 명조, 기계의 영수증과
+벽시계는 등폭 고딕, 나머지 UI는 고딕으로 분리했다.
 
-| 파일 | 쓰이는 곳 | 성격 | 후보 (전부 OFL 1.1) | 상태 |
+| 파일 | 쓰이는 곳 | 서체 · 출처 | 라이선스 · 받은 날 | 상태 |
 |---|---|---|---|---|
-| `fonts/rules.ttf` | 클립보드 수칙 | 사람이 손으로 쓴 것 | 나눔손글씨 펜 / 나눔명조 | ☐ 미투입 |
-| `fonts/machine.ttf` | 영수증 · CCTV · 시계 | 기계가 뽑은 것 | D2Coding(등폭) / 갈무리11(비트맵) | ☐ 미투입 |
-| `fonts/ui.ttf` | 나머지 전부 | 읽히기만 하면 된다 | Pretendard / IBM Plex Sans KR | ☐ 미투입 |
+| `fonts/rules.ttf` | 클립보드 수칙 | Nanum Myeongjo Regular · Google Fonts | OFL 1.1 · 2026-08-13 | ☑ 동봉 |
+| `fonts/machine.ttf` | 영수증 · CCTV · 시계 | Nanum Gothic Coding Regular · Google Fonts | OFL 1.1 · 2026-08-13 | ☑ 동봉 |
+| `fonts/ui.ttf` | 나머지 전부 | Nanum Gothic Regular · Google Fonts | OFL 1.1 · 2026-08-13 | ☑ 동봉 |
 
-**셋 다 없어도 게임은 돈다.** 역할 파일이 없으면 `ui`로, 그것도 없으면 OS 폰트로
-물러선다 (`ui/theme_factory.gd`의 `font(role)`).
+역할 파일이 없으면 `ui`로, 그것도 없으면 OS 폰트로 물러서는 안전장치는 유지한다
+(`ui/theme_factory.gd`의 `font(role)`). 받은 시점의 원문은 `docs/licenses/Nanum*-OFL.txt`에,
+출시 PCK에 동봉되는 고지는 `licenses/*-OFL-1.1.txt`에 있다.
+
+`fontTools 4.59.1`의 실제 cmap으로 세 파일 모두 한글 완성형 11,172자와 ASCII 95자를
+전부 확인했다. SHA-256은 `rules` `7ED9E8653A8ED04285D51DC343FFEA6EB3D9C73AFC27383EA8929EE4FFD03205`,
+`machine` `787EFFD7EFED2ABCA88ADE231FAA8191F4E9FCF85B1805A13EE1DC3724B72089`,
+`ui` `76F45EF4A6BCFF344C837C95A7DCC26E017E38B5846D5AE0CDCB5B86BE2E2D31`이다.
 
 > ⚠ **수칙 본문을 손글씨로 바꾸는 것은 신중해야 한다.** 수칙 문구가 곧 퍼즐이고,
 > 획이 얇은 손글씨는 점장 잉크와 나중 잉크의 대비(F-05 단서)를 줄인다.

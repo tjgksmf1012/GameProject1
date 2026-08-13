@@ -159,6 +159,8 @@ func _test_window_keys(r: RefCounted) -> void:
 	r.check(not Title._is_start_input(_key(KEY_F11)), "F11은 밤을 시작하지 않는다")
 	r.check(not Title._is_start_input(_key(KEY_ENTER, true)), "Alt+Enter도 시작하지 않는다")
 	r.check(Title._is_start_input(_key(KEY_ENTER)), "Alt 없는 Enter는 시작한다")
+	r.check(Title._is_start_input(_joypad()), "패드 버튼은 밤을 시작한다")
+	r.check(not Title._is_start_input(_joypad(false)), "패드 버튼을 뗄 때는 시작하지 않는다")
 
 
 static func _key(code: Key, alt: bool = false) -> InputEventKey:
@@ -166,4 +168,11 @@ static func _key(code: Key, alt: bool = false) -> InputEventKey:
 	event.keycode = code
 	event.pressed = true
 	event.alt_pressed = alt
+	return event
+
+
+static func _joypad(pressed: bool = true) -> InputEventJoypadButton:
+	var event := InputEventJoypadButton.new()
+	event.button_index = JOY_BUTTON_A
+	event.pressed = pressed
 	return event

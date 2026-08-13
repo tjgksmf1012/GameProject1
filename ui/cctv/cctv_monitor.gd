@@ -48,7 +48,8 @@ func _build() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	add_child(box)
-	box.add_child(Palette.make_label(_t("ui.cctv_header"), Palette.SIZE_SMALL, Palette.SECTION))
+	box.add_child(Palette.make_label(
+		_t("ui.cctv_header"), Palette.SIZE_SMALL, Palette.SECTION, Palette.ROLE_MACHINE))
 
 	_grid = GridContainer.new()
 	_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL

@@ -85,4 +85,6 @@ static func _is_start_input(event: InputEvent) -> bool:
 		return (event as InputEventKey).pressed and not (event as InputEventKey).echo
 	if event is InputEventMouseButton:
 		return (event as InputEventMouseButton).pressed
+	if event is InputEventJoypadButton:
+		return (event as InputEventJoypadButton).pressed
 	return false

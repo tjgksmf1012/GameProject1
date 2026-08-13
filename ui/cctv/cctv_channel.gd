@@ -11,7 +11,9 @@ const CCTV_SHADER := preload("res://shaders/cctv.gdshader")
 const CHANNEL_WIDTH := 152.0
 const CHANNEL_HEIGHT := 92.0
 const COUNTER_INDEX := 0
-const SHELF_COUNT := 3
+const AISLE_INDEX := 1
+const STORAGE_INDEX := 2
+const ENTRANCE_INDEX := 3
 const FIGURE_WIDTH := 14.0
 const FIGURE_HEIGHT := 34.0
 const SHADOW_WIDTH := 30.0
@@ -59,18 +61,13 @@ func _build() -> void:
 	_stage = Node2D.new()
 	_screen.add_child(_stage)
 
-	if _index == COUNTER_INDEX:
-		# 계산대 위에는 조명이 있다. 밝은 바닥이 있어야 **그림자가 없다는 사실**이 읽힌다.
-		# 어두운 바닥에 검은 그림자를 그리면 있으나 없으나 똑같아 보인다.
-		_stage.add_child(_make_floor())
-	else:
-		for i in SHELF_COUNT:
-			_stage.add_child(_make_shelf(i))
+	_build_environment()
 
 	_add_actors()
 
 	var tag := Palette.make_label(
-		str(_strings.get(_label_key, _label_key)), Palette.SIZE_SMALL, Palette.TEXT_DIM)
+		str(_strings.get(_label_key, _label_key)), Palette.SIZE_SMALL, Palette.TEXT_DIM,
+		Palette.ROLE_MACHINE)
 	tag.autowrap_mode = TextServer.AUTOWRAP_OFF
 	tag.position = Vector2(6, 4)
 	add_child(tag)
@@ -133,17 +130,70 @@ func _make_floor() -> Polygon2D:
 	return floor_light
 
 
-## 매대. 사각형 몇 개면 편의점처럼 보인다.
-func _make_shelf(i: int) -> Polygon2D:
-	var shelf := Polygon2D.new()
-	shelf.color = Color(0.20, 0.21, 0.21, 0.9)
-	var x := 14.0 + float(i) * 44.0
-	var top := 46.0 + float((i + _index) % 2) * 9.0
-	shelf.polygon = PackedVector2Array([
-		Vector2(x, top), Vector2(x + 30.0, top),
-		Vector2(x + 30.0, 86.0), Vector2(x, 86.0),
-	])
-	return shelf
+func _build_environment() -> void:
+	if _index == COUNTER_INDEX:
+		_stage.add_child(_make_floor())
+		_add_line([Vector2(20, 85), Vector2(132, 85)], Color(0.52, 0.53, 0.51, 0.35), 3.0)
+	elif _index == AISLE_INDEX:
+		_build_aisle()
+	elif _index == STORAGE_INDEX:
+		_build_storage()
+	elif _index == ENTRANCE_INDEX:
+		_build_entrance()
+
+
+func _build_aisle() -> void:
+	_add_quad([Vector2(55, 36), Vector2(97, 36), Vector2(132, 92), Vector2(20, 92)], Color(0.27, 0.28, 0.27, 0.34))
+	for side in [0, 1]:
+		var x := 5.0 if side == 0 else 111.0
+		_add_quad([
+			Vector2(x, 30), Vector2(x + 36, 35),
+			Vector2(x + 36, 84), Vector2(x, 90),
+		], Color(0.18, 0.20, 0.19, 0.95))
+		for row in 3:
+			var y := 45.0 + float(row) * 16.0
+			_add_line([Vector2(x + 2, y), Vector2(x + 34, y + 2)], Color(0.45, 0.46, 0.43, 0.30), 2.0)
+	_add_line([Vector2(76, 37), Vector2(76, 92)], Color(0.46, 0.48, 0.45, 0.15), 1.0)
+
+
+func _build_storage() -> void:
+	_add_quad([Vector2(48, 23), Vector2(105, 23), Vector2(105, 83), Vector2(48, 83)], Color(0.08, 0.10, 0.10, 0.98))
+	_add_line([Vector2(48, 23), Vector2(105, 23), Vector2(105, 83)], Color(0.43, 0.45, 0.42, 0.42), 3.0)
+	for i in 5:
+		var col := i % 3
+		var row := i / 3
+		var x := 8.0 + float(col) * 34.0
+		var y := 61.0 + float(row) * 18.0
+		_add_quad([Vector2(x, y), Vector2(x + 28, y), Vector2(x + 26, y + 17), Vector2(x + 2, y + 17)], Color(0.22, 0.22, 0.20, 0.90))
+		_add_line([Vector2(x + 2, y + 5), Vector2(x + 26, y + 5)], Color(0.38, 0.38, 0.35, 0.35), 1.0)
+	_add_line([Vector2(16, 30), Vector2(16, 59), Vector2(39, 59)], Color(0.42, 0.45, 0.42, 0.30), 2.0)
+
+
+func _build_entrance() -> void:
+	_add_quad([Vector2(31, 17), Vector2(121, 17), Vector2(121, 90), Vector2(31, 90)], Color(0.07, 0.11, 0.11, 0.95))
+	_add_line([Vector2(31, 17), Vector2(121, 17), Vector2(121, 90)], Color(0.47, 0.50, 0.47, 0.46), 3.0)
+	_add_line([Vector2(76, 17), Vector2(76, 90)], Color(0.44, 0.48, 0.45, 0.38), 2.0)
+	_add_line([Vector2(31, 58), Vector2(121, 58)], Color(0.37, 0.42, 0.40, 0.30), 1.0)
+	for i in 9:
+		var x := 38.0 + float((i * 19) % 76)
+		var y := 25.0 + float((i * 23) % 43)
+		_add_line([Vector2(x, y), Vector2(x - 2, y + 10)], Color(0.50, 0.59, 0.56, 0.31), 1.0)
+	_add_quad([Vector2(42, 82), Vector2(111, 82), Vector2(135, 92), Vector2(18, 92)], Color(0.36, 0.38, 0.35, 0.23))
+
+
+func _add_quad(points: Array[Vector2], color: Color) -> void:
+	var shape := Polygon2D.new()
+	shape.color = color
+	shape.polygon = PackedVector2Array(points)
+	_stage.add_child(shape)
+
+
+func _add_line(points: Array[Vector2], color: Color, width: float) -> void:
+	var line := Line2D.new()
+	line.default_color = color
+	line.width = width
+	line.points = PackedVector2Array(points)
+	_stage.add_child(line)
 
 
 func _process(delta: float) -> void:

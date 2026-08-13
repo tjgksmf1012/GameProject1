@@ -11,6 +11,7 @@ extends PanelContainer
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 const ReceiptSlip := preload("res://ui/pos/receipt_slip.gd")
+const ProductGlyph := preload("res://ui/art/product_glyph.gd")
 
 const PRESS_DURATION := 0.18
 
@@ -141,10 +142,26 @@ func _rebuild_scan_buttons() -> void:
 		_scan_row.remove_child(child)
 		child.queue_free()
 	for key in _pending:
-		var button := _make_button(_t(key), Palette.PANEL_EDGE, Palette.TEXT)
-		button.custom_minimum_size = Vector2(130, 40)
+		var button := _make_item_button(key)
 		button.pressed.connect(_on_scan_pressed.bind(key, button))
 		_scan_row.add_child(button)
+
+
+## 이름은 Button.text에 그대로 둔다. 아이콘은 장식이라 포커스와 클릭을 가로채지 않는다.
+func _make_item_button(key: String) -> Button:
+	var button := _make_button(_t(key), Palette.PANEL_EDGE, Palette.TEXT)
+	button.custom_minimum_size = Vector2(168, 44)
+	button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var glyph := ProductGlyph.new()
+	glyph.set_item_key(key)
+	button.add_child(glyph)
+	glyph.set_anchor(SIDE_TOP, 0.5)
+	glyph.set_anchor(SIDE_BOTTOM, 0.5)
+	glyph.offset_left = 10.0
+	glyph.offset_top = -16.0
+	glyph.offset_right = 42.0
+	glyph.offset_bottom = 16.0
+	return button
 
 
 ## 품목 하나를 찍는다. 실제로 찍혔으면 true.

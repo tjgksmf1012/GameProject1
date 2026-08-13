@@ -45,6 +45,12 @@ const DEV_ONLY_PATHS := [
 const SHADER_PATHS := [
 	"res://shaders/crt.gdshader", "res://shaders/grain.gdshader",
 	"res://shaders/paper.gdshader", "res://shaders/cctv.gdshader",
+	"res://shaders/room.gdshader",
+]
+
+const LICENSE_PATHS := [
+	"res://licenses/README.txt", "res://licenses/Nanum-OFL-1.1.txt",
+	"res://licenses/NanumMyeongjo-OFL-1.1.txt",
 ]
 
 var failures: PackedStringArray = []
@@ -65,6 +71,7 @@ func run(font: Font) -> int:
 	_check_data()
 	_check_locales()
 	_check_shaders()
+	_check_licenses()
 	_check_no_dev_files()
 	_report_font(font)
 	for line in lines:
@@ -114,6 +121,11 @@ func _check_shaders() -> void:
 			_ok(load(path) != null, "셰이더를 못 읽었다: %s" % path)
 
 
+func _check_licenses() -> void:
+	for path in LICENSE_PATHS:
+		_ok(FileAccess.file_exists(path), "라이선스 고지가 빌드에 없다: %s" % path)
+
+
 ## 소스 트리에서는 당연히 다 있으므로 **내보낸 빌드에서만** 본다.
 func _check_no_dev_files() -> void:
 	if not OS.has_feature("template"):
@@ -139,8 +151,8 @@ func _check_no_dev_files() -> void:
 ## **작동하는 빌드를 떨어뜨리는 검사는 없느니만 못하다.** 그래서 측정값만 남긴다.
 ##
 ## 진짜 해법은 동봉이고, 그건 정해졌다 (`ui/theme_factory.gd`의 `font()` 주석).
-## 파일이 아직 없을 뿐이다. 그래서 여기서는 **동봉 여부를 말한다** — 없으면 이 빌드가
-## 남의 OS 폰트에 기대고 있다는 뜻이고, Proton/Linux에서는 그게 없을 수 있다.
+## 그래서 여기서는 **동봉 여부를 말한다** — 없으면 이 빌드가 남의 OS 폰트에 기대고
+## 있다는 뜻이고, Proton/Linux에서는 그게 없을 수 있다.
 func _report_font(font: Font) -> void:
 	if font == null:
 		failures.append("폰트를 만들지 못했다")

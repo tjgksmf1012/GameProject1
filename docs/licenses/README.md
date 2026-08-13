@@ -8,3 +8,6 @@
 파일 이름: `<에셋이름>-<라이선스>.txt` — 예: `Pretendard-OFL.txt`
 
 받은 에셋 자체의 출처·날짜는 `credits.md` 표에 적는다.
+
+`docs/`는 출시 PCK에서 제외된다. 재배포 고지가 필요한 원문은 별도로 `res://licenses/`에도
+두고, `systems/build_check.gd`가 내보낸 빌드에서 그 존재를 강제한다.

@@ -12,6 +12,7 @@ extends Control
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
+const StoreBackdrop := preload("res://ui/art/store_backdrop.gd")
 
 const SIGN_SIZE := 58
 
@@ -34,10 +35,8 @@ var _prompt: Label = null
 
 func build(strings: Dictionary, save_night: int, finished: bool = false) -> void:
 	_strings = strings
-	var bg := ColorRect.new()
-	bg.color = Palette.BG
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	var backdrop := StoreBackdrop.new()
+	add_child(backdrop)
 
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
