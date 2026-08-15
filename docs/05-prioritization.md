@@ -40,6 +40,12 @@
 | 종이 대비 | `tools/paper_probe.gd` | 실제 프레임버퍼에서 단서가 살아 있는가 |
 | 배치 | `tools/shoot_states.gd --assert-layout=1` | 화면 밖으로 넘치는가 |
 | 읽기 부담 | `tools/reading_load.gd` | 인내 안에 다 읽히는가 (익힘 줄이 1.0 미만인가) |
+| 아트 팔레트 | `tests/test_art_palette.gd` | 종이보다 밝거나 따뜻한 색이 손님·품목에 들어왔는가 |
+
+> ⚠ **폰트를 넣은 뒤로는 `godot --headless --import`를 먼저 돌려야 한다.** 안 돌리면
+> `res://fonts/*.ttf` 로드가 실패하고 **조용히 OS 폰트로 물러선다** — 안전장치가 있어서
+> 게임은 돌지만 스크린샷과 빌드가 의도한 서체가 아니게 된다. 에러는 뜨지만 치명적이지 않아
+> 그냥 지나가기 쉽다.
 
 **클립보드 메모** (`data/rules/notes.json`, `kind: "note"`) — 이야기를 나르는 일곱 줄이
 수칙과 **같은 종이**에 붙는다. 판정에는 한 표도 행사하지 않는다: `RuleEngine`이 들어오는
