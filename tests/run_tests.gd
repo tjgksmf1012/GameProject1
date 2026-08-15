@@ -23,6 +23,7 @@ const TestSnapshot := preload("res://tests/test_snapshot.gd")
 const TestPlaythrough := preload("res://tests/test_playthrough.gd")
 const TestNotes := preload("res://tests/test_notes.gd")
 const TestArtPalette := preload("res://tests/test_art_palette.gd")
+const TestFigureOutline := preload("res://tests/test_figure_outline.gd")
 
 
 func _initialize() -> void:
@@ -36,7 +37,7 @@ func _initialize() -> void:
 		TestNightPlan.new(), TestPatience.new(), TestRuleVoice.new(),
 		TestStrings.new(), TestClipboard.new(), TestNightReport.new(),
 		TestSnapshot.new(),
-		TestPlaythrough.new(), TestNotes.new(), TestArtPalette.new(),
+		TestPlaythrough.new(), TestNotes.new(), TestArtPalette.new(), TestFigureOutline.new(),
 	]
 	# `await`를 붙여둔다. 대부분의 스위트는 코루틴이 아니라 즉시 돌아오고, 프레임을
 	# 기다려야 하는 스위트(트윈이 실제로 도는지 보는 것들)만 여기서 멈춘다.
