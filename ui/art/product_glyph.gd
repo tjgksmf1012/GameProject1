@@ -4,7 +4,7 @@ extends Control
 ## 외부 이미지나 브랜드 표식 없이, 32px 안에서 실루엣만으로 여섯 품목을 구분한다.
 
 const OUTLINE := Color("20272a")
-const HIGHLIGHT := Color("e7e0cf")
+const HIGHLIGHT := Color("c3bdaf")
 const STEAM := Color("aeb9b9")
 
 var _item_key: String = ""
@@ -45,7 +45,7 @@ func _draw_cup_ramen() -> void:
 	])
 	draw_colored_polygon(cup, Color("bd5c38"))
 	draw_polyline(cup + PackedVector2Array([cup[0]]), OUTLINE, 1.5, true)
-	draw_rect(Rect2(5, 10, 22, 4), Color("e4c36f"), true)
+	draw_rect(Rect2(5, 10, 22, 4), Color("dcbc6b"), true)
 	draw_line(Vector2(6, 12), Vector2(26, 12), OUTLINE, 1.5, true)
 	draw_line(Vector2(10, 20), Vector2(22, 20), HIGHLIGHT, 2.0, true)
 	draw_arc(Vector2(12, 8), 4, PI, TAU, 8, STEAM, 1.4, true)
@@ -57,7 +57,7 @@ func _draw_energy_drink() -> void:
 	draw_rect(Rect2(9, 4, 14, 24), OUTLINE, false, 1.5, true)
 	draw_line(Vector2(10, 7), Vector2(22, 7), HIGHLIGHT, 1.2, true)
 	draw_line(Vector2(10, 25), Vector2(22, 25), OUTLINE, 1.2, true)
-	draw_arc(Vector2(16, 5), 3, PI, TAU, 8, Color("b9c8c3"), 1.2, true)
+	draw_arc(Vector2(16, 5), 3, PI, TAU, 8, Color("b2c1bc"), 1.2, true)
 	var bolt := PackedVector2Array([
 		Vector2(17, 9), Vector2(12, 17), Vector2(16, 17),
 		Vector2(14, 24), Vector2(21, 14), Vector2(17, 14),
@@ -78,7 +78,7 @@ func _draw_hot_coffee() -> void:
 
 
 func _draw_cigarettes() -> void:
-	draw_rect(Rect2(6, 7, 20, 21), Color("d9d1be"), true)
+	draw_rect(Rect2(6, 7, 20, 21), Color("c4bdac"), true)
 	draw_rect(Rect2(6, 7, 20, 21), OUTLINE, false, 1.5, true)
 	draw_rect(Rect2(6, 7, 20, 7), Color("8f4841"), true)
 	draw_line(Vector2(6, 14), Vector2(26, 14), OUTLINE, 1.2, true)
@@ -109,9 +109,9 @@ func _draw_soju() -> void:
 	])
 	draw_colored_polygon(bottle, Color("4f8b62"))
 	draw_polyline(bottle + PackedVector2Array([bottle[0]]), OUTLINE, 1.5, true)
-	draw_rect(Rect2(12, 2, 8, 4), Color("b8c5b6"), true)
+	draw_rect(Rect2(12, 2, 8, 4), Color("b4c1b2"), true)
 	draw_rect(Rect2(12, 2, 8, 4), OUTLINE, false, 1.0, true)
-	draw_rect(Rect2(11, 16, 10, 7), Color("d7d6c5"), true)
+	draw_rect(Rect2(11, 16, 10, 7), Color("bfbeaf"), true)
 	draw_circle(Vector2(16, 19.5), 2.0, Color("7a9e65"))
 	draw_line(Vector2(12, 26), Vector2(20, 26), Color("386c4c"), 1.0, true)
 

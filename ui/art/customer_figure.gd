@@ -14,15 +14,24 @@ const BREATH_PIXELS := 2.6
 const BREATH_SECONDS := 4.2
 const BREATH_RATE := [1.0, 1.8, 2.8]
 const BREATH_DEPTH := [1.0, 1.5, 2.2]
-const SHELF_TONE := Color("1d2325")
+const SHELF_TONE := Color("262d2f")
 const OUTLINE := Color("0a0c0d")
 const RIM := Color("687173")
-const SKIN := Color("625850")
-const BAG := Color("504936")
-const BAG_EDGE := Color("8b7b57")
+## **손님은 실루엣이다. 얼굴이 없다.**
+##
+## 사람인지 아닌지를 판단해야 하는 게임에서 얼굴이 보이면 판단이 아니라 인상이 된다
+## (`docs/art/GPT-BRIEF.md`). 그리고 화면에서 **따뜻한 것은 종이뿐이어야 한다** —
+## 살구색 얼굴과 황토색 가방을 넣었더니 손님 패널의 가장 밝은 픽셀이 종이가 아니게 됐다.
+## 여기 색은 전부 종이보다 어둡고 차갑다. `tests/test_art_palette.gd`가 매번 잰다.
+const BAG_EDGE := Color("4d585b")
 const WET_RIM := Color("719096")
+## **실루엣은 뒤보다 어두워야 실루엣이다.**
+##
+## 처음에는 코트가 `#252b2d`(밝기 41)이고 뒤 선반이 `#1d2325`(33)이었다. 손님이
+## 배경보다 밝았다는 뜻이고, 그래서 검은 실루엣이 아니라 밝은 마네킹으로 보였다.
+## 지금은 코트가 23, 선반이 44다. 손님은 형광등을 등지고 서 있다.
 const COAT_TONES := [
-	Color("252b2d"), Color("2c2b29"), Color("242c2a"), Color("2d292c"),
+	Color("14181a"), Color("15191b"), Color("131718"), Color("161a1c"),
 ]
 const SHOULDER_WIDTH := [20.0, 25.0, 28.0, 23.0]
 const WAIST_WIDTH := [14.0, 18.0, 19.0, 16.0]
@@ -115,10 +124,12 @@ func _draw_person() -> void:
 	var waist := float(WAIST_WIDTH[_variant])
 	var coat: Color = COAT_TONES[_variant]
 	if _has_bag:
-		_draw_bag(center, shoulder)
+		_draw_bag(center, shoulder, coat)
 	_draw_legs(center, waist, coat)
 	_draw_arms(center, shoulder, coat)
 	_draw_torso(center, shoulder, waist, coat)
+	if _has_bag:
+		_draw_bag_strap(center, shoulder)
 	_draw_head(center)
 	if _is_wet:
 		_draw_wet_overlay(center, shoulder, waist)
@@ -133,10 +144,8 @@ func _draw_legs(center: float, waist: float, coat: Color) -> void:
 		Vector2(center + 2, 105), Vector2(center + waist, 105),
 		Vector2(center + waist + 3, 148), Vector2(center + 4, 148),
 	])
-	_closed_shape(left_leg, coat.darkened(0.24))
-	_closed_shape(right_leg, coat.darkened(0.18))
-	draw_line(Vector2(center - waist - 5, 148), Vector2(center - 3, 148), RIM.darkened(0.45), 2.0)
-	draw_line(Vector2(center + 3, 148), Vector2(center + waist + 5, 148), RIM.darkened(0.45), 2.0)
+	_closed_shape(left_leg, coat)
+	_closed_shape(right_leg, coat)
 
 
 func _draw_torso(center: float, shoulder: float, waist: float, coat: Color) -> void:
@@ -146,12 +155,10 @@ func _draw_torso(center: float, shoulder: float, waist: float, coat: Color) -> v
 		Vector2(center + shoulder + 3, 67), Vector2(center + shoulder, 49),
 	])
 	_closed_shape(torso, coat)
-	draw_line(Vector2(center, 52), Vector2(center, 108), RIM.darkened(0.42), 1.0)
-	draw_line(Vector2(center - waist, 105), Vector2(center + waist, 105), RIM.darkened(0.52), 1.0)
 
 
 func _draw_arms(center: float, shoulder: float, coat: Color) -> void:
-	var hand_y := 91.0 + float(_pose) * 2.0
+	var hand_y := _hand_y()
 	var left_arm := PackedVector2Array([
 		Vector2(center - shoulder + 2, 53), Vector2(center - shoulder - 7, 80),
 		Vector2(center - 10, hand_y + 7), Vector2(center - 5, hand_y),
@@ -160,23 +167,24 @@ func _draw_arms(center: float, shoulder: float, coat: Color) -> void:
 		Vector2(center + shoulder - 2, 53), Vector2(center + shoulder + 7, 78),
 		Vector2(center + 14, hand_y + 5), Vector2(center + 8, hand_y - 2),
 	])
-	_closed_shape(left_arm, coat.darkened(0.08))
-	_closed_shape(right_arm, coat.lightened(0.03))
-	draw_circle(Vector2(center - 7, hand_y + 3), 3.1, SKIN)
-	draw_circle(Vector2(center + 11, hand_y + 2), 3.1, SKIN)
+	_closed_shape(left_arm, coat)
+	_closed_shape(right_arm, coat)
+	draw_circle(Vector2(center - 7, hand_y + 3), 3.1, coat)
+	draw_circle(Vector2(center + 11, hand_y + 2), 3.1, coat)
 
 
 func _draw_head(center: float) -> void:
 	var head_center := Vector2(center + float(_pose) * 2.0, 31.0)
 	var radius := float(HEAD_RADIUS[_variant])
-	draw_rect(Rect2(head_center.x - 4, 39, 8, 12), SKIN.darkened(0.16))
+	var coat: Color = COAT_TONES[_variant]
+	draw_rect(Rect2(head_center.x - 4, 38, 8, 13), coat)
 	if _hides_face:
 		_draw_hidden_face(head_center, radius)
 		return
-	draw_circle(head_center, radius, SKIN)
-	draw_arc(head_center, radius, 0.0, TAU, 24, OUTLINE, 1.2, true)
-	draw_arc(head_center + Vector2(0, -2), radius * 0.92, PI, TAU, 16, Color("17191a"), 5.0, true)
-	draw_line(head_center + Vector2(2, 0), head_center + Vector2(4, 4), RIM.darkened(0.35), 1.0)
+	# 형광등을 등지고 서 있다. 몸과 **같은 색**으로 채우고 왼쪽 위만 빛이 스친다.
+	# 테두리를 한 바퀴 두르면 머리가 아니라 도넛으로 읽힌다 — 실제로 그렇게 보였다.
+	draw_circle(head_center, radius, coat)
+	draw_arc(head_center, radius, PI * 1.05, PI * 1.75, 14, RIM.darkened(0.58), 1.2, true)
 
 
 func _draw_hidden_face(center: Vector2, radius: float) -> void:
@@ -191,15 +199,25 @@ func _draw_hidden_face(center: Vector2, radius: float) -> void:
 	draw_arc(center + Vector2(0, 2), radius * 0.75, 0.0, TAU, 20, Color("333a3c"), 1.0, true)
 
 
-func _draw_bag(center: float, shoulder: float) -> void:
+## 실루엣에서 가방은 **윤곽의 혹**이다.
+##
+## 처음에는 몸 옆에 따로 떠 있었다 — 팔이 사이를 가려서 몸에서 떨어진 정체불명의 도형으로
+## 보였고, 채도를 낮추자 이번엔 열린 「C」자 테두리만 남았다. 지금은 몸과 **같은 색으로**
+## 어깨에 붙여 실루엣을 한 덩어리로 만들고, 어깨를 가로지르는 끈만 빛을 받는다.
+## 끈은 몸통 **뒤에** 그리면 안 보이므로 몸통 다음에 따로 그린다.
+func _draw_bag(center: float, shoulder: float, coat: Color) -> void:
 	var bag_shape := PackedVector2Array([
-		Vector2(center - shoulder - 11, 55), Vector2(center - shoulder - 4, 50),
-		Vector2(center - shoulder + 1, 62), Vector2(center - shoulder - 1, 93),
-		Vector2(center - shoulder - 17, 92), Vector2(center - shoulder - 20, 67),
+		Vector2(center - shoulder - 1, 57), Vector2(center - shoulder + 7, 55),
+		Vector2(center - shoulder + 7, 97), Vector2(center - shoulder - 3, 96),
+		Vector2(center - shoulder - 15, 89), Vector2(center - shoulder - 14, 66),
 	])
-	_closed_shape(bag_shape, BAG, BAG_EDGE.darkened(0.25))
-	draw_arc(Vector2(center - shoulder - 8, 60), 10.0, PI * 0.84, TAU * 0.93, 14, BAG_EDGE, 1.8, true)
-	draw_line(Vector2(center - shoulder - 16, 75), Vector2(center - shoulder - 2, 75), BAG_EDGE.darkened(0.2), 1.0)
+	_closed_shape(bag_shape, coat)
+
+
+func _draw_bag_strap(center: float, shoulder: float) -> void:
+	draw_line(
+		Vector2(center + shoulder * 0.30, 51), Vector2(center - shoulder + 1, 84),
+		BAG_EDGE.darkened(0.30), 2.4, true)
 
 
 func _draw_wet_overlay(center: float, shoulder: float, waist: float) -> void:
@@ -227,7 +245,8 @@ func _layout_item() -> void:
 		return
 	var draw_scale := _figure_scale()
 	var glyph_scale := draw_scale * 0.72
-	var point := Vector2(_body_center() + 2.0, 89.0) * draw_scale
+	# 가슴 한가운데에 놓으면 몸에 박혀 보인다. 손이 그려지는 자리와 같은 값을 봐야 한다.
+	var point := Vector2(_body_center() + 12.0, _hand_y() + 2.0) * draw_scale
 	_item_glyph.scale = Vector2.ONE * glyph_scale
 	_item_glyph.rotation = float(_pose) * 0.008
 	_item_glyph.position = _figure_origin(draw_scale) + _motion_offset() + point \
@@ -242,6 +261,12 @@ func _figure_origin(draw_scale: float) -> Vector2:
 	return Vector2(
 		size.x * FIGURE_ANCHOR_X - DESIGN_CENTER_X * draw_scale,
 		size.y - DESIGN_HEIGHT * draw_scale)
+
+
+## 손이 그려지는 높이. `_draw_arms`와 `_layout_item`이 **같은 값**을 봐야
+## 품목이 손에 놓인다. 예전에는 각자 상수를 들고 있어서 물건이 가슴에 박혔다.
+func _hand_y() -> float:
+	return 91.0 + float(_pose) * 2.0
 
 
 func _body_center() -> float:
