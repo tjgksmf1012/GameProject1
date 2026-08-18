@@ -12,10 +12,13 @@ extends Node2D
 const Palette := preload("res://ui/theme_factory.gd")
 
 const WIDTH := 2.4
+const PRESS_WIDTH := 4.4
 const SEGMENTS := 7
 const JITTER := 2.2
 const OVERSHOOT := 5.0
 const DRAW_SECONDS := 0.17
+const RECOIL_PIXELS := 2.6
+const RECOIL_SECONDS := 0.14
 const STRUCK_TEXT_ALPHA := 0.55
 
 var _label: Label = null
@@ -61,18 +64,21 @@ func _stop_tweens() -> void:
 
 func _rebuild(animate: bool) -> void:
 	_stop_tweens()
+	position = Vector2.ZERO
 	for child in get_children():
 		child.queue_free()
 	var lines := maxi(1, _label.get_line_count())
 	var line_height := float(_label.size.y) / float(lines)
 	for i in lines:
 		var stroke := Line2D.new()
-		stroke.width = WIDTH
+		stroke.width = PRESS_WIDTH if animate else WIDTH
 		stroke.default_color = Palette.INK_MANAGER
 		stroke.points = _points(_label.size.x, line_height * (float(i) + 0.55), i)
 		add_child(stroke)
 		if animate:
 			_animate(stroke, i)
+	if animate:
+		_pressure_recoil()
 
 
 ## 흔들리는 손으로 그은 한 줄. 줄마다 흔들림이 달라야 두 번 그은 것으로 보인다.
@@ -101,3 +107,14 @@ func _animate(stroke: Line2D, order: int) -> void:
 			grown.append(full[i])
 			stroke.points = grown)
 		tween.tween_interval(DRAW_SECONDS / float(full.size()))
+	tween.tween_property(stroke, "width", WIDTH, DRAW_SECONDS * 0.45)
+
+
+## 펜촉이 종이를 누른 뒤 손으로 돌아오는 짧은 반동. 선 자체의 굵기 변화와 동시에 돈다.
+func _pressure_recoil() -> void:
+	position.y = RECOIL_PIXELS
+	var tween := create_tween()
+	_tweens.append(tween)
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(self, "position:y", -0.8, RECOIL_SECONDS * 0.58)
+	tween.tween_property(self, "position:y", 0.0, RECOIL_SECONDS * 0.42)

@@ -32,6 +32,19 @@
     "rain_db": -27.0,
     "fridge_tension_boost_db": 7.0
   },
+  "graphics": {
+    "_comment": "전역 8단계 신호 장치. temporal 계열은 화면에 이미 보이는 긴장도에만 연동하며, 상한은 글자 가독성을 보존한다.",
+    "dither_levels": 8.0,
+    "dither_strength": 1.0,
+    "grain_base": 0.025,
+    "grain_peak": 0.065,
+    "chromatic_peak_px": 1.4,
+    "ghost_peak": 0.12,
+    "jitter_peak_px": 1.1,
+    "interlace_peak_px": 0.55,
+    "temporal_curve": 2.0,
+    "safe_signal": 0.32
+  },
   "clipboard_paper": {
     "_comment": "종이와 잉크가 얼마나 다른가 (F-05). **훑으면 모르고 들여다보면 보이는 정도**를 노린다. UI(clipboard_panel.gd)와 ScreenSnapshot이 같은 값을 읽는다 — 스냅샷이 화면보다 잘 보거나 못 보면 블라인드 플레이 결과가 통째로 무의미해진다.",
     "_comment_rewritten": "오늘 고쳐 쓴 줄만 **반대 방향으로** 간다. 나머지는 낡아서 어둡고 이 줄은 덧댄 새 종이라 밝다. 훑어도 보여야 하는 유일한 줄이다.",

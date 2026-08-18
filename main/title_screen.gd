@@ -52,6 +52,7 @@ func _ready() -> void:
 	_view.play_intro()
 
 	var effects := ScreenEffects.new()
+	effects.configure(balance.get("graphics", {}) as Dictionary)
 	add_child(effects)
 	# 제목 화면에서도 CRT는 켜져 있다. 여기서 꺼두면 밤으로 넘어갈 때 화면 질감이 바뀐다.
 	effects.set_tension(TITLE_TENSION)

@@ -21,13 +21,15 @@ const BREATH_PIXELS := 2.4
 const BREATH_SECONDS := 4.2
 const BREATH_RATE := [1.0, 1.8, 2.8]
 const BREATH_DEPTH := [1.0, 1.5, 2.2]
+const OUTLINE_WIDTH := 2.2
 
 ## **실루엣은 뒤보다 어두워야 실루엣이다.** 코트가 선반보다 밝았을 때는 검은 실루엣이
 ## 아니라 밝은 마네킹으로 보였다. 지금 코트는 밝기 23, 선반은 44다.
 ## 그리고 화면에서 따뜻한 것은 종이뿐이어야 한다 — `tests/test_art_palette.gd`가 잰다.
 const SHELF_TONE := Color("262d2f")
 const SHELF_LINE := Color("303739")
-const EDGE := Color("0a0c0d")
+## 제한 팔레트에서 실루엣이 선반에 녹지 않도록 배경보다 밝은 차가운 윤곽을 쓴다.
+const EDGE := Color("3d4648")
 const RIM := Color("687173")
 const STRAP := Color("4d585b")
 const WET_RIM := Color("719096")
@@ -152,7 +154,7 @@ func _draw_head(coat: Color) -> void:
 		return
 	var center := _at(Vector2(0.0, Outline.HEAD_CENTER_Y))
 	draw_circle(center, radius, coat)
-	draw_arc(center, radius, PI * 1.05, PI * 1.75, 14, RIM.darkened(0.58), 1.2, true)
+	draw_arc(center, radius, PI * 1.05, PI * 1.75, 14, RIM.darkened(0.42), OUTLINE_WIDTH, true)
 
 
 ## 비를 맞고 왔다. 어깨에 맺히고 코트를 타고 흐른다. 전부 차가운 색이다.
@@ -174,7 +176,7 @@ func _fill(points: PackedVector2Array, color: Color) -> void:
 	for p in points:
 		moved.append(_at(p))
 	draw_colored_polygon(moved, color)
-	draw_polyline(moved + PackedVector2Array([moved[0]]), EDGE, 1.1, true)
+	draw_polyline(moved + PackedVector2Array([moved[0]]), EDGE, OUTLINE_WIDTH, true)
 
 
 ## 몸 한가운데를 원점으로 쓰는 좌표를 실제 그리는 좌표로 옮긴다.
