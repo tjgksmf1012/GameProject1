@@ -41,11 +41,14 @@ func _test_temporal_caps(r: RefCounted) -> void:
 func _test_outlines(r: RefCounted) -> void:
 	var customer := FileAccess.get_file_as_string(CUSTOMER_PATH)
 	var product := FileAccess.get_file_as_string(PRODUCT_PATH)
-	r.check(customer.contains("const OUTLINE_WIDTH := 2.2"), "손님 외곽선이 2px 이상이다")
+	r.check(customer.contains("const OUTLINE_WIDTH := 2.4"), "손님 외곽 키라인이 2px 이상이다")
 	r.check(product.contains("const OUTLINE_WIDTH := 2.2"), "상품 외곽선이 2px 이상이다")
-	var edge := Color("3d4648")
-	r.check(_luminance(edge) > _luminance(Palette.BG), "손님 외곽선이 배경보다 밝다")
-	r.check(customer.contains("EDGE, OUTLINE_WIDTH"), "손님 윤곽 그리기가 굵기 상수를 사용한다")
+	var keyline := Color("090c0d")
+	var backlight := Color("59686b")
+	r.check(_luminance(keyline) < _luminance(Palette.BG), "전신 키라인은 배경보다 어둡다")
+	r.check(_luminance(backlight) > _luminance(Palette.BG), "선택적 역광만 배경보다 밝다")
+	r.check(customer.contains("KEYLINE, OUTLINE_WIDTH"), "코트 외곽은 어두운 키라인을 사용한다")
+	r.check(customer.contains("BACKLIGHT, RIM_WIDTH"), "밝은 윤곽은 머리·어깨 일부에만 쓴다")
 
 
 func _test_tactile_feedback(r: RefCounted) -> void:

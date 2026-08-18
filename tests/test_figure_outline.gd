@@ -1,84 +1,75 @@
 extends RefCounted
 
-## 손님이 **사람 비율인가.** 색이 아니라 이게 문제였다.
-##
-## 처음 판은 몸통 62 · 다리 43이었다 — 다리가 몸통보다 짧았다. 그 상태로는 명도를 어떻게
-## 만져도 어린이 그림으로 보인다. 눈으로 「좀 이상하네」로 넘어갈 일이라서 숫자로 잰다.
-##
-## 윤곽이 `Control` 밖에 있는 이유가 이것이다. 그리는 코드 안에 있었으면 이 검사를 못 썼다.
+## 좁은 손님 패널에서 사람이 **질량과 자세**로 읽히는가.
+## 전신 등신대 검사는 폐기했다. 이 구도에서는 다리를 줄여 넣는 순간 다시 막대기 그림이 된다.
 
 const Outline := preload("res://ui/art/figure_outline.gd")
 
-const SHOULDER := 24.0
-const WAIST := 18.0
-const HEAD_RADIUS := 10.4
+const SHOULDER := 38.0
+const WAIST := 32.0
+const HEAD_RADIUS := 14.0
 
 
 func run(r: RefCounted) -> void:
 	r.suite("figure_outline")
-	_test_proportions(r)
-	_test_shoulders_are_the_widest_part(r)
-	_test_the_outline_is_one_closed_symmetric_loop(r)
-	_test_the_bag_touches_the_body(r)
+	_test_upper_body_fills_the_frame(r)
+	_test_head_and_shoulders_read_at_small_size(r)
+	_test_coat_is_one_continuous_mass(r)
+	_test_hands_reach_the_counter(r)
+	_test_bag_touches_the_body(r)
 
 
-## 골반이 키의 한가운데 온다. 이거 하나만 지켜도 사람으로 보인다.
-func _test_proportions(r: RefCounted) -> void:
-	var height := Outline.DESIGN_HEIGHT
-	var hip_ratio := Outline.HIP_Y / height
-	r.check(hip_ratio > 0.45 and hip_ratio < 0.56,
-		"골반이 키의 %.0f%%에 있다 — 사람은 절반 근처다" % [hip_ratio * 100.0])
-
-	var torso := Outline.HEM_Y - Outline.SHOULDER_Y
-	var legs := Outline.FOOT_Y - Outline.HEM_Y
-	r.check(legs > torso,
-		"다리 %.0f가 몸통 %.0f보다 짧다 — 이 비율이 어린이 그림을 만든다" % [legs, torso])
-
-	var head := HEAD_RADIUS * 2.0
-	r.check(head / height > 0.11 and head / height < 0.17,
-		"머리가 키의 %.0f%%다 — 7~8등신이면 12~15%%다" % [head / height * 100.0])
+## 화면 아래 19%는 계산대가 가린다. 다리를 축소해 남겨두지 않는다.
+func _test_upper_body_fills_the_frame(r: RefCounted) -> void:
+	var counter_ratio: float = Outline.COUNTER_Y / Outline.DESIGN_HEIGHT
+	r.check(counter_ratio > 0.76 and counter_ratio < 0.84,
+		"계산대가 화면의 %.0f%%에 있다 — 상반신이 화면 대부분을 차지한다" % [counter_ratio * 100.0])
+	var source := FileAccess.get_file_as_string("res://ui/art/figure_outline.gd")
+	r.check(not source.contains("func leg(") and not source.contains("FOOT_Y"),
+		"축소한 다리 도형이 완전히 제거되었다")
 
 
-## 어깨가 가장 넓어야 한다. 자락이 더 넓으면 사람이 아니라 종이 되고,
-## 허리가 더 넓으면 눈사람이 된다.
-func _test_shoulders_are_the_widest_part(r: RefCounted) -> void:
-	var points := Outline.silhouette(SHOULDER, WAIST)
+## 머리가 점처럼 작지 않고, 어깨는 옷걸이 선이 아니라 큰 덩어리여야 한다.
+func _test_head_and_shoulders_read_at_small_size(r: RefCounted) -> void:
+	var head_width := HEAD_RADIUS * 2.0
+	var shoulder_width := SHOULDER * 2.0
+	var ratio := head_width / shoulder_width
+	r.check(ratio > 0.30 and ratio < 0.46,
+		"머리/어깨 너비가 %.0f%%다 — 작은 화면에서도 둘 다 읽힌다" % [ratio * 100.0])
+	var torso_depth: float = Outline.COUNTER_Y - Outline.SHOULDER_Y
+	r.check(torso_depth > head_width * 2.5,
+		"어깨 아래 코트 깊이 %.0f가 머리 너비 %.0f보다 충분히 크다" % [torso_depth, head_width])
+
+
+## 목·어깨·팔·몸통은 하나의 외곽이다. 작은 도형을 이어 붙인 이음매가 없어야 한다.
+func _test_coat_is_one_continuous_mass(r: RefCounted) -> void:
+	var points := Outline.silhouette(SHOULDER, WAIST, 0.0)
+	r.check(points.size() >= 90, "코트 윤곽 점이 %d개라 곡선이 충분하다" % points.size())
+	r.check(points[0].distance_to(points[points.size() - 1]) < HEAD_RADIUS * 1.2,
+		"목 양끝 간격 %.1f를 한 번에 닫을 수 있다" % points[0].distance_to(points[points.size() - 1]))
 	var widest := 0.0
-	var widest_y := 0.0
-	for p in points:
-		if absf(p.x) > widest:
-			widest = absf(p.x)
-			widest_y = p.y
-	r.check(absf(widest_y - Outline.SHOULDER_Y) < 14.0,
-		"가장 넓은 곳이 y=%.0f다 — 어깨(%.0f) 근처여야 한다" % [widest_y, Outline.SHOULDER_Y])
+	for point in points:
+		widest = maxf(widest, absf(point.x))
+	r.check(widest >= SHOULDER,
+		"소매까지 포함한 상반신 반폭 %.1f가 어깨 %.1f 이상이다" % [widest, SHOULDER])
 
 
-## 목·어깨·팔·몸통은 **끊기지 않는 한 윤곽**이다. 도형을 따로 그리면 이음매가 보인다.
-func _test_the_outline_is_one_closed_symmetric_loop(r: RefCounted) -> void:
-	var points := Outline.silhouette(SHOULDER, WAIST)
-	r.check(points.size() > 40, "윤곽 점이 %d개뿐이다 — 각져 보인다" % points.size())
-	r.check(points[0].distance_to(points[points.size() - 1]) < SHOULDER,
-		"윤곽이 닫히지 않는다 — 시작과 끝이 %.1f 떨어져 있다"
-			% points[0].distance_to(points[points.size() - 1]))
-	# 좌우 대칭. 뒤집어 붙였으므로 i번째와 뒤에서 i번째가 x부호만 달라야 한다.
-	var last := points.size() - 1
-	for i in points.size() / 2:
-		var a: Vector2 = points[i]
-		var b: Vector2 = points[last - i]
-		r.check(absf(a.x + b.x) < 0.01 and absf(a.y - b.y) < 0.01,
-			"윤곽이 좌우 대칭이 아니다 (%d번째: %s vs %s)" % [i, a, b])
+## 상품과 손이 같은 계산대 접점에 있어 공중에 뜨지 않는다.
+func _test_hands_reach_the_counter(r: RefCounted) -> void:
+	var hand := Outline.hand_point(SHOULDER)
+	r.check(absf(hand.y - Outline.COUNTER_Y) <= 4.0,
+		"손과 계산대 높이 차가 %.1fpx다" % absf(hand.y - Outline.COUNTER_Y))
+	r.check(absf(hand.x) < SHOULDER * 0.60,
+		"손 x=%.1f가 몸 중심 가까이에 있어 물건을 받친다" % hand.x)
 
 
-## 가방은 몸에 **붙어** 있어야 한다. 옆에 띄우면 가방이 아니라 정체불명의 도형이 된다.
-func _test_the_bag_touches_the_body(r: RefCounted) -> void:
+func _test_bag_touches_the_body(r: RefCounted) -> void:
 	var bag_right := -999.0
-	for p in Outline.bag(SHOULDER):
-		bag_right = maxf(bag_right, p.x)
-	# 가방이 걸리는 높이에서 몸이 어디까지 나와 있는가.
+	for point in Outline.bag(SHOULDER, 0.0):
+		bag_right = maxf(bag_right, point.x)
 	var body_left := 0.0
-	for p in Outline.silhouette(SHOULDER, WAIST):
-		if absf(p.y - (Outline.SHOULDER_Y + 10.0)) < 8.0:
-			body_left = minf(body_left, p.x)
+	for point in Outline.silhouette(SHOULDER, WAIST, 0.0):
+		if absf(point.y - (Outline.SHOULDER_Y + 10.0)) < 8.0:
+			body_left = minf(body_left, point.x)
 	r.check(bag_right >= body_left,
-		"가방의 안쪽 끝(%.1f)이 몸의 바깥 끝(%.1f)에 못 미친다 — 떨어져 보인다"
-			% [bag_right, body_left])
+		"가방 안쪽 %.1f가 몸 바깥 %.1f에 닿는다" % [bag_right, body_left])
