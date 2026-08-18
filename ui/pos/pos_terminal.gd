@@ -12,6 +12,7 @@ const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 const ReceiptSlip := preload("res://ui/pos/receipt_slip.gd")
 const ProductGlyph := preload("res://ui/art/product_glyph.gd")
+const RegisterSurface := preload("res://ui/art/register_surface.gd")
 
 const PRESS_DURATION := 0.18
 const SCAN_REBOUND_SECONDS := 0.24
@@ -24,6 +25,7 @@ var _strings: Dictionary = {}
 var _prices: Dictionary = {}
 
 var _scan_row: HBoxContainer = null
+var _surface: RegisterSurface = null
 var _receipt: ReceiptSlip = null
 var _id_button: Button = null
 var _serve_button: Button = null
@@ -38,7 +40,10 @@ var _locked: bool = false
 
 func _init() -> void:
 	# 여기는 벽이 아니라 **계산대 상판**이다. 다른 패널보다 밝게 둬서 손이 닿는 자리로 읽히게 한다.
-	add_theme_stylebox_override("panel", Palette.panel_style(Palette.COUNTER, Palette.COUNTER_EDGE))
+	var style := Palette.panel_style(Palette.COUNTER, Palette.COUNTER_EDGE)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(1)
+	add_theme_stylebox_override("panel", style)
 
 
 ## 문자열이 있어야 라벨을 만들 수 있으므로, 화면 구성을 여기서 한다.
@@ -52,6 +57,8 @@ func set_data(strings: Dictionary, prices: Dictionary) -> void:
 func _build() -> void:
 	if _scan_row != null:
 		return
+	_surface = RegisterSurface.new()
+	add_child(_surface)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
 	add_child(row)
@@ -188,6 +195,7 @@ func check_id() -> bool:
 func _on_scan_pressed(key: String, button: Button) -> void:
 	if not scan(key):
 		return
+	_surface.pulse_scan()
 	Juice.rebound(button, SCAN_REBOUND_SECONDS)
 	button.disabled = true
 

@@ -11,14 +11,15 @@ const CustomerView := preload("res://ui/customer_view.gd")
 const CctvMonitor := preload("res://ui/cctv/cctv_monitor.gd")
 const PosTerminal := preload("res://ui/pos/pos_terminal.gd")
 const ResultPanel := preload("res://ui/result_panel.gd")
+const WorkstationFrame := preload("res://ui/art/workstation_frame.gd")
 const ROOM_SHADER := preload("res://shaders/room.gdshader")
 
 ## 720p에서 여백 44는 사치다. 밤 4에서 수칙 9줄 + 긴 단서가 들어오자 세로가 모자랐다.
-const MARGIN := 28
-const GAP := 14
-const POS_MIN_HEIGHT := 182
-const CLIPBOARD_RATIO := 1.35
-const CCTV_MIN_WIDTH := 330
+const MARGIN := 18
+const GAP := 10
+const POS_MIN_HEIGHT := 194
+const CLIPBOARD_RATIO := 1.05
+const CCTV_MIN_WIDTH := 338
 
 var clipboard: ClipboardPanel = null
 var cctv: CctvMonitor = null
@@ -27,6 +28,7 @@ var pos: PosTerminal = null
 var result: ResultPanel = null
 var shake_target: Control = null
 var background: ColorRect = null
+var _workstation: WorkstationFrame = null
 
 var _clock: Label = null
 var _status: Label = null
@@ -45,6 +47,10 @@ func build(strings: Dictionary, prices: Dictionary, cctv_traits: PackedStringArr
 	add_child(background)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	_workstation = WorkstationFrame.new()
+	add_child(_workstation)
+	_workstation.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	shake_target = VBoxContainer.new()
 	shake_target.add_theme_constant_override("separation", GAP)
 	add_child(shake_target)
@@ -57,7 +63,16 @@ func build(strings: Dictionary, prices: Dictionary, cctv_traits: PackedStringArr
 	shake_target.add_child(_build_pos(strings, prices))
 
 
-func _build_header() -> HBoxContainer:
+func _build_header() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var style := Palette.panel_style(Palette.PANEL.darkened(0.22), Palette.PANEL_EDGE)
+	style.shadow_size = 0
+	style.set_border_width_all(2)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 5
+	style.content_margin_bottom = 5
+	panel.add_theme_stylebox_override("panel", style)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
 	_clock = Palette.make_label("", Palette.SIZE_CLOCK, Palette.ACCENT, Palette.ROLE_MACHINE)
@@ -67,7 +82,8 @@ func _build_header() -> HBoxContainer:
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(_clock)
 	row.add_child(_status)
-	return row
+	panel.add_child(row)
+	return panel
 
 
 func _build_main_row(strings: Dictionary, cctv_traits: PackedStringArray) -> HBoxContainer:
@@ -112,6 +128,10 @@ func _build_pos(strings: Dictionary, prices: Dictionary) -> Control:
 func set_tension(value: float) -> void:
 	if background != null and background.material != null:
 		(background.material as ShaderMaterial).set_shader_parameter("tension", value)
+	if _workstation != null:
+		_workstation.set_tension(value)
+	if customer_view != null:
+		customer_view.set_tension(value)
 
 
 ## `pressure`는 0(여유)~1(다음 오판이면 끝). **화면에서 이 숫자만 색이 안 변했다.**
