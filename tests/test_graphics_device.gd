@@ -13,6 +13,7 @@ func run(r: RefCounted) -> void:
 	_test_temporal_caps(r)
 	_test_outlines(r)
 	_test_tactile_feedback(r)
+	_test_workstation_staging(r)
 
 
 func _test_global_dither(r: RefCounted) -> void:
@@ -60,6 +61,20 @@ func _test_tactile_feedback(r: RefCounted) -> void:
 	r.check(receipt.contains("RESIST_PIXELS") and receipt.contains("_recoil_edge"),
 		"영수증 톱니가 걸렸다 놓이는 저항이 있다")
 	r.check(juice.contains("static func rebound"), "스캔 버튼에 압축·과회복 반동이 있다")
+
+
+func _test_workstation_staging(r: RefCounted) -> void:
+	var night := FileAccess.get_file_as_string("res://ui/night_view.gd")
+	var customer := FileAccess.get_file_as_string("res://ui/customer_view.gd")
+	var pos := FileAccess.get_file_as_string("res://ui/pos/pos_terminal.gd")
+	var cctv := FileAccess.get_file_as_string("res://ui/cctv/cctv_channel.gd")
+	var title := FileAccess.get_file_as_string("res://ui/art/store_backdrop.gd")
+	r.check(night.contains("WorkstationFrame"), "네 기능이 하나의 계산대 프레임에 고정된다")
+	r.check(customer.contains("CustomerWindow"), "손님은 비 오는 유리창 장면 안에 선다")
+	r.check(pos.contains("RegisterSurface"), "POS가 스캐너·프린터 계산대 표면을 가진다")
+	r.check(cctv.contains("const CHANNEL_HEIGHT := 142.0"), "CCTV 장면이 세로로 찌그러지지 않는다")
+	r.check(title.contains("_draw_visitor") and title.contains("_draw_rain"),
+		"제목 화면이 점포·비·문 앞 인기척을 함께 보여준다")
 
 
 static func _luminance(color: Color) -> float:

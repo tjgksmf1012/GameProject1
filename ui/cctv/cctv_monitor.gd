@@ -19,18 +19,52 @@ const COUNTER_CHANNEL := 0
 const CHANNEL_KEYS := ["cctv.counter", "cctv.aisle", "cctv.storage", "cctv.entrance"]
 const GRID_COLUMNS := 2
 const GRID_GAP := 6
+const CHASSIS := Color("0a0e0f")
+const CHASSIS_EDGE := Color("465052")
+const STATUS_LED := Color("815529")
 
 var _strings: Dictionary = {}
 var _channels: Array[Control] = []
 var _grid: GridContainer = null
+var _time := 0.0
 
 
 func _init() -> void:
-	add_theme_stylebox_override("panel", Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE))
+	var style := Palette.panel_style(CHASSIS, CHASSIS_EDGE)
+	style.set_border_width_all(4)
+	style.set_corner_radius_all(9)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 12
+	style.content_margin_bottom = 16
+	add_theme_stylebox_override("panel", style)
 	# 세로를 채운다. 예전에는 SHRINK_BEGIN이라 패널이 243px에서 멈추고 형제는 404px여서
 	# **161px가 죽은 공간으로 남았다.** 화면에서 가장 큰 빈자리가 하필 증거 도구 아래였다.
 	# 채널 도형은 이제 패널 크기를 따라간다(cctv_channel.gd `_fit_stage`).
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	_time = fposmod(_time + delta, 10.0)
+	queue_redraw()
+
+
+func _draw() -> void:
+	if size.x < 24.0 or size.y < 24.0:
+		return
+	for point in [
+		Vector2(8.0, 8.0), Vector2(size.x - 8.0, 8.0),
+		Vector2(8.0, size.y - 8.0), Vector2(size.x - 8.0, size.y - 8.0),
+	]:
+		draw_circle(point, 3.3, Palette.BG)
+		draw_circle(point, 1.4, CHASSIS_EDGE)
+	var led_alpha := 0.62 + sin(_time * 2.2) * 0.08
+	draw_circle(Vector2(size.x - 19.0, 18.0), 3.2, Color(STATUS_LED, led_alpha))
+	for i in 9:
+		var x := size.x * 0.5 - 48.0 + float(i) * 12.0
+		draw_line(Vector2(x, size.y - 8.0), Vector2(x + 6.0, size.y - 8.0),
+			CHASSIS_EDGE.darkened(0.35), 2.0)
 
 
 func set_strings(strings: Dictionary) -> void:

@@ -9,15 +9,15 @@ const Palette := preload("res://ui/theme_factory.gd")
 const CCTV_SHADER := preload("res://shaders/cctv.gdshader")
 
 const CHANNEL_WIDTH := 152.0
-const CHANNEL_HEIGHT := 92.0
+const CHANNEL_HEIGHT := 142.0
 const COUNTER_INDEX := 0
 const AISLE_INDEX := 1
 const STORAGE_INDEX := 2
 const ENTRANCE_INDEX := 3
-const FIGURE_WIDTH := 14.0
-const FIGURE_HEIGHT := 34.0
-const SHADOW_WIDTH := 30.0
-const SHADOW_HEIGHT := 9.0
+const FIGURE_WIDTH := 20.0
+const FIGURE_HEIGHT := 52.0
+const SHADOW_WIDTH := 40.0
+const SHADOW_HEIGHT := 11.0
 const EXTRA_SHADOW_OFFSET := 21.0
 ## 주사선 하나의 굵기(픽셀)와 잡음 셀 한 변(픽셀).
 ## **패널 크기에서 역산한다.** 줄 수를 직접 박으면 패널 크기가 바뀔 때 조용히 깨진다 —
@@ -124,8 +124,8 @@ func _make_floor() -> Polygon2D:
 	floor_light.color = Color(0.34, 0.35, 0.35, 1.0)
 	var center := CHANNEL_WIDTH * 0.5
 	floor_light.polygon = PackedVector2Array([
-		Vector2(center - 42.0, 56.0), Vector2(center + 42.0, 56.0),
-		Vector2(center + 52.0, 90.0), Vector2(center - 52.0, 90.0),
+		Vector2(center - 42.0, 82.0), Vector2(center + 42.0, 82.0),
+		Vector2(center + 58.0, 140.0), Vector2(center - 58.0, 140.0),
 	])
 	return floor_light
 
@@ -133,7 +133,9 @@ func _make_floor() -> Polygon2D:
 func _build_environment() -> void:
 	if _index == COUNTER_INDEX:
 		_stage.add_child(_make_floor())
-		_add_line([Vector2(20, 85), Vector2(132, 85)], Color(0.52, 0.53, 0.51, 0.35), 3.0)
+		_add_quad([Vector2(13, 26), Vector2(53, 26), Vector2(53, 70), Vector2(13, 70)], Color(0.12, 0.15, 0.15, 0.92))
+		_add_line([Vector2(13, 70), Vector2(53, 70)], Color(0.45, 0.48, 0.45, 0.28), 2.0)
+		_add_line([Vector2(18, 132), Vector2(134, 132)], Color(0.52, 0.53, 0.51, 0.35), 4.0)
 	elif _index == AISLE_INDEX:
 		_build_aisle()
 	elif _index == STORAGE_INDEX:
@@ -143,42 +145,45 @@ func _build_environment() -> void:
 
 
 func _build_aisle() -> void:
-	_add_quad([Vector2(55, 36), Vector2(97, 36), Vector2(132, 92), Vector2(20, 92)], Color(0.27, 0.28, 0.27, 0.34))
+	_add_quad([Vector2(57, 42), Vector2(95, 42), Vector2(136, 142), Vector2(16, 142)], Color(0.27, 0.28, 0.27, 0.34))
 	for side in [0, 1]:
 		var x := 5.0 if side == 0 else 111.0
 		_add_quad([
-			Vector2(x, 30), Vector2(x + 36, 35),
-			Vector2(x + 36, 84), Vector2(x, 90),
+			Vector2(x, 34), Vector2(x + 36, 40),
+			Vector2(x + 36, 132), Vector2(x, 140),
 		], Color(0.18, 0.20, 0.19, 0.95))
-		for row in 3:
-			var y := 45.0 + float(row) * 16.0
+		for row in 4:
+			var y := 55.0 + float(row) * 21.0
 			_add_line([Vector2(x + 2, y), Vector2(x + 34, y + 2)], Color(0.45, 0.46, 0.43, 0.30), 2.0)
-	_add_line([Vector2(76, 37), Vector2(76, 92)], Color(0.46, 0.48, 0.45, 0.15), 1.0)
+	_add_line([Vector2(76, 43), Vector2(76, 142)], Color(0.46, 0.48, 0.45, 0.15), 1.0)
+	_add_quad([Vector2(61, 18), Vector2(91, 18), Vector2(88, 35), Vector2(64, 35)], Color(0.25, 0.27, 0.26, 0.80))
 
 
 func _build_storage() -> void:
-	_add_quad([Vector2(48, 23), Vector2(105, 23), Vector2(105, 83), Vector2(48, 83)], Color(0.08, 0.10, 0.10, 0.98))
-	_add_line([Vector2(48, 23), Vector2(105, 23), Vector2(105, 83)], Color(0.43, 0.45, 0.42, 0.42), 3.0)
-	for i in 5:
+	_add_quad([Vector2(48, 25), Vector2(105, 25), Vector2(105, 128), Vector2(48, 128)], Color(0.08, 0.10, 0.10, 0.98))
+	_add_line([Vector2(48, 25), Vector2(105, 25), Vector2(105, 128)], Color(0.43, 0.45, 0.42, 0.42), 3.0)
+	for i in 8:
 		var col := i % 3
 		var row := i / 3
 		var x := 8.0 + float(col) * 34.0
-		var y := 61.0 + float(row) * 18.0
+		var y := 84.0 + float(row) * 19.0
 		_add_quad([Vector2(x, y), Vector2(x + 28, y), Vector2(x + 26, y + 17), Vector2(x + 2, y + 17)], Color(0.22, 0.22, 0.20, 0.90))
 		_add_line([Vector2(x + 2, y + 5), Vector2(x + 26, y + 5)], Color(0.38, 0.38, 0.35, 0.35), 1.0)
-	_add_line([Vector2(16, 30), Vector2(16, 59), Vector2(39, 59)], Color(0.42, 0.45, 0.42, 0.30), 2.0)
+	_add_line([Vector2(16, 31), Vector2(16, 78), Vector2(39, 78)], Color(0.42, 0.45, 0.42, 0.30), 2.0)
+	_add_line([Vector2(23, 31), Vector2(23, 61), Vector2(38, 61)], Color(0.32, 0.35, 0.33, 0.24), 1.0)
 
 
 func _build_entrance() -> void:
-	_add_quad([Vector2(31, 17), Vector2(121, 17), Vector2(121, 90), Vector2(31, 90)], Color(0.07, 0.11, 0.11, 0.95))
-	_add_line([Vector2(31, 17), Vector2(121, 17), Vector2(121, 90)], Color(0.47, 0.50, 0.47, 0.46), 3.0)
-	_add_line([Vector2(76, 17), Vector2(76, 90)], Color(0.44, 0.48, 0.45, 0.38), 2.0)
-	_add_line([Vector2(31, 58), Vector2(121, 58)], Color(0.37, 0.42, 0.40, 0.30), 1.0)
-	for i in 9:
+	_add_quad([Vector2(31, 18), Vector2(121, 18), Vector2(121, 139), Vector2(31, 139)], Color(0.07, 0.11, 0.11, 0.95))
+	_add_line([Vector2(31, 18), Vector2(121, 18), Vector2(121, 139)], Color(0.47, 0.50, 0.47, 0.46), 3.0)
+	_add_line([Vector2(76, 18), Vector2(76, 139)], Color(0.44, 0.48, 0.45, 0.38), 2.0)
+	_add_line([Vector2(31, 86), Vector2(121, 86)], Color(0.37, 0.42, 0.40, 0.30), 1.0)
+	for i in 13:
 		var x := 38.0 + float((i * 19) % 76)
-		var y := 25.0 + float((i * 23) % 43)
+		var y := 26.0 + float((i * 23) % 88)
 		_add_line([Vector2(x, y), Vector2(x - 2, y + 10)], Color(0.50, 0.59, 0.56, 0.31), 1.0)
-	_add_quad([Vector2(42, 82), Vector2(111, 82), Vector2(135, 92), Vector2(18, 92)], Color(0.36, 0.38, 0.35, 0.23))
+	_add_quad([Vector2(42, 126), Vector2(111, 126), Vector2(138, 142), Vector2(15, 142)], Color(0.36, 0.38, 0.35, 0.23))
+	_add_quad([Vector2(10, 100), Vector2(26, 100), Vector2(24, 137), Vector2(12, 137)], Color(0.18, 0.21, 0.20, 0.84))
 
 
 func _add_quad(points: Array[Vector2], color: Color) -> void:
@@ -203,7 +208,7 @@ func _process(delta: float) -> void:
 
 ## 계산대 채널에만 의미가 있다. 그림자가 없으면 발밑이 비어 있다.
 func show_figure(visible_figure: bool, has_shadow: bool, has_extra: bool) -> void:
-	var base := Vector2(CHANNEL_WIDTH * 0.5, 72.0)
+	var base := Vector2(CHANNEL_WIDTH * 0.5, 126.0)
 	_figure.polygon = _figure_shape(base) if visible_figure else PackedVector2Array()
 	_shadow.polygon = _shadow_shape(base, 0.0) if visible_figure and has_shadow \
 		else PackedVector2Array()

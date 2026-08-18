@@ -8,8 +8,8 @@ const Palette := preload("res://ui/theme_factory.gd")
 const ProductGlyph := preload("res://ui/art/product_glyph.gd")
 const Outline := preload("res://ui/art/figure_outline.gd")
 
-const FIGURE_FILL := 0.84
-const FIGURE_ANCHOR_X := 0.79
+const FIGURE_FILL := 0.92
+const FIGURE_ANCHOR_X := 0.75
 const BREATH_PIXELS := 1.6
 const BREATH_SECONDS := 4.2
 const BREATH_RATE := [1.0, 1.8, 2.8]
@@ -17,20 +17,20 @@ const BREATH_DEPTH := [1.0, 1.4, 1.9]
 const OUTLINE_WIDTH := 2.4
 const RIM_WIDTH := 1.8
 
-const SHELF_TONE := Color("22292b")
-const SHELF_LINE := Color("30383a")
 const KEYLINE := Color("090c0d")
 const BACKLIGHT := Color("59686b")
-const SEAM := Color("303a3d")
-const STRAP := Color("445154")
+const FACE_VOID := Color("070a0b")
+const FACE_LINE := Color("6a7d80")
+const SEAM := Color("4a585c")
+const STRAP := Color("596a6e")
 const WET_RIM := Color("718f95")
 const HOOD_VOID := Color("040607")
-const GLOVE := Color("0a0d0e")
-const COUNTER_TOP := Color("343d40")
+const GLOVE := Color("101719")
+const COUNTER_TOP := Color("435154")
 const COUNTER_FRONT := Color("0d1112")
-const COUNTER_GRAIN := Color("1c2325")
+const COUNTER_GRAIN := Color("344247")
 const COAT_TONES := [
-	Color("111517"), Color("131719"), Color("101416"), Color("15191b"),
+	Color("1b2326"), Color("20282a"), Color("182125"), Color("242b2e"),
 ]
 const SHOULDER_WIDTH := [33.0, 36.0, 39.0, 35.0]
 const WAIST_WIDTH := [28.0, 30.0, 32.0, 29.0]
@@ -94,7 +94,6 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if size.y <= 0.0:
 		return
-	_draw_shelves()
 	if _customer_id.is_empty():
 		return
 	var draw_scale := _figure_scale()
@@ -104,18 +103,6 @@ func _draw() -> void:
 	_draw_person(lean)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_counter(draw_scale)
-
-
-func _draw_shelves() -> void:
-	for i in 3:
-		var left := size.x * (0.05 + float(i) * 0.31)
-		var top := size.y * (0.28 + float(i % 2) * 0.08)
-		var rect := Rect2(left, top, size.x * 0.21, size.y - top)
-		draw_rect(rect, SHELF_TONE)
-		draw_line(rect.position, Vector2(rect.end.x, rect.position.y), Palette.PANEL_EDGE, 2.0)
-		for row in 3:
-			var y := top + (float(row) + 1.0) * rect.size.y / 4.0
-			draw_line(Vector2(left, y), Vector2(rect.end.x, y), SHELF_LINE, 1.0)
 
 
 func _draw_person(lean: float) -> void:
@@ -151,6 +138,16 @@ func _draw_head(coat: Color, lean: float) -> void:
 		return
 	draw_polyline(Outline.head_rim(radius, lean, _facing()),
 		BACKLIGHT.darkened(0.10), RIM_WIDTH, true)
+	# 중립적인 한쪽 눈과 콧날만 남긴다. 표정은 읽히지 않지만 마네킹처럼 보이지는 않는다.
+	var center := Vector2(lean * 0.95, Outline.HEAD_CENTER_Y)
+	var facing := _facing()
+	var eye := center + Vector2(facing * 4.8, -3.2)
+	_draw_ellipse(eye, Vector2(2.4, 1.35), FACE_VOID)
+	draw_circle(eye + Vector2(facing * 0.7, -0.2), 0.55, FACE_LINE)
+	draw_line(eye + Vector2(-facing * 3.5, -2.4), eye + Vector2(facing * 2.8, -2.0),
+		FACE_LINE.darkened(0.28), 1.1, true)
+	draw_line(center + Vector2(facing * 5.4, -0.2), center + Vector2(facing * 8.0, 4.0),
+		FACE_LINE.darkened(0.38), 1.0, true)
 
 
 func _draw_garment(shoulder: float, lean: float) -> void:

@@ -8,6 +8,7 @@ extends PanelContainer
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
+const DecisionStamp := preload("res://ui/art/decision_stamp.gd")
 
 const RISE_DURATION := 0.26
 const BUTTON_SIZE := Vector2(170, 44)
@@ -35,6 +36,7 @@ var _detail: Label = null
 var _detail_scroll: ScrollContainer = null
 var _button: Button = null
 var _body: VBoxContainer = null
+var _stamp: DecisionStamp = null
 ## 높이를 재려고 남은 프레임 수 (`_process` 참고).
 var _fit_frames: int = 0
 ## 이번 결과에서 잰 높이 중 가장 큰 것.
@@ -54,6 +56,8 @@ func _init() -> void:
 func _build() -> void:
 	if _body != null:
 		return
+	_stamp = DecisionStamp.new()
+	add_child(_stamp)
 	_body = VBoxContainer.new()
 	_body.add_theme_constant_override("separation", 8)
 	add_child(_body)
@@ -94,6 +98,7 @@ func _t(key: String) -> String:
 
 
 func show_result(result: JudgeResult, button_text: String) -> void:
+	_stamp.show_decision(result.correct)
 	_headline.text = _headline_for(result)
 	# 초록(정상)도 빨강(오판)도 아니다. 맞힌 것도 틀린 것도 아닌 화면이라야 한다.
 	var tone := Palette.OK if result.correct else Palette.DANGER
@@ -104,6 +109,7 @@ func show_result(result: JudgeResult, button_text: String) -> void:
 
 
 func show_summary(headline: String, detail: String, button_text: String) -> void:
+	_stamp.clear()
 	_headline.text = headline
 	_headline.add_theme_color_override("font_color", Palette.ACCENT)
 	_detail.text = detail

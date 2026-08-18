@@ -8,6 +8,7 @@ extends PanelContainer
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
 const CustomerFigure := preload("res://ui/art/customer_figure.gd")
+const CustomerWindow := preload("res://ui/art/customer_window.gd")
 
 const RISE_DURATION := 0.3
 const PRESSURE_FADE := 0.5
@@ -25,6 +26,7 @@ const PRESSURE_KEYS := {
 }
 
 var _strings: Dictionary = {}
+var _window: CustomerWindow = null
 var _figure: CustomerFigure = null
 var _name: Label = null
 var _dialogue: Label = null
@@ -42,6 +44,8 @@ func _init() -> void:
 	# 맥동시키려면 스타일박스를 들고 있어야 한다. 테마에서 다시 꺼내오면 공유본이라
 	# 다른 패널까지 같이 깜빡인다.
 	_edge = Palette.panel_style(Palette.PANEL, Palette.PANEL_EDGE)
+	_edge.set_border_width_all(3)
+	_edge.set_corner_radius_all(1)
 	add_theme_stylebox_override("panel", _edge)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clip_contents = true
@@ -50,7 +54,9 @@ func _init() -> void:
 func _build() -> void:
 	if _body != null:
 		return
-	# **뒤에 먼저 깔고** 그 위에 글자를 얹는다. 자식 순서가 곧 그리는 순서다.
+	# 창밖 공간 → 손님 → 관찰 정보 순서다. 같은 크기의 레이어가 겹쳐 한 장면이 된다.
+	_window = CustomerWindow.new()
+	add_child(_window)
 	_figure = CustomerFigure.new()
 	add_child(_figure)
 
@@ -114,6 +120,12 @@ func set_pressure_stage(stage: int) -> void:
 		return
 	_pressure.text = _t(str(PRESSURE_KEYS[stage]))
 	Juice.fade_in(_pressure, PRESSURE_FADE)
+
+
+## 환경 변화는 화면에 이미 공개된 압박 수치만 받는다. 손님의 정체와는 무관하다.
+func set_tension(value: float) -> void:
+	if _window != null:
+		_window.set_tension(value)
 
 
 ## 테두리가 천천히 밝아졌다 꺼진다. 손님이 카운터를 두드리는 것과 같은 박자다.
