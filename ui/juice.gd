@@ -45,6 +45,16 @@ static func press(node: Control, duration: float) -> void:
 	tween.tween_property(node, "scale", Vector2.ONE, duration * 0.7)
 
 
+## 스캐너가 물건에 닿았다가 스프링으로 돌아오는 세 박자. 단순 축소보다 손에 남는다.
+static func rebound(node: Control, duration: float) -> void:
+	node.pivot_offset = node.size * 0.5
+	var tween := node.create_tween()
+	tween.set_ease(EASE).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(node, "scale", Vector2(0.90, 0.88), duration * 0.22)
+	tween.tween_property(node, "scale", Vector2(1.05, 1.07), duration * 0.36)
+	tween.tween_property(node, "scale", Vector2.ONE, duration * 0.42)
+
+
 ## 감쇠하는 흔들림. 감쇠가 없으면 그냥 멀미다.
 ## **앵커가 걸린 Control에 `position`을 쓰면 움직이는 게 아니라 늘어난다.**
 ##

@@ -24,7 +24,10 @@ const TOOTH_HEIGHT := 7.0
 const SLIP_WIDTH := 228.0
 ## 슬롯에서 올라오는 거리와 시간.
 const RISE_PIXELS := 26.0
-const RISE_SECONDS := 0.26
+const RESIST_PIXELS := 9.0
+const RESIST_SECONDS := 0.12
+const SNAP_SECONDS := 0.18
+const EDGE_RECOIL_PIXELS := 3.0
 
 var _strings: Dictionary = {}
 ## 컨테이너 **안에 넣지 않는다.** 넣으면 배치가 위치를 관리해서 「올라오는」 트윈이
@@ -33,6 +36,7 @@ var _paper: PanelContainer = null
 var _lines: VBoxContainer = null
 var _teeth: Polygon2D = null
 var _tween: Tween = null
+var _edge_tween: Tween = null
 
 
 func _init() -> void:
@@ -160,11 +164,25 @@ func _rule() -> void:
 	_lines.add_child(line)
 
 
-## 슬롯에서 한 뼘 올라온다. 스캔에 **물리적 결과**를 붙이는 것이 이 연출의 전부다.
+## 슬롯에 잠깐 걸렸다가 톱니가 놓이며 올라온다. 등속이면 종이가 아니라 라벨 이동이다.
 func _rise() -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_paper.position.y += RISE_PIXELS
 	_tween = create_tween()
-	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_tween.tween_property(_paper, "position:y", 0.0, RISE_SECONDS)
+	_tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(_paper, "position:y", RESIST_PIXELS, RESIST_SECONDS)
+	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_tween.tween_property(_paper, "position:y", -2.0, SNAP_SECONDS * 0.58)
+	_tween.tween_property(_paper, "position:y", 0.0, SNAP_SECONDS * 0.42)
+	_recoil_edge()
+
+
+func _recoil_edge() -> void:
+	if _edge_tween != null and _edge_tween.is_valid():
+		_edge_tween.kill()
+	_teeth.position.y = EDGE_RECOIL_PIXELS
+	_edge_tween = create_tween()
+	_edge_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_edge_tween.tween_property(_teeth, "position:y", -1.0, RESIST_SECONDS)
+	_edge_tween.tween_property(_teeth, "position:y", 0.0, SNAP_SECONDS)

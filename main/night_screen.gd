@@ -76,6 +76,7 @@ func _build() -> void:
 	_view.result.continued.connect(_on_continue)
 
 	_effects = ScreenEffects.new()
+	_effects.configure(_balance.get("graphics", {}) as Dictionary)
 	add_child(_effects)
 	# 클립보드 자리를 셰이더에 알려준다. **매끄러운 휘도 효과가 종이 단서와 경쟁하기 때문이다**
 	# (crt.gdshader 주석 참고). 수칙이 붙거나 찢기면 높이가 바뀌므로 그때마다 다시 넘긴다.

@@ -14,6 +14,7 @@ const ReceiptSlip := preload("res://ui/pos/receipt_slip.gd")
 const ProductGlyph := preload("res://ui/art/product_glyph.gd")
 
 const PRESS_DURATION := 0.18
+const SCAN_REBOUND_SECONDS := 0.24
 
 signal verdict_chosen(kind: String)
 signal item_scanned
@@ -187,7 +188,7 @@ func check_id() -> bool:
 func _on_scan_pressed(key: String, button: Button) -> void:
 	if not scan(key):
 		return
-	Juice.press(button, PRESS_DURATION)
+	Juice.rebound(button, SCAN_REBOUND_SECONDS)
 	button.disabled = true
 
 
