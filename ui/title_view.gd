@@ -7,12 +7,12 @@ extends Control
 ##   ② 수칙 전부가 참인 것은 아니다 (= 왜 어려운가)
 ## 둘째 줄은 **한 박자 늦게** 뜬다. 첫 줄을 읽고 "쉽네"라고 생각한 다음에 와야 한다.
 ##
-## 간판은 형광등처럼 깜빡인다. 이미지가 아니라 modulate 트윈이다 (CLAUDE.md 1.1).
+## 간판은 형광등처럼 깜빡이고, 배경은 출시용 래스터 원화를 쓴다.
 ## 실존 편의점 브랜드는 쓰지 않는다 — 「밤샘마트」는 가상 상호다 (CLAUDE.md 7절).
 
 const Palette := preload("res://ui/theme_factory.gd")
 const Juice := preload("res://ui/juice.gd")
-const StoreBackdrop := preload("res://ui/art/store_backdrop.gd")
+const TITLE_ART := preload("res://assets/art/title-storefront.png")
 
 const SIGN_SIZE := 58
 
@@ -20,7 +20,7 @@ const TWIST_DELAY := 1.9
 const TWIST_FADE := 1.4
 const PROMPT_DELAY := 2.9
 const PROMPT_PULSE := 1.6
-const PROMPT_LOW := 0.25
+const PROMPT_LOW := 0.55
 
 ## 형광등이 안정되기까지. 값은 (알파, 유지시간) 쌍이다.
 const SIGN_FLICKER := [
@@ -35,8 +35,17 @@ var _prompt: Label = null
 
 func build(strings: Dictionary, save_night: int, finished: bool = false) -> void:
 	_strings = strings
-	var backdrop := StoreBackdrop.new()
+	var backdrop := TextureRect.new()
+	backdrop.texture = TITLE_ART
+	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(backdrop)
+	var veil := ColorRect.new()
+	veil.color = Color(0.015, 0.020, 0.022, 0.54)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(veil)
 
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -51,7 +60,7 @@ func build(strings: Dictionary, save_night: int, finished: bool = false) -> void
 	_twist.modulate.a = 0.0
 	column.add_child(_spacer(34))
 	_add_progress(column, save_night, finished)
-	_prompt = _add_centered(column, "title.start", Palette.SIZE_BODY, Palette.TEXT_DIM)
+	_prompt = _add_centered(column, "title.start", Palette.SIZE_BODY, Palette.TEXT)
 	_prompt.modulate.a = 0.0
 	_stretch_to_screen()
 
