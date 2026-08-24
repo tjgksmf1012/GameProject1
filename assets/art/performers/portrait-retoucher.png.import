@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qbul3eojtg5"
-path="res://.godot/imported/student.png-3577293bf9ed9c4fc70bc6f584b6e4bd.ctex"
+uid="uid://dl4oitc7hvcr7"
+path="res://.godot/imported/portrait-retoucher.png-c72c89a74cedbcbb8f3dde62a882babc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/customers/student.png"
-dest_files=["res://.godot/imported/student.png-3577293bf9ed9c4fc70bc6f584b6e4bd.ctex"]
+source_file="res://assets/art/performers/portrait-retoucher.png"
+dest_files=["res://.godot/imported/portrait-retoucher.png-c72c89a74cedbcbb8f3dde62a882babc.ctex"]
 
 [params]
 
