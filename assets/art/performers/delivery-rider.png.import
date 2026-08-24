@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bshtvisp2agex"
-path="res://.godot/imported/office-worker.png-dc1fc4b95d55ddcf06f74ea5bb4ed50c.ctex"
+uid="uid://30r2d5r3fnjf"
+path="res://.godot/imported/delivery-rider.png-160df482d2aa6c26f0bfb5ba23156149.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/customers/office-worker.png"
-dest_files=["res://.godot/imported/office-worker.png-dc1fc4b95d55ddcf06f74ea5bb4ed50c.ctex"]
+source_file="res://assets/art/performers/delivery-rider.png"
+dest_files=["res://.godot/imported/delivery-rider.png-160df482d2aa6c26f0bfb5ba23156149.ctex"]
 
 [params]
 

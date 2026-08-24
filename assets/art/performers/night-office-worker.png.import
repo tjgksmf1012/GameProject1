@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy2g6cuyo70e3"
-path="res://.godot/imported/older-woman.png-077f79e641fc68bd3e6cdde8d38ad5bf.ctex"
+uid="uid://bqxpsw5m21i26"
+path="res://.godot/imported/night-office-worker.png-0f06ab785d09a4fbdae483884e219fc3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/customers/older-woman.png"
-dest_files=["res://.godot/imported/older-woman.png-077f79e641fc68bd3e6cdde8d38ad5bf.ctex"]
+source_file="res://assets/art/performers/night-office-worker.png"
+dest_files=["res://.godot/imported/night-office-worker.png-0f06ab785d09a4fbdae483884e219fc3.ctex"]
 
 [params]
 

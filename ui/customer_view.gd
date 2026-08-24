@@ -12,6 +12,9 @@ const CustomerWindow := preload("res://ui/art/customer_window.gd")
 
 const RISE_DURATION := 0.3
 const PRESSURE_FADE := 0.5
+const DIALOGUE_START_DELAY := 0.38
+const DIALOGUE_CHAR_SECONDS := 0.032
+const DIALOGUE_PUNCTUATION_SECONDS := 0.12
 ## 마지막 단계에서만 테두리가 맥동한다.
 ##
 ## 첫 단계에는 일부러 아무것도 안 한다. 읽기 부하를 재보니 **처음 보는 사람은 밤 1부터
@@ -38,6 +41,12 @@ var _cctv_traits: PackedStringArray = []
 var _stage: int = PatienceClock.STAGE_CALM
 var _edge: StyleBoxFlat = null
 var _pulse: Tween = null
+var _dialogue_full := ""
+var _dialogue_cursor := 0
+var _dialogue_elapsed := 0.0
+var _dialogue_next_delay := 0.0
+var _dialogue_revealing := false
+var _dialogue_silent := false
 
 
 func _init() -> void:
@@ -99,11 +108,54 @@ func show_customer(customer: Customer) -> void:
 		bool(customer.get_trait("hides_face")), bool(customer.get_trait("is_wet")),
 		customer.item_keys)
 	_name.text = _t(customer.name_key)
-	_dialogue.text = _dialogue_text(customer)
+	_start_dialogue(customer)
 	_pressure.text = ""
 	_pressure.modulate.a = 0.0
 	_fill_traits(customer)
 	Juice.fade_in(_body, RISE_DURATION)
+
+
+func _process(delta: float) -> void:
+	if not _dialogue_revealing:
+		return
+	_dialogue_elapsed += delta
+	if _dialogue_elapsed < 0.0:
+		return
+	if _dialogue_cursor == 0:
+		_figure.set_dialogue_active(true, _dialogue_silent)
+	while _dialogue_revealing and _dialogue_elapsed >= _dialogue_next_delay:
+		_dialogue_elapsed -= _dialogue_next_delay
+		_dialogue_cursor += 1
+		_dialogue.text = _dialogue_full.left(_dialogue_cursor)
+		if _dialogue_cursor >= _dialogue_full.length():
+			_dialogue_revealing = false
+			_figure.set_dialogue_active(false, _dialogue_silent)
+			return
+		_dialogue_next_delay = _glyph_delay(_dialogue_full.substr(_dialogue_cursor - 1, 1))
+
+
+func _start_dialogue(customer: Customer) -> void:
+	_dialogue_full = _dialogue_text(customer)
+	_dialogue.text = ""
+	_dialogue_cursor = 0
+	_dialogue_elapsed = -DIALOGUE_START_DELAY
+	_dialogue_next_delay = 0.0
+	_dialogue_silent = _is_silent_dialogue(_dialogue_full)
+	_dialogue_revealing = not _dialogue_full.is_empty()
+	_figure.set_dialogue_active(false, _dialogue_silent)
+
+
+func _glyph_delay(glyph: String) -> float:
+	if glyph in [".", ",", "!", "?", "…", "\n"]:
+		return DIALOGUE_CHAR_SECONDS + DIALOGUE_PUNCTUATION_SECONDS
+	return DIALOGUE_CHAR_SECONDS
+
+
+func _is_silent_dialogue(value: String) -> bool:
+	var spoken := value
+	for mark in ["\"", "'", ".", ",", "!", "?", "…", " ", "\n", "\t"]:
+		spoken = spoken.replace(mark, "")
+	return spoken.is_empty()
 
 
 ## 손님이 오래 기다렸다. 단계가 바뀐 순간에만 부른다.

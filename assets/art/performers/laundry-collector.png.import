@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://clkelb2b2pwu0"
-path="res://.godot/imported/bag-worker.png-23ee8908d5875f87dcc3550ce5fb8fe1.ctex"
+uid="uid://dce80vabepswa"
+path="res://.godot/imported/laundry-collector.png-02e7405a5b5dbf3fc4bcfb252e9e25de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/customers/bag-worker.png"
-dest_files=["res://.godot/imported/bag-worker.png-23ee8908d5875f87dcc3550ce5fb8fe1.ctex"]
+source_file="res://assets/art/performers/laundry-collector.png"
+dest_files=["res://.godot/imported/laundry-collector.png-02e7405a5b5dbf3fc4bcfb252e9e25de.ctex"]
 
 [params]
 

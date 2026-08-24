@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b0ddep48wgx71"
-path="res://.godot/imported/hood-bag.png-7638a565eb358da34dd9bdf1f4c86570.ctex"
+uid="uid://byge50xhkh51n"
+path="res://.godot/imported/printmaking-student.png-d2abd7ad5566655982f425780c3d2a3f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/customers/hood-bag.png"
-dest_files=["res://.godot/imported/hood-bag.png-7638a565eb358da34dd9bdf1f4c86570.ctex"]
+source_file="res://assets/art/performers/printmaking-student.png"
+dest_files=["res://.godot/imported/printmaking-student.png-d2abd7ad5566655982f425780c3d2a3f.ctex"]
 
 [params]
 
